@@ -26,6 +26,17 @@ Cette URL contient un mot de passe : elle ne doit apparaître que dans
 les variables d'environnement de l'API, jamais dans le code ni dans un
 ticket ou un message.
 
+**SSL** : beaucoup de bases PostgreSQL hébergées exigent une connexion
+chiffrée, ce qui passe souvent par un paramètre ajouté à l'URL, par
+exemple `?sslmode=require`. C'est **à vérifier dans la documentation du
+fournisseur**, qui donne en général l'URL complète à copier. Ce projet
+n'a été testé que contre une base locale sans SSL : le comportement
+exact du pilote (`pg`, via `@prisma/adapter-pg`) face à tel ou tel
+paramètre SSL n'a pas été vérifié. Si `migrate:deploy` ou le démarrage
+de l'API échouent avec une erreur qui mentionne SSL, TLS ou un
+certificat, reprenez les paramètres de connexion recommandés par le
+fournisseur.
+
 ## 2. Variables d'environnement de l'API (`server/`)
 
 Toutes sont documentées dans `server/.env.example`. Sur l'hébergeur, on
@@ -189,6 +200,15 @@ répondre `{"status":"ok",…}`.
 - Si l'adresse finale du site diffère de celle mise dans `CORS_ORIGIN`
   (domaine personnalisé ajouté ensuite…), mettez `CORS_ORIGIN` à jour
   côté API et redémarrez-la.
+- **Prévisualisations Vercel** : chaque déploiement de prévisualisation
+  (branche, pull request) a sa propre adresse, qui n'est **pas** dans
+  `CORS_ORIGIN` : sur ces adresses, le site s'affiche mais ses appels à
+  l'API sont bloqués par le navigateur (erreur CORS). `CORS_ORIGIN` ne
+  comprend pas de joker : chaque adresse est comparée à l'identique, et
+  `https://*.vercel.app` n'autoriserait rien d'autre que ce texte exact
+  (vérifié). Testez donc sur l'adresse de production ; pour tester une
+  prévisualisation, ajoutez temporairement son adresse exacte à
+  `CORS_ORIGIN`, redémarrez l'API, puis retirez-la.
 
 ---
 
