@@ -807,6 +807,15 @@ app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), a
     const result = await validateUserBody(req.body, { userId });
     if (result.error) return res.status(result.status).json({ error: result.error });
 
+    // Garde-fou, même logique que l'auto-désactivation : un admin ne
+    // change pas son PROPRE niveau. Sinon il pourrait se rétrograder par
+    // erreur et perdre l'accès à l'Espace Secrétariat (le dernier admin
+    // verrouillerait tout le monde dehors). Ses autres champs restent
+    // modifiables. req.user.level est le niveau ACTUEL relu en base.
+    if (userId === req.user.userId && result.data.level !== req.user.level) {
+      return res.status(409).json({ error: 'Vous ne pouvez pas modifier votre propre niveau d\'accès. Demandez à un autre administrateur.' });
+    }
+
     const data = { ...result.data };
     if (result.password) {
       data.passwordHash = await bcrypt.hash(result.password, 10);
