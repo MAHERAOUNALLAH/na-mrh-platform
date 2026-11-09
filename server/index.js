@@ -20,6 +20,8 @@
 require('dotenv').config();                          // lit le fichier .env
 const express = require('express');                  // le framework serveur
 const cors = require('cors');                        // autorise les appels depuis React
+const helmet = require('helmet');                    // en-têtes de sécurité HTTP
+const { rateLimit } = require('express-rate-limit'); // limitation de débit par IP
 const jwt = require('jsonwebtoken');                 // fabrique et vérifie les jetons de session
 const bcrypt = require('bcryptjs');                  // hache et compare les mots de passe
 const { PrismaClient } = require('@prisma/client');  // le client base de données
@@ -53,6 +55,21 @@ if (!process.env.JWT_SECRET) {
   fatalConfig('JWT_SECRET est absente (impossible de signer les jetons de connexion).');
 }
 
+// CORS : liste blanche des sites autorisés à appeler l'API depuis un
+// navigateur. CORS_ORIGIN accepte plusieurs adresses séparées par des
+// virgules (ex. "https://na-mrh.vercel.app,https://www.na-mrh.org").
+// Sans variable : en local, seul le serveur de dev Vite (5173) ; en
+// production, on refuse de démarrer (le site ne pourrait rien appeler).
+const DEV_DEFAULT_ORIGINS = ['http://localhost:5173'];
+const configuredOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+if (IS_PRODUCTION && configuredOrigins.length === 0) {
+  fatalConfig('en production, CORS_ORIGIN doit lister l\'adresse du site (ex. https://na-mrh.vercel.app).');
+}
+const ALLOWED_ORIGINS = configuredOrigins.length > 0 ? configuredOrigins : DEV_DEFAULT_ORIGINS;
+
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
@@ -62,10 +79,88 @@ const prisma = new PrismaClient({ adapter });
 
 const app = express();
 
-app.use(cors());              // sans ça, le navigateur bloque les appels du React
+// En production, le serveur est derrière le proxy de l'hébergeur (Render,
+// Railway, Fly…) : la connexion TCP vient du proxy, et la vraie adresse
+// du visiteur n'est que dans l'en-tête X-Forwarded-For. Sans ce réglage,
+// req.ip vaudrait l'IP du proxy pour TOUT le monde, et la limitation de
+// débit bloquerait tous les visiteurs ensemble dès 10 échecs de connexion.
+// « 1 » = on fait confiance à UN seul proxy (le dernier saut) : une IP
+// inventée par le client dans X-Forwarded-For reste ignorée. Si
+// l'hébergeur empile deux proxys (ex. CDN + répartiteur), mettre
+// TRUST_PROXY=2.
+app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1));
+
+// En-têtes de sécurité. L'API ne sert que du JSON, jamais de page HTML :
+// la politique de contenu peut donc tout interdire (aucun script, aucune
+// image, pas d'affichage dans un cadre). Le reste des réglages par défaut
+// de helmet convient (nosniff, HSTS, pas de X-Powered-By…).
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+  },
+}));
+
+// Seules les origines de la liste blanche reçoivent l'en-tête
+// Access-Control-Allow-Origin. Les autres sites n'obtiennent rien : le
+// navigateur bloque alors la lecture de la réponse. (Une requête sans
+// en-tête Origin — curl, serveur à serveur — n'est pas concernée par CORS.)
+app.use(cors({ origin: ALLOWED_ORIGINS }));
+
 app.use(express.json());      // permet de lire req.body sur les POST/PUT/PATCH
 
 const PORT = Number(process.env.PORT) || 4000;   // l'hébergeur impose souvent son port via PORT
+
+// ------------------------------------------------------------
+// Limitation de débit (par IP). TOUJOURS active par défaut, et
+// impossible à couper en production.
+//   - Connexion : 10 ÉCHECS / 15 min. Les connexions réussies ne
+//     comptent pas (skipSuccessfulRequests) : tout le personnel d'une
+//     ANR sort souvent par la même IP publique, il ne doit pas se
+//     bloquer lui-même ; un attaquant qui devine, lui, échoue.
+//   - Formulaires publics (contact, réclamations) : 5 envois / heure.
+// Réglages pour le développement et les tests :
+//   RATE_LIMIT_LOGIN_MAX, RATE_LIMIT_FORMS_MAX : relèvent les plafonds ;
+//   RATE_LIMIT_DISABLED=1 : coupe tout, IGNORÉ si NODE_ENV=production.
+// ------------------------------------------------------------
+function positiveIntFromEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1) fatalConfig(`${name} doit être un entier positif (reçu : "${raw}").`);
+  return value;
+}
+const RATE_LIMIT_DISABLED = process.env.RATE_LIMIT_DISABLED === '1' && !IS_PRODUCTION;
+if (process.env.RATE_LIMIT_DISABLED === '1' && IS_PRODUCTION) {
+  console.warn('⚠️  RATE_LIMIT_DISABLED=1 ignoré : la limitation de débit reste active en production.');
+}
+
+function makeLimiter({ windowMs, limit, message, skipSuccessfulRequests = false }) {
+  return rateLimit({
+    windowMs,
+    limit,
+    skipSuccessfulRequests,
+    standardHeaders: 'draft-7',   // en-tête RateLimit-* : le client sait quand réessayer
+    legacyHeaders: false,
+    message: { error: message },  // même format JSON que nos autres erreurs
+    skip: () => RATE_LIMIT_DISABLED,
+  });
+}
+const loginLimiter = makeLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: positiveIntFromEnv('RATE_LIMIT_LOGIN_MAX', 10),
+  skipSuccessfulRequests: true,
+  message: 'Trop de tentatives de connexion depuis cette adresse. Réessayez dans 15 minutes.',
+});
+// Un compteur par formulaire : 5 messages de contact n'empêchent pas
+// de déposer une réclamation.
+const makePublicFormLimiter = () => makeLimiter({
+  windowMs: 60 * 60 * 1000,
+  limit: positiveIntFromEnv('RATE_LIMIT_FORMS_MAX', 5),
+  message: 'Trop d\'envois depuis cette adresse. Réessayez dans une heure.',
+});
+const contactLimiter = makePublicFormLimiter();
+const complaintsLimiter = makePublicFormLimiter();
 
 // ============================================================
 // 3. MIDDLEWARES D'AUTHENTIFICATION
@@ -272,7 +367,7 @@ app.get('/api/news', async (req, res) => {
 });
 
 // --- Réclamations (écriture publique) ---
-app.post('/api/complaints', async (req, res) => {
+app.post('/api/complaints', complaintsLimiter, async (req, res) => {
   try {
     const { name, email, org, countryId, nature, message } = req.body;
 
@@ -298,7 +393,7 @@ app.post('/api/complaints', async (req, res) => {
 // message dans la console — RIEN N'EST ENREGISTRÉ EN BASE. Si le
 // client veut l'historique de ces messages, il faudra ajouter une
 // table (ex. ContactMessage) avant la mise en production.
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', contactLimiter, async (req, res) => {
   try {
     const { name, email, org, message } = req.body;
     if (!name || !email || !message) {
@@ -323,7 +418,7 @@ app.post('/api/contact', async (req, res) => {
 // Le JWT prouve, pour les 7 prochains jours, que cette personne s'est
 // authentifiée — sans que le serveur ait à s'en souvenir entre deux
 // requêtes (on dit qu'il est "stateless").
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -965,5 +1060,6 @@ app.listen(PORT, () => {
   console.log(`✅ Serveur API démarré sur http://localhost:${PORT}`);
   console.log(`   Santé   : http://localhost:${PORT}/api/health`);
   console.log(`   Publique: http://localhost:${PORT}/api/countries`);
-  console.log(`   Mode    : ${IS_PRODUCTION ? 'production' : 'développement'}`);
+  console.log(`   Mode    : ${IS_PRODUCTION ? 'production' : 'développement'} — CORS autorisé pour : ${ALLOWED_ORIGINS.join(', ')}`);
+  if (RATE_LIMIT_DISABLED) console.log('   ⚠️  Limitation de débit DÉSACTIVÉE (RATE_LIMIT_DISABLED=1, hors production)');
 });
