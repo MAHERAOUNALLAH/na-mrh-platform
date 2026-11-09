@@ -24,18 +24,21 @@
 //      Puis l'effacer : unset ADMIN_PASSWORD / Remove-Item Env:ADMIN_PASSWORD
 //
 // Le script n'affiche jamais le mot de passe, ni DATABASE_URL.
-// Il refuse si l'e-mail existe déjà (quelle que soit la casse).
+// L'e-mail est enregistré en minuscules (« Admin.Reel@… » → « admin.reel@… »),
+// comme partout ailleurs : la connexion fonctionne quelle que soit la
+// casse tapée. Il refuse si l'e-mail existe déjà (quelle que soit la casse).
 // ============================================================
 
 const bcrypt = require('bcryptjs');
 const { fail, parseDatabaseUrl, createPrisma } = require('../prisma/script-utils');
+const { normalizeEmail, isValidEmail } = require('../utils/email');
 
 // Mêmes règles que l'API (validateUserBody dans index.js) et même coût
-// bcrypt que les autres comptes.
+// bcrypt que les autres comptes. L'e-mail est enregistré en minuscules
+// (utils/email.js) : c'est ainsi que la connexion le recherche.
 const PASSWORD_MIN_LENGTH = 12;
 const PASSWORD_MAX_BYTES = 72;   // bcrypt ignore tout au-delà de 72 octets
 const BCRYPT_COST = 10;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ---------- Arguments : --name, --email, --country ----------
 function parseArgs(argv) {
@@ -99,13 +102,13 @@ async function readPassword() {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const name = args.name || '';
-  const email = args.email || '';
+  const email = normalizeEmail(args.email);   // minuscules, sans espaces
   const countryId = args.country || null;
 
   if (!name) fail('Le nom est obligatoire : --name "Prénom Nom".');
   if (name.length > 200) fail('Le nom dépasse 200 caractères.');
   if (!email) fail('L\'e-mail est obligatoire : --email adresse@domaine.org.');
-  if (email.length > 254 || !EMAIL_PATTERN.test(email)) fail(`Adresse e-mail invalide : "${email}".`);
+  if (!isValidEmail(email)) fail(`Adresse e-mail invalide : "${args.email}".`);
 
   const target = parseDatabaseUrl();
   const prisma = createPrisma();

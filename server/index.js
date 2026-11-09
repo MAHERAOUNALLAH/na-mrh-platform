@@ -26,6 +26,7 @@ const jwt = require('jsonwebtoken');                 // fabrique et vérifie les
 const bcrypt = require('bcryptjs');                  // hache et compare les mots de passe
 const { PrismaClient, UserLevel, OrgRole } = require('@prisma/client');  // client base + enums du schéma
 const { PrismaPg } = require('@prisma/adapter-pg');  // l'adaptateur Prisma 7
+const { normalizeEmail, isValidEmail } = require('./utils/email');  // e-mails toujours en minuscules
 
 // ------------------------------------------------------------
 // Vérifications au démarrage : mieux vaut un serveur qui REFUSE de
@@ -435,12 +436,16 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
 // requêtes (on dit qu'il est "stateless").
 app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { email, password } = req.body || {};
+    // E-mail normalisé (minuscules, sans espaces) AVANT la recherche :
+    // les comptes sont enregistrés ainsi (voir utils/email.js), et
+    // findUnique est sensible à la casse.
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail || typeof password !== 'string' || !password) {
       return res.status(400).json({ error: 'Email et mot de passe requis.' });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
     // Même message d'erreur que l'email existe ou non : on ne révèle
     // jamais à quelqu'un qui devine des comptes lesquels sont valides.
@@ -692,7 +697,6 @@ const USER_LEVELS = Object.values(UserLevel);
 const ORG_ROLES = Object.values(OrgRole);
 const PASSWORD_MIN_LENGTH = 12;
 const PASSWORD_MAX_LENGTH = 72;   // bcrypt ignore tout au-delà de 72 octets
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function validateUserBody(body, { userId = null } = {}) {
   const isCreate = userId === null;
@@ -710,9 +714,11 @@ async function validateUserBody(body, { userId = null } = {}) {
   if (!cleanName) return bad('Le nom est obligatoire.');
   if (cleanName.length > 200) return bad('Le nom dépasse 200 caractères.');
 
-  const cleanEmail = (email || '').trim();
+  // Toujours en minuscules, sans espaces (voir utils/email.js) : c'est
+  // ainsi que la connexion la recherchera.
+  const cleanEmail = normalizeEmail(email);
   if (!cleanEmail) return bad('L\'adresse e-mail est obligatoire.');
-  if (cleanEmail.length > 254 || !EMAIL_PATTERN.test(cleanEmail)) return bad('L\'adresse e-mail est invalide.');
+  if (!isValidEmail(cleanEmail)) return bad('L\'adresse e-mail est invalide.');
 
   if (!level) return bad('Le niveau d\'accès est obligatoire.');
   if (!USER_LEVELS.includes(level)) return bad(`Niveau d'accès inconnu. Valeurs permises : ${USER_LEVELS.join(', ')}.`);
@@ -752,9 +758,10 @@ async function validateUserBody(body, { userId = null } = {}) {
     cleanFunctions = [];
   }
 
-  // Unicité de l'e-mail, sans tenir compte de la casse : « Y.Demouri@… »
-  // et « y.demouri@… » désignent la même boîte. On exclut l'utilisateur
-  // modifié lui-même.
+  // Unicité de l'e-mail. cleanEmail est déjà en minuscules, mais la
+  // comparaison reste insensible à la casse : elle détecte aussi une
+  // adresse en majuscules restée dans une base pas encore normalisée
+  // (voir DEPLOY.md). On exclut l'utilisateur modifié lui-même.
   const duplicate = await prisma.user.findFirst({
     where: {
       email: { equals: cleanEmail, mode: 'insensitive' },

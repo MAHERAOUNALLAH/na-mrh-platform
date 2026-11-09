@@ -122,8 +122,11 @@ minimum) n'est **jamais** passé en argument :
 `$env:ADMIN_PASSWORD = '…'` (PowerShell) — la valeur, écrite dans la
 commande, resterait dans l'historique du shell.
 
-Le script refuse si l'adresse existe déjà. Les comptes suivants se
-créent depuis l'Espace Secrétariat → Utilisateurs.
+L'adresse est enregistrée **en minuscules** (`Admin.Reel@…` devient
+`admin.reel@…`) ; la connexion fonctionne ensuite quelle que soit la
+casse tapée. Le script refuse si l'adresse existe déjà, quelle que soit
+sa casse. Les comptes suivants se créent depuis l'Espace Secrétariat →
+Utilisateurs (même règle des minuscules).
 
 ## 7. Démarrer l'API
 
@@ -197,3 +200,52 @@ répondre `{"status":"ok",…}`.
 - [ ] **7. Secrets** : `JWT_SECRET` de production est neuf (pas celui de
   l'historique Git), et `ADMIN_PASSWORD` n'est plus définie sur
   l'hébergeur ni dans votre session.
+
+---
+
+## Annexe — base déjà en service : e-mails en minuscules
+
+Depuis cette version, les e-mails des comptes sont **enregistrés et
+recherchés en minuscules** (création, modification et connexion). Une
+base remplie **avant** cette règle peut contenir des adresses avec des
+majuscules (ex. `Admin.Reel@exemple.org`) : leurs titulaires ne
+pourraient plus se connecter, puisque la connexion cherche
+`admin.reel@exemple.org`. Une base créée en suivant ce document n'est
+pas concernée.
+
+À exécuter dans la console SQL de l'hébergeur (ou `psql`), **sans écrire
+l'URL de la base dans une commande** (voir l'étape 4), de préférence
+après une sauvegarde :
+
+**1. Lister d'abord les adresses qui ne diffèrent que par la casse.**
+
+```sql
+SELECT lower(trim(email)) AS adresse_normalisee,
+       count(*)            AS comptes,
+       string_agg(id || ' : ' || email, ' | ' ORDER BY id) AS detail
+FROM users
+GROUP BY lower(trim(email))
+HAVING count(*) > 1;
+```
+
+Si cette requête renvoie des lignes, **ne pas lancer l'étape 2** : ces
+comptes sont en conflit (même boîte aux lettres, plusieurs comptes).
+Décidez lequel garder pour chaque adresse, et donnez aux autres une
+adresse différente (ou désactivez-les et changez leur adresse) depuis
+l'Espace Secrétariat, puis relancez la requête 1 jusqu'à ce qu'elle ne
+renvoie plus rien. (Si l'étape 2 était lancée malgré tout, la contrainte
+d'unicité de la colonne la ferait échouer en entier, sans rien modifier.)
+
+**2. Normaliser.**
+
+```sql
+UPDATE users
+SET email = lower(trim(email))
+WHERE email <> lower(trim(email));
+```
+
+**3. Vérifier** : cette requête doit renvoyer `0`.
+
+```sql
+SELECT count(*) FROM users WHERE email <> lower(trim(email));
+```
