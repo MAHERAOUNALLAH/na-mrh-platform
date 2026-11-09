@@ -1,0 +1,26 @@
+# Dépendances
+node_modules/
+
+# Secrets : ne jamais versionner (voir server/.env.example)
+.env
+.env.*
+!.env.example
+
+# Builds
+dist/
+dist-ssr/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Éditeurs / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.sw?
