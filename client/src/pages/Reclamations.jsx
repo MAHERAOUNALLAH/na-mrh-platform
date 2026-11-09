@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
+import { apiGet, apiPost } from '../utils/api';
 
 // Style partagé pour les <select> — la maquette n'a pas de règle CSS
 // générique pour ça, chaque <select> est stylé en ligne (voir CLAUDE.md).
@@ -22,8 +23,7 @@ function Reclamations() {
 
   const [countries, setCountries] = useState([]);
   useEffect(() => {
-    fetch('http://localhost:4000/api/countries')
-      .then((r) => r.json())
+    apiGet('/api/countries')
       .then(setCountries)
       .catch((err) => console.error('Erreur de chargement des pays :', err));
   }, []);
@@ -40,15 +40,7 @@ function Reclamations() {
     e.preventDefault();
     setStatus('sending');
 
-    fetch('http://localhost:4000/api/complaints', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error('Échec de l\'envoi');
-        return r.json();
-      })
+    apiPost('/api/complaints', null, form)
       .then(() => {
         setStatus('success');
         setForm({ name: '', org: '', countryId: '', nature: 'service', message: '' });

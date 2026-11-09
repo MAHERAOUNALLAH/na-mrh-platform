@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { apiGet } from '../../utils/api';
 
 function Dashboard() {
   const { token } = useAuth();
@@ -14,16 +15,9 @@ function Dashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/admin/dashboard', {
-      // La différence clé avec toutes les routes publiques d'avant :
-      // on doit prouver qui on est à chaque appel.
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (r) => {
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error || 'Erreur de chargement');
-        return data;
-      })
+    // La différence clé avec toutes les routes publiques d'avant :
+    // on doit prouver qui on est à chaque appel (token en 2e argument).
+    apiGet('/api/admin/dashboard', token)
       .then(setStats)
       .catch((err) => setError(err.message));
   }, [token]);

@@ -10,6 +10,7 @@
 // ============================================================
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiGet } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -28,13 +29,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return;
     }
-    fetch('http://localhost:4000/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error('Session invalide');
-        return r.json();
-      })
+    apiGet('/api/auth/me', token)
       .then((data) => setUser(data.user))
       .catch(() => {
         // Le token est périmé ou invalide : on nettoie tout

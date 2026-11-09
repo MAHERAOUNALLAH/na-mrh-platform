@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
+import { apiGet } from '../utils/api';
 import Flag from '../components/Flag';
 
 function Members() {
@@ -19,8 +20,7 @@ function Members() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/countries')
-      .then((response) => response.json())
+    apiGet('/api/countries')
       .then((data) => {
         setCountries(data);
         setLoading(false);
