@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
 import Flag from '../components/Flag';
+import { apiGet } from '../utils/api';
 
 function Home() {
   const { t, i18n } = useTranslation();
@@ -29,9 +30,9 @@ function Home() {
     // après l'autre : on attend le temps du plus lent des trois, pas
     // la somme des trois. Si l'une des 3 échoue, .catch() se déclenche.
     Promise.all([
-      fetch('http://localhost:4000/api/countries').then((r) => r.json()),
-      fetch('http://localhost:4000/api/twgs').then((r) => r.json()),
-      fetch('http://localhost:4000/api/news').then((r) => r.json()),
+      apiGet('/api/countries'),
+      apiGet('/api/twgs'),
+      apiGet('/api/news'),
     ])
       .then(([countriesData, twgsData, newsData]) => {
         setCountries(countriesData);

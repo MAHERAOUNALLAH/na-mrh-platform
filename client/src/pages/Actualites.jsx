@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
+import { apiGet } from '../utils/api';
 
 function Actualites() {
   const { t, i18n } = useTranslation();
@@ -15,8 +16,7 @@ function Actualites() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/news')
-      .then((r) => r.json())
+    apiGet('/api/news')
       .then((data) => {
         setNews(data);
         setLoading(false);

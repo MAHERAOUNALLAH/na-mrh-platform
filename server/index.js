@@ -20,10 +20,56 @@
 require('dotenv').config();                          // lit le fichier .env
 const express = require('express');                  // le framework serveur
 const cors = require('cors');                        // autorise les appels depuis React
+const helmet = require('helmet');                    // en-têtes de sécurité HTTP
+const { rateLimit } = require('express-rate-limit'); // limitation de débit par IP
 const jwt = require('jsonwebtoken');                 // fabrique et vérifie les jetons de session
 const bcrypt = require('bcryptjs');                  // hache et compare les mots de passe
-const { PrismaClient } = require('@prisma/client');  // le client base de données
+const { PrismaClient, UserLevel, OrgRole } = require('@prisma/client');  // client base + enums du schéma
 const { PrismaPg } = require('@prisma/adapter-pg');  // l'adaptateur Prisma 7
+const { normalizeEmail, isValidEmail } = require('./utils/email');  // e-mails toujours en minuscules
+
+// ------------------------------------------------------------
+// Vérifications au démarrage : mieux vaut un serveur qui REFUSE de
+// démarrer avec un message clair qu'un serveur qui tourne mal configuré.
+// Toutes les variables sont décrites dans server/.env.example.
+// ------------------------------------------------------------
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+function fatalConfig(message) {
+  console.error(`❌ Configuration invalide : ${message}`);
+  console.error('   Voir server/.env.example. Le serveur ne démarre pas.');
+  process.exit(1);
+}
+
+if (!process.env.DATABASE_URL) {
+  fatalConfig('DATABASE_URL est absente.');
+}
+
+// JWT_SECRET signe les jetons : quiconque le connaît peut fabriquer un
+// jeton secretariat_admin. En production, il doit être long et aléatoire.
+const JWT_SECRET_MIN_LENGTH = 32;
+if (IS_PRODUCTION && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < JWT_SECRET_MIN_LENGTH)) {
+  fatalConfig(`en production (NODE_ENV=production), JWT_SECRET doit faire au moins ${JWT_SECRET_MIN_LENGTH} caractères. `
+    + 'Générez-en un : node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"');
+}
+if (!process.env.JWT_SECRET) {
+  fatalConfig('JWT_SECRET est absente (impossible de signer les jetons de connexion).');
+}
+
+// CORS : liste blanche des sites autorisés à appeler l'API depuis un
+// navigateur. CORS_ORIGIN accepte plusieurs adresses séparées par des
+// virgules (ex. "https://na-mrh.vercel.app,https://www.na-mrh.org").
+// Sans variable : en local, seul le serveur de dev Vite (5173) ; en
+// production, on refuse de démarrer (le site ne pourrait rien appeler).
+const DEV_DEFAULT_ORIGINS = ['http://localhost:5173'];
+const configuredOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+if (IS_PRODUCTION && configuredOrigins.length === 0) {
+  fatalConfig('en production, CORS_ORIGIN doit lister l\'adresse du site (ex. https://na-mrh.vercel.app).');
+}
+const ALLOWED_ORIGINS = configuredOrigins.length > 0 ? configuredOrigins : DEV_DEFAULT_ORIGINS;
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -33,10 +79,104 @@ const prisma = new PrismaClient({ adapter });
 // ============================================================
 
 const app = express();
-app.use(cors());              // sans ça, le navigateur bloque les appels du React
+
+// TRUST_PROXY = nombre de proxys entre Internet et ce serveur. Défaut : 1.
+// Chez un hébergeur, la connexion TCP arrive presque toujours d'un proxy
+// (répartiteur de charge), et la vraie adresse du visiteur n'est que dans
+// l'en-tête X-Forwarded-For. Express lit cet en-tête en partant de la
+// droite et saute autant d'entrées qu'il y a de proxys de confiance.
+//   - Valeur TROP BASSE (0 alors qu'il y a un proxy) : req.ip vaut l'IP
+//     du proxy pour TOUT le monde → un seul compteur pour tous les
+//     visiteurs : 10 mots de passe faux de n'importe qui bloquent la
+//     connexion de tous, 5 messages de contact bloquent le formulaire
+//     pour tous.
+//   - Valeur TROP HAUTE (1 alors que le serveur est exposé directement,
+//     2 alors qu'il n'y a qu'un proxy) : req.ip vient d'une entrée que le
+//     client écrit lui-même → un attaquant change d'IP à volonté et
+//     contourne la limitation.
+// Voir server/.env.example et la vérification dans DEPLOY.md.
+const TRUST_PROXY = (() => {
+  const raw = process.env.TRUST_PROXY;
+  if (raw === undefined || raw === '') return 1;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 0) {
+    fatalConfig(`TRUST_PROXY doit être un entier ≥ 0 : 0 = pas de proxy, 1 = un proxy devant le serveur (reçu : "${raw}").`);
+  }
+  return value;
+})();
+app.set('trust proxy', TRUST_PROXY);
+
+// En-têtes de sécurité. L'API ne sert que du JSON, jamais de page HTML :
+// la politique de contenu peut donc tout interdire (aucun script, aucune
+// image, pas d'affichage dans un cadre). Le reste des réglages par défaut
+// de helmet convient (nosniff, HSTS, pas de X-Powered-By…).
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+  },
+}));
+
+// Seules les origines de la liste blanche reçoivent l'en-tête
+// Access-Control-Allow-Origin. Les autres sites n'obtiennent rien : le
+// navigateur bloque alors la lecture de la réponse. (Une requête sans
+// en-tête Origin — curl, serveur à serveur — n'est pas concernée par CORS.)
+app.use(cors({ origin: ALLOWED_ORIGINS }));
+
 app.use(express.json());      // permet de lire req.body sur les POST/PUT/PATCH
 
-const PORT = 4000;
+const PORT = Number(process.env.PORT) || 4000;   // l'hébergeur impose souvent son port via PORT
+
+// ------------------------------------------------------------
+// Limitation de débit (par IP). TOUJOURS active par défaut, et
+// impossible à couper en production.
+//   - Connexion : 10 ÉCHECS / 15 min. Les connexions réussies ne
+//     comptent pas (skipSuccessfulRequests) : tout le personnel d'une
+//     ANR sort souvent par la même IP publique, il ne doit pas se
+//     bloquer lui-même ; un attaquant qui devine, lui, échoue.
+//   - Formulaires publics (contact, réclamations) : 5 envois / heure.
+// Réglages pour le développement et les tests :
+//   RATE_LIMIT_LOGIN_MAX, RATE_LIMIT_FORMS_MAX : relèvent les plafonds ;
+//   RATE_LIMIT_DISABLED=1 : coupe tout, IGNORÉ si NODE_ENV=production.
+// ------------------------------------------------------------
+function positiveIntFromEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1) fatalConfig(`${name} doit être un entier positif (reçu : "${raw}").`);
+  return value;
+}
+const RATE_LIMIT_DISABLED = process.env.RATE_LIMIT_DISABLED === '1' && !IS_PRODUCTION;
+if (process.env.RATE_LIMIT_DISABLED === '1' && IS_PRODUCTION) {
+  console.warn('⚠️  RATE_LIMIT_DISABLED=1 ignoré : la limitation de débit reste active en production.');
+}
+
+function makeLimiter({ windowMs, limit, message, skipSuccessfulRequests = false }) {
+  return rateLimit({
+    windowMs,
+    limit,
+    skipSuccessfulRequests,
+    standardHeaders: 'draft-7',   // en-tête RateLimit-* : le client sait quand réessayer
+    legacyHeaders: false,
+    message: { error: message },  // même format JSON que nos autres erreurs
+    skip: () => RATE_LIMIT_DISABLED,
+  });
+}
+const loginLimiter = makeLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: positiveIntFromEnv('RATE_LIMIT_LOGIN_MAX', 10),
+  skipSuccessfulRequests: true,
+  message: 'Trop de tentatives de connexion depuis cette adresse. Réessayez dans 15 minutes.',
+});
+// Un compteur par formulaire : 5 messages de contact n'empêchent pas
+// de déposer une réclamation.
+const makePublicFormLimiter = () => makeLimiter({
+  windowMs: 60 * 60 * 1000,
+  limit: positiveIntFromEnv('RATE_LIMIT_FORMS_MAX', 5),
+  message: 'Trop d\'envois depuis cette adresse. Réessayez dans une heure.',
+});
+const contactLimiter = makePublicFormLimiter();
+const complaintsLimiter = makePublicFormLimiter();
 
 // ============================================================
 // 3. MIDDLEWARES D'AUTHENTIFICATION
@@ -45,7 +185,16 @@ const PORT = 4000;
 // "Êtes-vous connecté ?" — vérifie le jeton envoyé par le client.
 // Si oui, req.user devient disponible dans la route et on continue
 // avec next(). Sinon on arrête tout : la route ne s'exécute jamais.
-function requireAuth(req, res, next) {
+//
+// ⚠️ RÉVOCATION DE SESSION : le jeton ne prouve qu'une chose, « cette
+// personne s'est connectée il y a moins de 7 jours ». Il ne dit rien de
+// son compte AUJOURD'HUI. On relit donc l'utilisateur en base à CHAQUE
+// requête, et ce sont son isActive et son level ACTUELS qui comptent :
+//   - compte désactivé ou supprimé → 401 immédiat, même jeton valide ;
+//   - compte rétrogradé → req.user.level est le nouveau niveau, donc
+//     requireRole répond 403 dès la requête suivante.
+// Ne jamais remplir req.user avec le level du jeton (il peut être périmé).
+async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;   // format attendu : "Bearer xxxxx"
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -53,13 +202,48 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Connexion requise.' });
   }
 
+  let payload;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload;   // { userId, level }
-    next();
+    payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     return res.status(401).json({ error: 'Session invalide ou expirée.' });
   }
+  if (!Number.isInteger(payload.userId)) {
+    return res.status(401).json({ error: 'Session invalide ou expirée.' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, level: true, isActive: true },
+    });
+    if (!user || !user.isActive) {
+      return res.status(401).json({ error: 'Session révoquée : ce compte est désactivé ou n\'existe plus.' });
+    }
+    req.user = { userId: user.id, level: user.level };   // valeurs fraîches, pas celles du jeton
+    next();
+  } catch (error) {
+    // Base injoignable : c'est une panne (500), pas un refus (401).
+    // Le client ne doit pas effacer la session pour autant.
+    console.error('Erreur requireAuth :', error);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+}
+
+// Les identifiants numériques des routes (/api/admin/users/:id…) arrivent
+// sous forme de texte. Number('abc') donne NaN, Number('-1') donne -1 :
+// passés à Prisma, ils provoquent une erreur 500 au lieu d'un refus clair.
+// parseId n'accepte qu'un entier strictement positif, écrit en chiffres
+// simples, et tenant dans un Int PostgreSQL (32 bits). Sinon : null.
+// Usage :
+//   const userId = parseId(req.params.id);
+//   if (userId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
+const MAX_INT_ID = 2147483647;
+const INVALID_ID_ERROR = 'Identifiant invalide : un entier strictement positif est attendu.';
+function parseId(raw) {
+  if (typeof raw !== 'string' || !/^[1-9][0-9]*$/.test(raw)) return null;
+  const id = Number(raw);
+  return id <= MAX_INT_ID ? id : null;
 }
 
 // "Et avez-vous le bon rôle ?" — à placer TOUJOURS après requireAuth,
@@ -199,7 +383,7 @@ app.get('/api/news', async (req, res) => {
 });
 
 // --- Réclamations (écriture publique) ---
-app.post('/api/complaints', async (req, res) => {
+app.post('/api/complaints', complaintsLimiter, async (req, res) => {
   try {
     const { name, email, org, countryId, nature, message } = req.body;
 
@@ -225,7 +409,7 @@ app.post('/api/complaints', async (req, res) => {
 // message dans la console — RIEN N'EST ENREGISTRÉ EN BASE. Si le
 // client veut l'historique de ces messages, il faudra ajouter une
 // table (ex. ContactMessage) avant la mise en production.
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', contactLimiter, async (req, res) => {
   try {
     const { name, email, org, message } = req.body;
     if (!name || !email || !message) {
@@ -250,14 +434,18 @@ app.post('/api/contact', async (req, res) => {
 // Le JWT prouve, pour les 7 prochains jours, que cette personne s'est
 // authentifiée — sans que le serveur ait à s'en souvenir entre deux
 // requêtes (on dit qu'il est "stateless").
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { email, password } = req.body || {};
+    // E-mail normalisé (minuscules, sans espaces) AVANT la recherche :
+    // les comptes sont enregistrés ainsi (voir utils/email.js), et
+    // findUnique est sensible à la casse.
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail || typeof password !== 'string' || !password) {
       return res.status(400).json({ error: 'Email et mot de passe requis.' });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
     // Même message d'erreur que l'email existe ou non : on ne révèle
     // jamais à quelqu'un qui devine des comptes lesquels sont valides.
@@ -495,31 +683,125 @@ app.get('/api/admin/functions', requireAuth, requireRole('secretariat_admin'), a
   }
 });
 
+// Validation commune à POST et PUT /api/admin/users (même style que
+// validateNewsBody). Le formulaire envoie toujours l'utilisateur complet ;
+// conventions du formulaire conservées :
+//   - countryId ''  → aucun pays (Secrétariat régional) ;
+//   - orgRole ''    → aucun rôle institutionnel ;
+//   - password ''   → en modification : mot de passe inchangé ;
+//   - functions absent → en modification : fonctions inchangées.
+// Les valeurs permises de level et orgRole viennent des enums du schéma
+// (importés de @prisma/client) : pas de liste recopiée à maintenir.
+// Renvoie { status, error } ou { data, functions, password }.
+const USER_LEVELS = Object.values(UserLevel);
+const ORG_ROLES = Object.values(OrgRole);
+const PASSWORD_MIN_LENGTH = 12;
+const PASSWORD_MAX_LENGTH = 72;   // bcrypt ignore tout au-delà de 72 octets
+
+async function validateUserBody(body, { userId = null } = {}) {
+  const isCreate = userId === null;
+  const bad = (error) => ({ status: 400, error });
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return bad('Corps de requête JSON attendu.');
+
+  const { name, email, password, level, countryId, orgRole, orgRoleOther, functions } = body;
+  const isOptionalString = (v) => v === undefined || v === null || typeof v === 'string';
+  for (const [label, value] of [['nom', name], ['e-mail', email], ['mot de passe', password],
+    ['niveau', level], ['pays', countryId], ['rôle institutionnel', orgRole], ['précision du rôle', orgRoleOther]]) {
+    if (!isOptionalString(value)) return bad(`Le champ ${label} doit être du texte.`);
+  }
+
+  const cleanName = (name || '').trim();
+  if (!cleanName) return bad('Le nom est obligatoire.');
+  if (cleanName.length > 200) return bad('Le nom dépasse 200 caractères.');
+
+  // Toujours en minuscules, sans espaces (voir utils/email.js) : c'est
+  // ainsi que la connexion la recherchera.
+  const cleanEmail = normalizeEmail(email);
+  if (!cleanEmail) return bad('L\'adresse e-mail est obligatoire.');
+  if (!isValidEmail(cleanEmail)) return bad('L\'adresse e-mail est invalide.');
+
+  if (!level) return bad('Le niveau d\'accès est obligatoire.');
+  if (!USER_LEVELS.includes(level)) return bad(`Niveau d'accès inconnu. Valeurs permises : ${USER_LEVELS.join(', ')}.`);
+
+  // Mot de passe : obligatoire à la création, facultatif en modification
+  // (vide = inchangé), mais s'il est fourni il respecte les mêmes règles.
+  const pwd = password || '';
+  if (isCreate && !pwd) return bad('Le mot de passe est obligatoire à la création.');
+  if (pwd && pwd.length < PASSWORD_MIN_LENGTH) return bad(`Le mot de passe doit faire au moins ${PASSWORD_MIN_LENGTH} caractères.`);
+  if (Buffer.byteLength(pwd, 'utf8') > PASSWORD_MAX_LENGTH) return bad(`Le mot de passe ne doit pas dépasser ${PASSWORD_MAX_LENGTH} octets.`);
+
+  const cleanCountry = (countryId || '').trim() || null;
+  if (cleanCountry) {
+    const country = await prisma.country.findUnique({ where: { id: cleanCountry }, select: { id: true } });
+    if (!country) return bad(`Pays inconnu : ${cleanCountry}`);
+  }
+
+  const cleanOrgRole = orgRole || null;
+  if (cleanOrgRole && !ORG_ROLES.includes(cleanOrgRole)) {
+    return bad(`Rôle institutionnel inconnu. Valeurs permises : ${ORG_ROLES.join(', ')}.`);
+  }
+  const cleanOrgRoleOther = cleanOrgRole === 'other' ? ((orgRoleOther || '').trim() || null) : null;
+  if (cleanOrgRoleOther && cleanOrgRoleOther.length > 200) return bad('La précision du rôle dépasse 200 caractères.');
+
+  let cleanFunctions;   // undefined = ne pas toucher (modification uniquement)
+  if (functions !== undefined && functions !== null) {
+    if (!Array.isArray(functions) || functions.some((c) => typeof c !== 'string')) {
+      return bad('Les fonctions doivent être une liste de codes (ex. ["MA", "PV"]).');
+    }
+    cleanFunctions = [...new Set(functions)];
+    if (cleanFunctions.length > 0) {
+      const found = await prisma.function.findMany({ where: { code: { in: cleanFunctions } }, select: { code: true } });
+      const unknown = cleanFunctions.filter((c) => !found.some((f) => f.code === c));
+      if (unknown.length > 0) return bad(`Fonction(s) inconnue(s) : ${unknown.join(', ')}`);
+    }
+  } else if (isCreate) {
+    cleanFunctions = [];
+  }
+
+  // Unicité de l'e-mail. cleanEmail est déjà en minuscules, mais la
+  // comparaison reste insensible à la casse : elle détecte aussi une
+  // adresse en majuscules restée dans une base pas encore normalisée
+  // (voir DEPLOY.md). On exclut l'utilisateur modifié lui-même.
+  const duplicate = await prisma.user.findFirst({
+    where: {
+      email: { equals: cleanEmail, mode: 'insensitive' },
+      ...(isCreate ? {} : { NOT: { id: userId } }),
+    },
+    select: { id: true },
+  });
+  if (duplicate) return { status: 409, error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' };
+
+  return {
+    data: {
+      name: cleanName, email: cleanEmail, level,
+      countryId: cleanCountry, orgRole: cleanOrgRole, orgRoleOther: cleanOrgRoleOther,
+    },
+    functions: cleanFunctions,
+    password: pwd,
+  };
+}
+
+// Course possible entre la vérification d'unicité et l'écriture : la
+// contrainte @unique de la base tranche, on la traduit en 409.
+function isUniqueEmailViolation(error) {
+  return error && error.code === 'P2002';
+}
+
 app.post('/api/admin/users', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const { name, email, password, level, countryId, orgRole, orgRoleOther, functions } = req.body;
-
-    if (!name || !email || !password || !level) {
-      return res.status(400).json({ error: 'Nom, email, mot de passe et niveau sont obligatoires.' });
-    }
-
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée.' });
-    }
+    const result = await validateUserBody(req.body);
+    if (result.error) return res.status(result.status).json({ error: result.error });
 
     // Le mot de passe n'est JAMAIS stocké en clair : bcrypt le hache
     // de façon irréversible (on ne peut que vérifier, pas relire).
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(result.password, 10);
 
     const user = await prisma.user.create({
       data: {
-        name, email, passwordHash, level,
-        countryId: countryId || null,
-        orgRole: orgRole || null,
-        orgRoleOther: orgRole === 'other' ? orgRoleOther : null,
+        ...result.data,
+        passwordHash,
         userFunctions: {
-          create: (functions || []).map((code) => ({ functionCode: code })),
+          create: result.functions.map((code) => ({ functionCode: code })),
         },
       },
       select: USER_PUBLIC_SELECT,
@@ -527,6 +809,9 @@ app.post('/api/admin/users', requireAuth, requireRole('secretariat_admin'), asyn
 
     res.status(201).json(user);
   } catch (error) {
+    if (isUniqueEmailViolation(error)) {
+      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
     console.error('Erreur POST /api/admin/users :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -535,28 +820,38 @@ app.post('/api/admin/users', requireAuth, requireRole('secretariat_admin'), asyn
 // Le mot de passe est optionnel ici : s'il est vide, on n'y touche pas.
 app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const userId = Number(req.params.id);
-    const { name, email, password, level, countryId, orgRole, orgRoleOther, functions } = req.body;
+    const userId = parseId(req.params.id);
+    if (userId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
 
-    const existing = await prisma.user.findUnique({ where: { id: userId } });
+    const existing = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
     if (!existing) return res.status(404).json({ error: 'Utilisateur introuvable.' });
 
-    const data = {
-      name, email, level,
-      countryId: countryId || null,
-      orgRole: orgRole || null,
-      orgRoleOther: orgRole === 'other' ? orgRoleOther : null,
-    };
+    const result = await validateUserBody(req.body, { userId });
+    if (result.error) return res.status(result.status).json({ error: result.error });
 
-    if (password) {
-      data.passwordHash = await bcrypt.hash(password, 10);
+    // Garde-fou, même logique que l'auto-désactivation : un admin ne
+    // change pas son PROPRE niveau. Sinon il pourrait se rétrograder par
+    // erreur et perdre l'accès à l'Espace Secrétariat (le dernier admin
+    // verrouillerait tout le monde dehors). Ses autres champs restent
+    // modifiables. req.user.level est le niveau ACTUEL relu en base.
+    if (userId === req.user.userId && result.data.level !== req.user.level) {
+      return res.status(409).json({ error: 'Vous ne pouvez pas modifier votre propre niveau d\'accès. Demandez à un autre administrateur.' });
     }
 
-    // Fonctions réglementaires : deleteMany puis create = la façon
-    // Prisma de resynchroniser une relation N-N sur une table de liaison.
-    if (functions) {
-      await prisma.userFunction.deleteMany({ where: { userId } });
-      data.userFunctions = { create: functions.map((code) => ({ functionCode: code })) };
+    const data = { ...result.data };
+    if (result.password) {
+      data.passwordHash = await bcrypt.hash(result.password, 10);
+    }
+
+    // Fonctions réglementaires : deleteMany puis create DANS le même
+    // update = une seule écriture atomique (avant, la suppression avait
+    // lieu à part, et un échec de l'update laissait l'utilisateur sans
+    // aucune fonction).
+    if (result.functions !== undefined) {
+      data.userFunctions = {
+        deleteMany: {},
+        create: result.functions.map((code) => ({ functionCode: code })),
+      };
     }
 
     const user = await prisma.user.update({
@@ -567,6 +862,9 @@ app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), a
 
     res.json(user);
   } catch (error) {
+    if (isUniqueEmailViolation(error)) {
+      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
     console.error('Erreur PUT /api/admin/users/:id :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -577,17 +875,28 @@ app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), a
 // exactement le rôle du champ isActive prévu au schéma v2 [C9].
 app.patch('/api/admin/users/:id/active', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const userId = Number(req.params.id);
-    const { isActive } = req.body;
+    const userId = parseId(req.params.id);
+    if (userId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
+    // Express 5 : req.body vaut undefined si la requête n'a pas de corps JSON.
+    const { isActive } = req.body || {};
+
+    // Un booléen strict : sans ce test, un corps vide ou { isActive: "true" }
+    // donnait Boolean(undefined) = false… et désactivait le compte.
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ error: 'Le champ isActive doit valoir true ou false.' });
+    }
 
     // Garde-fou : ne pas se désactiver soi-même et se verrouiller dehors.
     if (userId === req.user.userId && isActive === false) {
       return res.status(409).json({ error: 'Vous ne pouvez pas désactiver votre propre compte.' });
     }
 
+    const existing = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    if (!existing) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { isActive: Boolean(isActive) },
+      data: { isActive },
       select: USER_PUBLIC_SELECT,
     });
 
@@ -639,7 +948,8 @@ function visibilityForStatus(status) {
 
 app.patch('/api/admin/documents/:id/status', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const documentId = Number(req.params.id);
+    const documentId = parseId(req.params.id);
+    if (documentId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
     const { status } = req.body;
 
     if (!DOCUMENT_STATUSES.includes(status)) {
@@ -680,22 +990,91 @@ app.get('/api/admin/news', requireAuth, requireRole('secretariat_admin'), async 
   }
 });
 
+// Validation commune à POST et PUT (le formulaire envoie toujours
+// l'actualité complète). Calquée sur PUT /api/admin/twgs/:id : on nettoie
+// (trim), on vérifie les types, et on répond 400 avec un message clair
+// plutôt que de laisser Prisma échouer en 500.
+//
+// Selon le schéma (model News), les 9 textes sont NON NULLS :
+//   - titres FR/EN/AR : obligatoires et non vides ;
+//   - dates affichées ("Sept. 2026") et corps : facultatifs dans le
+//     formulaire, donc chaîne vide acceptée — mais ce doit être du texte ;
+//   - sortDate : obligatoire, date réelle au format AAAA-MM-JJ (ce que
+//     produit <input type="date">), ou ISO complet ;
+//   - publishNow : absent, true ou false.
+// Renvoie { error } ou { data } (data prêt pour Prisma, sans publishedAt).
+const NEWS_TEXT_LIMITS = {
+  dateFr: 50, dateEn: 50, dateAr: 50,
+  titleFr: 300, titleEn: 300, titleAr: 300,
+  bodyFr: 20000, bodyEn: 20000, bodyAr: 20000,
+};
+const NEWS_LABELS = {
+  dateFr: 'date affichée (FR)', dateEn: 'date affichée (EN)', dateAr: 'date affichée (AR)',
+  titleFr: 'titre (FR)', titleEn: 'titre (EN)', titleAr: 'titre (AR)',
+  bodyFr: 'texte (FR)', bodyEn: 'texte (EN)', bodyAr: 'texte (AR)',
+};
+
+function parseSortDate(value) {
+  if (typeof value !== 'string') return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/.exec(value.trim());
+  if (!match) return null;
+  const date = new Date(value.trim());
+  if (Number.isNaN(date.getTime())) return null;
+  // Rejette les dates qui « débordent » (2026-02-31 → 3 mars) : le jour
+  // relu doit être celui qui a été écrit.
+  const [, y, m, d] = match.map(Number);
+  const check = new Date(Date.UTC(y, m - 1, d));
+  if (check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) return null;
+  if (y < 1900 || y > 2100) return null;
+  return date;
+}
+
+function validateNewsBody(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return { error: 'Corps de requête JSON attendu.' };
+  }
+  const data = {};
+  for (const [field, max] of Object.entries(NEWS_TEXT_LIMITS)) {
+    const value = body[field];
+    if (value !== undefined && value !== null && typeof value !== 'string') {
+      return { error: `Le champ ${NEWS_LABELS[field]} doit être du texte.` };
+    }
+    const text = (value || '').trim();
+    if (text.length > max) {
+      return { error: `Le champ ${NEWS_LABELS[field]} dépasse ${max} caractères.` };
+    }
+    data[field] = text;
+  }
+  if (!data.titleFr || !data.titleEn || !data.titleAr) {
+    return { error: 'Les trois titres (FR, EN, AR) sont obligatoires.' };
+  }
+
+  if (body.sortDate === undefined || body.sortDate === null || body.sortDate === '') {
+    return { error: 'La date de tri est obligatoire.' };
+  }
+  const sortDate = parseSortDate(body.sortDate);
+  if (!sortDate) {
+    return { error: 'La date de tri est invalide (format attendu : AAAA-MM-JJ).' };
+  }
+  data.sortDate = sortDate;
+
+  if (body.publishNow !== undefined && typeof body.publishNow !== 'boolean') {
+    return { error: 'Le champ publishNow doit valoir true ou false.' };
+  }
+  return { data };
+}
+
 app.post('/api/admin/news', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const { dateFr, dateEn, dateAr, sortDate, titleFr, titleEn, titleAr,
-            bodyFr, bodyEn, bodyAr, publishNow } = req.body;
-
-    if (!titleFr || !titleEn || !titleAr || !sortDate) {
-      return res.status(400).json({ error: 'Les trois titres et la date sont obligatoires.' });
-    }
+    const { error, data } = validateNewsBody(req.body);
+    if (error) return res.status(400).json({ error });
 
     const item = await prisma.news.create({
       data: {
-        dateFr, dateEn, dateAr, sortDate: new Date(sortDate),
-        titleFr, titleEn, titleAr, bodyFr, bodyEn, bodyAr,
+        ...data,
         // publishedAt = null signifie brouillon, invisible du public
         // (voir le filtre de la route publique /api/news).
-        publishedAt: publishNow ? new Date() : null,
+        publishedAt: req.body.publishNow ? new Date() : null,
       },
     });
     res.status(201).json(item);
@@ -707,18 +1086,19 @@ app.post('/api/admin/news', requireAuth, requireRole('secretariat_admin'), async
 
 app.put('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const newsId = Number(req.params.id);
-    const { dateFr, dateEn, dateAr, sortDate, titleFr, titleEn, titleAr,
-            bodyFr, bodyEn, bodyAr, publishNow } = req.body;
-
+    const newsId = parseId(req.params.id);
+    if (newsId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
     const existing = await prisma.news.findUnique({ where: { id: newsId } });
     if (!existing) return res.status(404).json({ error: 'Actualité introuvable.' });
+
+    const { error, data } = validateNewsBody(req.body);
+    if (error) return res.status(400).json({ error });
+    const { publishNow } = req.body;
 
     const item = await prisma.news.update({
       where: { id: newsId },
       data: {
-        dateFr, dateEn, dateAr, sortDate: new Date(sortDate),
-        titleFr, titleEn, titleAr, bodyFr, bodyEn, bodyAr,
+        ...data,
         // On ne réinitialise pas la date de publication à chaque simple
         // correction de texte sur une actualité déjà publiée.
         publishedAt: publishNow
@@ -738,7 +1118,8 @@ app.put('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'), as
 // historique. Pas de garde-fou nécessaire ici.
 app.delete('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const newsId = Number(req.params.id);
+    const newsId = parseId(req.params.id);
+    if (newsId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
     const existing = await prisma.news.findUnique({ where: { id: newsId } });
     if (!existing) return res.status(404).json({ error: 'Actualité introuvable.' });
 
@@ -808,4 +1189,10 @@ app.listen(PORT, () => {
   console.log(`✅ Serveur API démarré sur http://localhost:${PORT}`);
   console.log(`   Santé   : http://localhost:${PORT}/api/health`);
   console.log(`   Publique: http://localhost:${PORT}/api/countries`);
+  // UNE ligne récapitulative, volontairement sans aucun secret : ni
+  // JWT_SECRET, ni DATABASE_URL (qui contient le mot de passe de la
+  // base), ni même la liste des origines — seulement leur nombre.
+  console.log(`   Configuration : NODE_ENV=${process.env.NODE_ENV || '(vide)'} | origines CORS=${ALLOWED_ORIGINS.length}`
+    + `${configuredOrigins.length === 0 ? ' (défaut local)' : ''} | trust proxy=${TRUST_PROXY}`
+    + ` | limitation de débit=${RATE_LIMIT_DISABLED ? 'DÉSACTIVÉE (RATE_LIMIT_DISABLED=1, hors production)' : 'active'}`);
 });

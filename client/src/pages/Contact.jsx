@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
 import Flag from '../components/Flag';
+import { apiGet, apiPost } from '../utils/api';
 
 function Contact() {
   const { t, i18n } = useTranslation();
@@ -18,8 +19,7 @@ function Contact() {
   // --- Les pays, pour afficher les contacts de chaque ANR ---
   const [countries, setCountries] = useState([]);
   useEffect(() => {
-    fetch('http://localhost:4000/api/countries')
-      .then((r) => r.json())
+    apiGet('/api/countries')
       .then(setCountries)
       .catch((err) => console.error('Erreur de chargement des pays :', err));
   }, []);
@@ -42,15 +42,10 @@ function Contact() {
     e.preventDefault();          // empêche le rechargement de page par défaut du navigateur
     setStatus('sending');
 
-    fetch('http://localhost:4000/api/contact', {
-      method: 'POST',                                   // GET lisait, POST écrit
-      headers: { 'Content-Type': 'application/json' },  // on prévient le serveur : "je t'envoie du JSON"
-      body: JSON.stringify(form),                        // on convertit notre objet JS en texte JSON
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error('Échec de l\'envoi');
-        return r.json();
-      })
+    // GET lisait, POST écrit. apiPost convertit l'objet en JSON, pose
+    // l'en-tête Content-Type, et rejette la promesse si le serveur
+    // répond par une erreur (400, 500…). Pas de token : route publique.
+    apiPost('/api/contact', null, form)
       .then(() => {
         setStatus('success');
         setForm({ name: '', email: '', org: '', message: '' });   // on vide le formulaire

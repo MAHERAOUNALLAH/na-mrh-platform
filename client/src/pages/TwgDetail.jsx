@@ -18,6 +18,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
+import { apiGet } from '../utils/api';
 
 // Ce que le routeur appelle : il ne fait que lire l'id et le passer,
 // avec la key qui déclenche le remontage.
@@ -35,19 +36,19 @@ function TwgDetailView({ id }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:4000/api/twgs/${id}`)
-      .then((response) => {
-        // Un slug inconnu renvoie 404 : ce n'est pas une panne, c'est
-        // un message à afficher. On le distingue donc d'une vraie erreur.
-        if (response.status === 404) return null;
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
+    apiGet(`/api/twgs/${encodeURIComponent(id)}`)
       .then((data) => {
         setTwg(data);
         setLoading(false);
       })
       .catch((err) => {
+        // Un slug inconnu renvoie 404 : ce n'est pas une panne, c'est
+        // un message à afficher (twg reste null → "notFound"). On le
+        // distingue donc d'une vraie erreur.
+        if (err.status === 404) {
+          setLoading(false);
+          return;
+        }
         console.error('Erreur de chargement :', err);
         setError(t('common.error'));
         setLoading(false);

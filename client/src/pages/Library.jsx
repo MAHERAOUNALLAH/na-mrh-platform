@@ -17,6 +17,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
+import { apiGet } from '../utils/api';
 
 // Les valeurs de l'enum DocumentCategory du schéma Prisma.
 const CATEGORIES = ['guideline', 'sop', 'report', 'template'];
@@ -32,8 +33,7 @@ function Library() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/documents')
-      .then((response) => response.json())
+    apiGet('/api/documents')
       .then((data) => {
         setDocuments(data.documents);
         setRestrictedCount(data.restrictedCount);

@@ -40,8 +40,12 @@ function DocumentWorkflow() {
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);   // pour désactiver le select pendant l'envoi
 
+  // Pas de setLoading(true) ici : la fonction est appelée par le useEffect,
+  // et la règle ESLint react-hooks/set-state-in-effect interdit tout
+  // setState synchrone dans un effet. loading vaut déjà true au premier
+  // rendu (même motif que TwgAdmin.jsx). Un changement de statut met à
+  // jour la ligne concernée sans recharger la liste.
   const loadDocuments = useCallback(() => {
-    setLoading(true);
     apiGet('/api/admin/documents', token)
       .then((data) => { setDocuments(data); setError(null); })
       .catch((err) => setError(err.message))

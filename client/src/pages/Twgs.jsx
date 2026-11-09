@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
+import { apiGet } from '../utils/api';
 
 function Twgs() {
   const { t, i18n } = useTranslation();
@@ -22,8 +23,7 @@ function Twgs() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/twgs')
-      .then((response) => response.json())
+    apiGet('/api/twgs')
       .then((data) => {
         setTwgs(data);
         setLoading(false);

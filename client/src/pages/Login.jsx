@@ -5,9 +5,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiPost } from '../utils/api';
 
 function Login() {
-  const { login } = useAuth();
+  // sessionNotice : message laissé par AuthContext quand une session a
+  // été révoquée (compte désactivé…) et qu'on a été renvoyé ici.
+  const { login, sessionNotice } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ email: '', password: '' });
@@ -23,16 +26,9 @@ function Login() {
     setSending(true);
     setError(null);
 
-    fetch('http://localhost:4000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-      .then(async (r) => {
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error || 'Échec de la connexion');
-        return data;
-      })
+    // En cas de refus (401…), apiPost rejette avec le message du
+    // serveur, affiché tel quel ci-dessous.
+    apiPost('/api/auth/login', null, form)
       .then((data) => {
         login(data.token, data.user);
         navigate('/mon-espace');   // redirection après connexion réussie
@@ -50,6 +46,13 @@ function Login() {
           <span className="kicker">Portail sécurisé</span>
           <h2>Connexion</h2>
         </div>
+
+        {sessionNotice && (
+          <div className="notice-box" role="alert">
+            <span aria-hidden="true">⚠</span>
+            <span>{sessionNotice}</span>
+          </div>
+        )}
 
         <div className="login-card" style={{ padding: '24px' }}>
           <form onSubmit={handleSubmit}>

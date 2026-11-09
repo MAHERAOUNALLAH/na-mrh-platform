@@ -19,10 +19,26 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function ProtectedRoute({ children, allowedLevels }) {
-  const { user, loading } = useAuth();
+  const { user, loading, sessionError, retrySession } = useAuth();
 
   if (loading) return <p style={{ padding: '2rem' }}>Chargement…</p>;
 
+  // Panne pendant la vérification de session (serveur injoignable,
+  // erreur 5xx) : le jeton est conservé, on ne renvoie PAS vers la
+  // connexion — on propose de réessayer.
+  if (!user && sessionError) {
+    return (
+      <div style={{ padding: '2rem' }}>
+        <p style={{ color: 'red', marginBottom: '12px' }}>{sessionError}</p>
+        <button type="button" className="btn btn-outline btn-sm" onClick={retrySession}>
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
+  // Pas connecté, ou session révoquée en cours de route (voir le
+  // gestionnaire 401 d'AuthContext) : retour à la page de connexion.
   if (!user) return <Navigate to="/connexion" replace />;
 
   if (allowedLevels && !allowedLevels.includes(user.level)) {
