@@ -89,17 +89,49 @@ app.get('/api/xxx', async (req, res) => {
 });
 ```
 
-## État d'avancement (Phase 1 en cours)
-> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Un décalage a déjà été trouvé le 16/09 (Twgs.jsx annoncé fait, mais absent du disque).
+### Espace Secrétariat (routes admin et pages)
+- **Route admin serveur** — toujours les deux middlewares, dans cet ordre :
+```javascript
+app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => { /* ... */ });
+```
+  Valider les entrées côté serveur (champs obligatoires, valeurs permises, existence des clés étrangères) et répondre 400/404 avec un message clair. Les lectures de données **publiques** (`/api/twgs`, `/api/countries`) sont réutilisées par l'admin au lieu d'être dupliquées.
+- **Page admin client** — route fille de `secretariat`, écrite **à l'intérieur** du `<ProtectedRoute allowedLevels={['secretariat_admin']}>` d'`App.jsx` (voir le commentaire dans le fichier), plus un onglet dans `SecretariatLayout.jsx`. Modèle à copier : `TwgAdmin.jsx` (tableau + formulaire d'édition, `apiGet`/`apiPut` de `utils/api.js`).
+- **ESLint** : la règle `react-hooks/set-state-in-effect` interdit tout `setState` **synchrone** dans un `useEffect` (y compris via une fonction appelée par l'effet). Ne pas écrire `setLoading(true)` au début de la fonction de chargement : `loading` vaut déjà `true` au premier rendu. Seule `TwgAdmin.jsx` respecte cette règle ; les 4 autres pages du Secrétariat échouent encore (constat D, ci-dessous).
 
-- ✅ Phase 0 complète : CSS extrait, i18n (FR/EN/AR + RTL), routeur, Layout (header/footer) — vérifié présent
-- ✅ Page États membres (`/etats-membres`) + route `/api/countries` — reprise le 16/09 : grille `.country-card` de la maquette, `pickLang`, drapeaux via `<Flag>`, bloc `membersPage` dans les 3 locales. Cartes non cliquables (la fiche pays `/etats-membres/:id` n'existe pas encore) : le `.cta` « Contact → » de la maquette est donc omis pour l'instant.
-- ✅ Page Groupes de travail, liste (`/groupes-de-travail`) + route `/api/twgs` — fait le 16/09 (`Twgs.jsx`, `utils/lang.js`, blocs `twgsPage` + `common`). Cartes cliquables via `<Link className="twg-card">`.
-- ✅ Fiche détail GTT (`/groupes-de-travail/:id`) + route `/api/twgs/:id` — fait le 16/09 (`TwgDetail.jsx`). Renvoie 404 sur un slug inconnu, affiché comme message et non comme panne.
-- ✅ Bibliothèque (`/bibliotheque`) + route `/api/documents` — fait le 16/09 (`Library.jsx`). Filtre public appliqué **dans le `where` Prisma** (voir règle de sécurité ci-dessous). Renvoie `{ documents, restrictedCount }`.
-- ✅ Pages d'attente — `ComingSoon.jsx` (Gouvernance, Portail RIMS, Contact, Réclamations) et `NotFound.jsx` (`path="*"`), ajoutées le 16/09. Plus aucune URL du menu ne mène à un écran blanc. **En construisant une de ces pages, remplacer sa ligne `ComingSoon` dans `App.jsx` par la vraie page.**
-- ⏳ À faire ensuite : Gouvernance, Actualités, Contact, Réclamations (dans cet ordre, voir méthodologie). Fiche pays `/etats-membres/:id` à caler avec le client — la maquette la prévoit (`pageMemberDetail`), la méthodologie ne la liste pas.
-- ❌ Pas commencé : authentification, espace Secrétariat (Phase 2-3)
+### Hygiène du dépôt
+- `server/.env` n'est **jamais** versionné (secrets : `JWT_SECRET`, `DATABASE_URL`). Le modèle est `server/.env.example`. `node_modules/` est ignoré par le `.gitignore` racine.
+- Fins de ligne : `.gitattributes` impose LF dans le dépôt (Windows inclus). Ne pas committer de fichiers de travail (patchs, scripts jetables) : vérifier `git status` avant `git add -A`.
+
+## État d'avancement (Phases 0 à 3 construites, validation et audit en cours)
+> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 09/11/2026, sur le dépôt GitHub.
+
+**Phase 0 — fondations** ✅ CSS extrait, i18n (FR/EN/AR + RTL), routeur, Layout (header/footer), `Flag.jsx`, `lang.js`.
+
+**Phase 1 — site public** ✅ sauf Portail RIMS
+- ✅ Accueil, Gouvernance, États membres, Groupes de travail (liste + fiche `/groupes-de-travail/:id`), Bibliothèque (filtre public dans le `where` Prisma), Actualités, Contact, Réclamations — pages présentes et routées dans `App.jsx`.
+- ✅ Formulaires publics : `POST /api/complaints`, `POST /api/contact`.
+- ✅ `NotFound.jsx` (`path="*"`).
+- ⏳ **Portail RIMS** (`/portail-rims`) : toujours `ComingSoon` — seule page publique non construite.
+- ⏳ Fiche pays `/etats-membres/:id` : n'existe pas (la maquette la prévoit, `pageMemberDetail`) ; les cartes pays ne sont pas cliquables.
+
+**Phase 2 — authentification** ✅ `Login.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx`, `MonEspace.jsx` ; `POST /api/auth/login`, `GET /api/auth/me` ; middlewares `requireAuth` et `requireRole` ; niveaux `reader | contributor | validator | country_admin | secretariat_admin`.
+
+**Phase 3 — espace Secrétariat** ✅ construit, ⏳ critère de validation de bout en bout non encore rejoué
+- ✅ Tableau de bord, Comptes pays (CRUD), Utilisateurs (CRUD + activation), Circuit documentaire (changement de statut), Gestion du contenu (actualités CRUD), **Groupes de travail** (édition : noms/descriptions FR-EN-AR, vague, lead/co-lead — ajouté le 09/11, route `PUT /api/admin/twgs/:id` testée sur une vraie base : 401 sans jeton, 403 pour `reader`, 404, 400 sur chaque validation, 200 et changement visible sur `/api/twgs`).
+- ✅ Les 18 routes `/api/admin/*` exigent (vérifié par script le 09/11) `requireAuth` + `requireRole('secretariat_admin')`.
+- ⏳ Critère de la méthodologie à rejouer : « modifier le téléphone d'un pays et le voir sur la page Contact ».
+
+**Audit de sécurité / qualité — constats encore ouverts** (vérifiés non appliqués dans le code le 09/11)
+- 🔴 **A — révocation de session** : `requireAuth` ne fait que `jwt.verify`, sans relire l'utilisateur en base. Un compte désactivé ou rétrogradé garde son accès jusqu'à l'expiration du jeton (7 jours). Correctif : relire `isActive` et `level` en base à chaque requête authentifiée, remplir `req.user` avec ces valeurs fraîches, répondre 401 si le compte est inactif ou supprimé. Test : désactiver un compte depuis un autre onglet, puis recharger une page protégée avec l'ancien jeton → doit être rejeté immédiatement.
+- 🟠 **B — routes à identifiant numérique** : pas de `parseId` ; un identifiant invalide n'est pas rejeté proprement (5 routes concernées).
+- 🟠 **C — validation des actualités** : validation incomplète sur `POST/PUT /api/admin/news`.
+- 🟡 **D — ESLint** : `react-hooks/set-state-in-effect` échoue sur `ContentManagement`, `CountryAccounts`, `DocumentWorkflow`, `UserManagement` (même motif que celui évité dans `TwgAdmin.jsx`).
+- ✅ **F — documentation** : cette mise à jour.
+- Nettoyage du 09/11 : `server/.env` et `server/node_modules` retirés du suivi Git, `.gitignore` racine, `.env.example` et `.gitattributes` ajoutés. ⚠️ L'ancien `JWT_SECRET` reste lisible dans l'historique Git public : il doit être remplacé par un nouveau secret dans le `.env` local de chaque environnement.
+
+**Phase 4 — au-delà du MVP** ❌ pas commencée. À ne démarrer qu'une fois les Phases 0-3 stables (voir méthodologie) : versionnage des documents, missions, réunions/discussions de GTT, budget, veille réglementaire, répertoire d'experts, espace national par persona, chatbots.
+
+**Ordre recommandé ensuite** : A (sécurité) → B et C → D → Portail RIMS et fiche pays → rejouer le critère de la Phase 3 → Phase 4.
 
 ## Règle de travail
 **Une tâche à la fois.** Ne pas convertir plusieurs pages dans la même réponse sans validation intermédiaire — l'objectif est que chaque étape soit comprise et vérifiée avant de passer à la suivante.
