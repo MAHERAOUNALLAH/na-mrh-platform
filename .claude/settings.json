@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx eslint *)",
+      "Bash(npm run *)",
+      "Bash(grep -iE \"^esbuild|^rolldown|^vite$|^react-dom$|^react$\")",
+      "Bash(curl -s -m 5 http://localhost:4000/api/countries)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -o /dev/null -w \" /flags/eg.png -> HTTP %{http_code} \\(%{size_download} octets\\)\\\\n\" -m 5 http://localhost:5173/flags/eg.png)",
+      "Bash(node -e \"try{require.resolve\\('puppeteer'\\);console.log\\('puppeteer resolvable'\\)}catch\\(e\\){console.log\\('non:',e.code\\)}\")"
+    ]
+  }
+}

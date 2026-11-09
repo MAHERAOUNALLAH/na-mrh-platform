@@ -1,0 +1,155 @@
+{
+  "dir": "ltr",
+  "logoSub": "Regional Secretariat",
+  "nav": {
+    "home": "Home",
+    "governance": "Governance",
+    "members": "Member States",
+    "twgs": "Working Groups",
+    "library": "Document Library",
+    "portal": "RIMS Portal",
+    "news": "News",
+    "contact": "Contact",
+    "complaints": "Complaints",
+    "admin": "Secretariat Workspace"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Unable to load the data. Is the server running?"
+  },
+  "hero": {
+    "kicker": "North Africa — Pharmaceutical Regulatory Harmonization",
+    "h1": "The single access point to the region's regulatory information",
+    "lead": "The NA-MRH Digital Collaboration Platform brings together the National Regulatory Authorities of North Africa: institutional communication, secure collaboration and regulatory knowledge management.",
+    "cta1": "Explore the Member States",
+    "cta2": "Access the RIMS Portal",
+    "mapTitle": "The member authorities, one platform"
+  },
+  "statsLabels": [
+    "Member States",
+    "Technical Working Groups",
+    "Rollout Phases",
+    "Working Languages"
+  ],
+  "homeSections": {
+    "missionKicker": "Mission",
+    "missionH": "A platform built phase by phase",
+    "missionP": "Designed as a progressive, modular build, the platform delivers a complete, usable tool at the end of every three-month phase — without waiting for the full project to be completed.",
+    "twgKicker": "Implementation mechanism",
+    "twgH": "Five Technical Working Groups",
+    "twgP": "Each TWG is co-led by two member countries and prioritised into waves according to its maturity.",
+    "newsKicker": "Regional life",
+    "newsH": "Recent news"
+  },
+  "governance": {
+    "kicker": "Coordination structure",
+    "h": "Three levels of governance",
+    "p": "The Secretariat is hosted by Tunisia; North Africa has no standing REC Secretariat yet.",
+    "steeringT": "Steering Committee",
+    "steeringD": "Directors General of the National Regulatory Authorities — validates strategy, terms of reference and roadmaps.",
+    "secretariatT": "NA-MRH Secretariat",
+    "secretariatD": "Hosted by Tunisia (ANMPS) · Coordinator: Dr Mariam Aounallah · Planning, reporting, partner liaison.",
+    "twgLevelT": "5 Technical Working Groups",
+    "twgLevelD": "Two co-leads per group · guidelines, SOPs, joint activities.",
+    "partnersT": "Technical & financial partners",
+    "partnersP": "AUDA-NEPAD · African Medicines Agency (AMA) · WHO · Swissmedic · World Bank · AfDB"
+  },
+  "newsPage": {
+    "kicker": "Announcements",
+    "h": "Regional news",
+    "p": "Tracking Secretariat, working-group and partner activities."
+  },
+  "contactPage": {
+    "kicker": "Get in touch",
+    "h": "Contact and focal points",
+    "p": "The NA-MRH Secretariat, hosted by Tunisia, coordinates exchanges with the member countries and partners.",
+    "formT": "Contact form",
+    "nameL": "Full name",
+    "emailL": "Email address",
+    "orgL": "Organisation",
+    "msgL": "Message",
+    "send": "Send message",
+    "secT": "NA-MRH Secretariat",
+    "secP": "Coordinator: Dr Mariam Aounallah — hosted by ANMPS, Tunisia.",
+    "nraT": "Contacts of the National Regulatory Authorities",
+    "confirmSent": "Message sent — the Secretariat will reply shortly.",
+    "errorSent": "Something went wrong. Please try again."
+  },
+  "complaintsPage": {
+    "kicker": "Service quality",
+    "h": "Complaints about regional services",
+    "p": "Not satisfied with a Secretariat service? Let us know: every complaint is reviewed and tracked through to resolution.",
+    "formT": "File a complaint",
+    "nameL": "Full name",
+    "orgL": "Organisation",
+    "countryL": "Country",
+    "natureL": "Nature of the complaint",
+    "messageL": "Description",
+    "send": "Send complaint",
+    "natureOptions": {
+      "service": "Service quality",
+      "delay": "Processing delay",
+      "access": "Platform access",
+      "other": "Other"
+    },
+    "confirmT": "Complaint recorded",
+    "confirmP": "Your complaint has been forwarded to the NA-MRH Secretariat, which will follow up after review.",
+    "errorSent": "Something went wrong. Please try again."
+  },
+  "comingSoon": {
+    "kicker": "Section under construction",
+    "p": "This section is on the roadmap and will be delivered in a forthcoming rollout step.",
+    "notice": "The platform is built phase by phase: each section goes live once it is complete and verified, rather than half-finished.",
+    "backHome": "← Back to home"
+  },
+  "notFoundPage": {
+    "h": "Page not found",
+    "p": "The requested address does not exist. It may have been mistyped, or the link that brought you here is out of date."
+  },
+  "membersPage": {
+    "kicker": "A regional network",
+    "h": "Member States and National Regulatory Authorities",
+    "p": "Each country manages its own internal users and contributes to the regional document repository within a shared framework.",
+    "nraMissing": "NRA not specified"
+  },
+  "libraryPage": {
+    "kicker": "Objective 3 — Knowledge management",
+    "h": "Regional Document Library",
+    "p": "Deposit, classification and search of regulatory documents produced by the Secretariat and the working groups.",
+    "notice": "Full document access requires authentication through the secure RIMS Portal.",
+    "restrictedNote": "{{n}} additional document(s) marked internal or confidential are only visible through the secure portal.",
+    "empty": "No public document in this category.",
+    "cats": {
+      "all": "All documents",
+      "guideline": "Guidelines",
+      "sop": "Procedures (SOPs)",
+      "report": "Meeting reports",
+      "template": "Templates"
+    },
+    "p1": "Phase 1",
+    "p2": "Phase 2",
+    "p3": "Phase 3"
+  },
+  "twgsPage": {
+    "kicker": "Five technical domains",
+    "h": "Technical Working Groups (TWGs)",
+    "p": "Prioritised into three waves on 18 August 2026 — Secretariat support follows the ranking.",
+    "leadT": "Lead",
+    "coleadT": "Co-lead",
+    "wave1": "Wave 1 — Start now",
+    "wave2": "Wave 2 — Build the conditions",
+    "wave3": "Wave 3 — Defer and monitor",
+    "backTo": "Back to Working Groups",
+    "waveT": "Wave",
+    "functionT": "Regulatory function covered",
+    "notFound": "This working group could not be found."
+  },
+  "footer": {
+    "aboutT": "NA-MRH",
+    "aboutP": "North African Medicines Regulatory Harmonization Initiative — pharmaceutical regulatory convergence in North Africa, aligned with the priorities of the African Medicines Agency (AMA) and AUDA-NEPAD.",
+    "linksT": "Navigation",
+    "contactT": "Secretariat",
+    "contactP": "Hosted by ANMPS, Tunisia\ndpm@rns.tn · +216 71 78 31 95",
+    "partners": "Technical & financial partners: AUDA-NEPAD · AMA · WHO · Swissmedic · World Bank · AfDB  ·  © 2026 NA-MRH Secretariat"
+  }
+}

@@ -1,0 +1,61 @@
+// ============================================================
+// client/src/pages/Actualites.jsx
+// Page Actualités — même pattern fetch/loading/error que
+// Twgs.jsx, sur la route /api/news.
+// ============================================================
+
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { pickLang } from '../utils/lang';
+
+function Actualites() {
+  const { t, i18n } = useTranslation();
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('http://localhost:4000/api/news')
+      .then((r) => r.json())
+      .then((data) => {
+        setNews(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Erreur de chargement :', err);
+        setError('Impossible de charger les actualités.');
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <p style={{ padding: '2rem' }}>Chargement…</p>;
+  if (error) return <p style={{ padding: '2rem', color: 'red' }}>{error}</p>;
+
+  const lang = i18n.language;
+
+  return (
+    <section className="page-section">
+      <div className="container">
+        <div className="section-head">
+          <span className="kicker">{t('newsPage.kicker')}</span>
+          <h2>{t('newsPage.h')}</h2>
+          <p>{t('newsPage.p')}</p>
+        </div>
+
+        <div className="news-list">
+          {news.map((n) => (
+            <div key={n.id} className="news-item">
+              <div className="news-date">{pickLang(n, 'date', lang)}</div>
+              <div>
+                <h3>{pickLang(n, 'title', lang)}</h3>
+                <p>{pickLang(n, 'body', lang)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default Actualites;

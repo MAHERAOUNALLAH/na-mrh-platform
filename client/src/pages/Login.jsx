@@ -1,0 +1,84 @@
+// ============================================================
+// client/src/pages/Login.jsx
+// ============================================================
+
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState(null);
+  const [sending, setSending] = useState(false);
+
+  function handleChange(e) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setSending(true);
+    setError(null);
+
+    fetch('http://localhost:4000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Échec de la connexion');
+        return data;
+      })
+      .then((data) => {
+        login(data.token, data.user);
+        navigate('/mon-espace');   // redirection après connexion réussie
+      })
+      .catch((err) => {
+        setError(err.message);
+        setSending(false);
+      });
+  }
+
+  return (
+    <section className="page-section">
+      <div className="container" style={{ maxWidth: '420px' }}>
+        <div className="section-head">
+          <span className="kicker">Portail sécurisé</span>
+          <h2>Connexion</h2>
+        </div>
+
+        <div className="login-card" style={{ padding: '24px' }}>
+          <form onSubmit={handleSubmit}>
+            <div className="field">
+              <label>Adresse e-mail</label>
+              <input type="email" name="email" value={form.email} onChange={handleChange} required autoFocus />
+            </div>
+            <div className="field">
+              <label>Mot de passe</label>
+              <input type="password" name="password" value={form.password} onChange={handleChange} required />
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              disabled={sending}
+            >
+              {sending ? '…' : 'Se connecter'}
+            </button>
+
+            {error && (
+              <p style={{ color: 'red', marginTop: '10px', fontSize: '13.5px' }}>{error}</p>
+            )}
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default Login;

@@ -1,0 +1,155 @@
+{
+  "dir": "ltr",
+  "logoSub": "Secrétariat régional",
+  "nav": {
+    "home": "Accueil",
+    "governance": "Gouvernance",
+    "members": "États membres",
+    "twgs": "Groupes de travail",
+    "library": "Bibliothèque",
+    "portal": "Portail RIMS",
+    "news": "Actualités",
+    "contact": "Contact",
+    "complaints": "Réclamations",
+    "admin": "Espace Secrétariat"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "error": "Impossible de charger les données. Le serveur est-il démarré ?"
+  },
+  "hero": {
+    "kicker": "Afrique du Nord — Harmonisation réglementaire pharmaceutique",
+    "h1": "Le point d'accès unique à l'information réglementaire de la région",
+    "lead": "La NA-MRH Digital Collaboration Platform réunit les Autorités Nationales de Réglementation d'Afrique du Nord : communication institutionnelle, collaboration sécurisée et gestion des connaissances réglementaires.",
+    "cta1": "Découvrir les États membres",
+    "cta2": "Accéder au portail RIMS",
+    "mapTitle": "Les autorités membres, une même plateforme"
+  },
+  "statsLabels": [
+    "États membres",
+    "Groupes de travail techniques",
+    "Phases de déploiement",
+    "Langues de travail"
+  ],
+  "homeSections": {
+    "missionKicker": "Mission",
+    "missionH": "Une plateforme construite phase par phase",
+    "missionP": "Conçue selon une approche progressive et modulaire, la plateforme livre un outil opérationnel complet à la fin de chaque phase de trois mois — sans attendre l'achèvement du projet dans son intégralité.",
+    "twgKicker": "Mécanisme de mise en œuvre",
+    "twgH": "Cinq groupes de travail techniques",
+    "twgP": "Chaque GTT est co-dirigé par deux pays membres et priorisé en vagues selon sa maturité.",
+    "newsKicker": "Vie de la région",
+    "newsH": "Actualités récentes"
+  },
+  "governance": {
+    "kicker": "Structure de coordination",
+    "h": "Trois niveaux de gouvernance",
+    "p": "Le Secrétariat est hébergé par la Tunisie ; il n'existe pas encore de Secrétariat de CER permanent en Afrique du Nord.",
+    "steeringT": "Comité de Pilotage",
+    "steeringD": "Directeurs Généraux des Autorités Nationales de Réglementation — valide la stratégie, les termes de référence et les feuilles de route.",
+    "secretariatT": "Secrétariat NA-MRH",
+    "secretariatD": "Hébergé par la Tunisie (ANMPS) · Coordinatrice : Dr Mariam Aounallah · Programmation, reporting, relations avec les partenaires.",
+    "twgLevelT": "5 Groupes de travail techniques",
+    "twgLevelD": "Deux co-leads par groupe · lignes directrices, SOP, activités conjointes.",
+    "partnersT": "Partenaires techniques et financiers",
+    "partnersP": "AUDA-NEPAD · Agence Africaine du Médicament (AMA) · OMS · Swissmedic · Banque mondiale · BAD"
+  },
+  "newsPage": {
+    "kicker": "Fil d'annonces",
+    "h": "Actualités régionales",
+    "p": "Suivi des activités du Secrétariat, des groupes de travail et des partenaires."
+  },
+  "contactPage": {
+    "kicker": "Nous contacter",
+    "h": "Contact et points focaux",
+    "p": "Le Secrétariat NA-MRH, hébergé par la Tunisie, coordonne les échanges avec les pays membres et les partenaires.",
+    "formT": "Formulaire de contact",
+    "nameL": "Nom complet",
+    "emailL": "Adresse e-mail",
+    "orgL": "Organisation",
+    "msgL": "Message",
+    "send": "Envoyer le message",
+    "secT": "Secrétariat NA-MRH",
+    "secP": "Coordinatrice : Dr Mariam Aounallah — hébergé par l'ANMPS, Tunisie.",
+    "nraT": "Contacts des Autorités Nationales de Réglementation",
+    "confirmSent": "Message envoyé — le Secrétariat vous répondra prochainement.",
+    "errorSent": "Une erreur est survenue. Merci de réessayer."
+  },
+  "complaintsPage": {
+    "kicker": "Qualité de service",
+    "h": "Réclamations sur les services régionaux",
+    "p": "Un service du Secrétariat ne répond pas à vos attentes ? Faites-le nous savoir : chaque réclamation est examinée et suivie jusqu'à sa résolution.",
+    "formT": "Déposer une réclamation",
+    "nameL": "Nom complet",
+    "orgL": "Organisation",
+    "countryL": "Pays",
+    "natureL": "Nature de la réclamation",
+    "messageL": "Description",
+    "send": "Envoyer la réclamation",
+    "natureOptions": {
+      "service": "Qualité de service",
+      "delay": "Délai de traitement",
+      "access": "Accès à la plateforme",
+      "other": "Autre"
+    },
+    "confirmT": "Réclamation enregistrée",
+    "confirmP": "Votre réclamation a été transmise au Secrétariat NA-MRH, qui reviendra vers vous après examen.",
+    "errorSent": "Une erreur est survenue. Merci de réessayer."
+  },
+  "comingSoon": {
+    "kicker": "Rubrique en cours de construction",
+    "p": "Cette rubrique est prévue au programme et sera livrée lors d'une prochaine étape du déploiement.",
+    "notice": "La plateforme est construite phase par phase : chaque rubrique est mise en ligne dès qu'elle est complète et vérifiée, plutôt qu'à moitié.",
+    "backHome": "← Retour à l'accueil"
+  },
+  "notFoundPage": {
+    "h": "Page introuvable",
+    "p": "L'adresse demandée n'existe pas. Elle a peut-être été mal saisie, ou le lien qui vous a amené ici est obsolète."
+  },
+  "membersPage": {
+    "kicker": "Un réseau régional",
+    "h": "États membres et Autorités Nationales de Réglementation",
+    "p": "Chaque pays gère ses utilisateurs internes et contribue au fonds documentaire régional dans le respect d'un cadre commun.",
+    "nraMissing": "ANR non renseignée"
+  },
+  "libraryPage": {
+    "kicker": "Objectif 3 — Gestion des connaissances",
+    "h": "Bibliothèque documentaire régionale",
+    "p": "Dépôt, classification et recherche des documents réglementaires produits par le Secrétariat et les groupes de travail.",
+    "notice": "L'accès complet aux documents nécessite une authentification via le Portail RIMS sécurisé.",
+    "restrictedNote": "{{n}} document(s) supplémentaire(s) classé(s) interne ou confidentiel ne sont visibles que depuis le portail sécurisé.",
+    "empty": "Aucun document public dans cette catégorie.",
+    "cats": {
+      "all": "Tous les documents",
+      "guideline": "Lignes directrices",
+      "sop": "Procédures (SOP)",
+      "report": "Comptes rendus",
+      "template": "Modèles"
+    },
+    "p1": "Phase 1",
+    "p2": "Phase 2",
+    "p3": "Phase 3"
+  },
+  "twgsPage": {
+    "kicker": "Cinq domaines techniques",
+    "h": "Groupes de Travail Techniques (GTT)",
+    "p": "Priorisés en trois vagues le 18 août 2026 — l'appui du Secrétariat suit le classement.",
+    "leadT": "Lead",
+    "coleadT": "Co-lead",
+    "wave1": "Vague 1 — Engager maintenant",
+    "wave2": "Vague 2 — Préparer les conditions",
+    "wave3": "Vague 3 — Différer et surveiller",
+    "backTo": "Retour aux groupes de travail",
+    "waveT": "Vague",
+    "functionT": "Fonction réglementaire couverte",
+    "notFound": "Ce groupe de travail est introuvable."
+  },
+  "footer": {
+    "aboutT": "NA-MRH",
+    "aboutP": "North African Medicines Regulatory Harmonization Initiative — convergence réglementaire pharmaceutique en Afrique du Nord, en cohérence avec les priorités de l'Agence Africaine du Médicament (AMA) et de l'AUDA-NEPAD.",
+    "linksT": "Navigation",
+    "contactT": "Secrétariat",
+    "contactP": "Hébergé par l'ANMPS, Tunisie\ndpm@rns.tn · +216 71 78 31 95",
+    "partners": "Partenaires techniques et financiers : AUDA-NEPAD · AMA · OMS · Swissmedic · Banque mondiale · BAD  ·  © 2026 NA-MRH Secretariat"
+  }
+}
