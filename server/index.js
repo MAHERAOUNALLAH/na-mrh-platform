@@ -25,6 +25,34 @@ const bcrypt = require('bcryptjs');                  // hache et compare les mot
 const { PrismaClient } = require('@prisma/client');  // le client base de données
 const { PrismaPg } = require('@prisma/adapter-pg');  // l'adaptateur Prisma 7
 
+// ------------------------------------------------------------
+// Vérifications au démarrage : mieux vaut un serveur qui REFUSE de
+// démarrer avec un message clair qu'un serveur qui tourne mal configuré.
+// Toutes les variables sont décrites dans server/.env.example.
+// ------------------------------------------------------------
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+function fatalConfig(message) {
+  console.error(`❌ Configuration invalide : ${message}`);
+  console.error('   Voir server/.env.example. Le serveur ne démarre pas.');
+  process.exit(1);
+}
+
+if (!process.env.DATABASE_URL) {
+  fatalConfig('DATABASE_URL est absente.');
+}
+
+// JWT_SECRET signe les jetons : quiconque le connaît peut fabriquer un
+// jeton secretariat_admin. En production, il doit être long et aléatoire.
+const JWT_SECRET_MIN_LENGTH = 32;
+if (IS_PRODUCTION && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < JWT_SECRET_MIN_LENGTH)) {
+  fatalConfig(`en production (NODE_ENV=production), JWT_SECRET doit faire au moins ${JWT_SECRET_MIN_LENGTH} caractères. `
+    + 'Générez-en un : node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"');
+}
+if (!process.env.JWT_SECRET) {
+  fatalConfig('JWT_SECRET est absente (impossible de signer les jetons de connexion).');
+}
+
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
@@ -33,10 +61,11 @@ const prisma = new PrismaClient({ adapter });
 // ============================================================
 
 const app = express();
+
 app.use(cors());              // sans ça, le navigateur bloque les appels du React
 app.use(express.json());      // permet de lire req.body sur les POST/PUT/PATCH
 
-const PORT = 4000;
+const PORT = Number(process.env.PORT) || 4000;   // l'hébergeur impose souvent son port via PORT
 
 // ============================================================
 // 3. MIDDLEWARES D'AUTHENTIFICATION
@@ -936,4 +965,5 @@ app.listen(PORT, () => {
   console.log(`✅ Serveur API démarré sur http://localhost:${PORT}`);
   console.log(`   Santé   : http://localhost:${PORT}/api/health`);
   console.log(`   Publique: http://localhost:${PORT}/api/countries`);
+  console.log(`   Mode    : ${IS_PRODUCTION ? 'production' : 'développement'}`);
 });
