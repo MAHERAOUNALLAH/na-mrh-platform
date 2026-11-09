@@ -1,119 +1,61 @@
 // ============================================================
-// NA-MRH — prisma/seed.js  (compatible Prisma 7 — driver adapter)
-// Peuple la base avec les données de référence de la maquette.
+// NA-MRH — prisma/seed-demo.js  (DÉVELOPPEMENT LOCAL UNIQUEMENT)
+// Données de DÉMONSTRATION : 10 comptes de test, appartenances aux GTT,
+// documents, actualités et une réclamation d'exemple.
 //
-// À placer dans : server/prisma/seed.js
+// ⛔ JAMAIS EN PRODUCTION : tous les comptes ont le mot de passe
+// "password123", écrit en clair ci-dessous, dans un dépôt public.
+// Garde-fou : le script REFUSE de tourner si DATABASE_URL ne désigne
+// pas une base locale (localhost / 127.0.0.1 / ::1), ou si
+// NODE_ENV=production — sauf ALLOW_DEMO_SEED=1, à réserver à une base
+// de recette jetable.
 //
-// Pré-requis (une seule fois) :
-//   npm install bcryptjs @prisma/adapter-pg dotenv
-//
-// Lancement :
-//   node prisma/seed.js
+// Pré-requis : les données de référence (npm run seed:reference).
+// Lancement normal en local : npm run seed (référence puis démo).
 //
 // NOTE MOTS DE PASSE (dev local uniquement) :
 //   Tous les utilisateurs de test ont le mot de passe : "password123"
 //   Il est haché avec bcrypt avant insertion. En clair ici pour vos tests.
+//
+// ⚠️ Les documents, actualités et la réclamation sont créés à chaque
+// exécution (pas d'upsert) : relancer ce script les duplique.
 // ============================================================
 
-require('dotenv').config();
-const { PrismaClient } = require('@prisma/client');
-const { PrismaPg } = require('@prisma/adapter-pg');
 const bcrypt = require('bcryptjs');
+const { fail, parseDatabaseUrl, isLocalHost, createPrisma } = require('./script-utils');
 
-// Prisma 7 : la connexion passe par un "driver adapter", plus par DATABASE_URL seul.
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+// ---------- Garde-fou, AVANT toute connexion à la base ----------
+const target = parseDatabaseUrl();
+const allowed = process.env.ALLOW_DEMO_SEED === '1';
+if (!allowed && !isLocalHost(target.host)) {
+  fail(`Seed de démonstration REFUSÉ : la base visée (hôte "${target.host}") n'est pas locale.\n`
+    + '   Ce script crée des comptes au mot de passe public "password123".\n'
+    + '   Pour une base de recette jetable uniquement : ALLOW_DEMO_SEED=1.');
+}
+if (!allowed && process.env.NODE_ENV === 'production') {
+  fail('Seed de démonstration REFUSÉ : NODE_ENV=production.\n'
+    + '   Pour une base de recette jetable uniquement : ALLOW_DEMO_SEED=1.');
+}
+if (allowed) {
+  console.warn(`⚠️  ALLOW_DEMO_SEED=1 : garde-fou levé pour la base ${target.label}.`);
+}
+
+const prisma = createPrisma();
 
 async function main() {
-  console.log('🌱 Démarrage du seed...');
+  console.log(`🌱 Seed de démonstration — base : ${target.label}`);
 
   // Mot de passe commun à tous les comptes de test : "password123"
   const passwordHash = await bcrypt.hash('password123', 10);
 
-  // ----------------------------------------------------------
-  // 1. FONCTIONS RÉGLEMENTAIRES (12)
-  // ----------------------------------------------------------
-  const functions = [
-    { code: 'MA',  labelFr: 'Homologation',                        labelEn: 'Marketing Authorisation',        labelAr: 'التسجيل والترخيص' },
-    { code: 'GMP', labelFr: 'Inspection BPF',                      labelEn: 'GMP Inspection',                 labelAr: 'تفتيش BPF' },
-    { code: 'IMS', labelFr: "Système d'information",               labelEn: 'Information System',              labelAr: 'نظام المعلومات' },
-    { code: 'QMS', labelFr: 'Système qualité',                     labelEn: 'Quality System',                 labelAr: 'نظام الجودة' },
-    { code: 'PV',  labelFr: 'Pharmacovigilance',                   labelEn: 'Pharmacovigilance',              labelAr: 'اليقظة الدوائية' },
-    { code: 'MD',  labelFr: 'Enregistrement des dispositifs médicaux', labelEn: 'Medical Devices Registration', labelAr: 'تسجيل الأجهزة الطبية' },
-    { code: 'MS',  labelFr: 'Surveillance du marché',              labelEn: 'Market Surveillance',            labelAr: 'مراقبة السوق' },
-    { code: 'CT',  labelFr: 'Essais cliniques',                    labelEn: 'Clinical Trials Oversight',      labelAr: 'الإشراف على التجارب السريرية' },
-    { code: 'IMP', labelFr: 'Contrôle import/export',              labelEn: 'Import/Export Control',          labelAr: 'مراقبة الاستيراد والتصدير' },
-    { code: 'LAB', labelFr: 'Contrôle qualité en laboratoire',     labelEn: 'Laboratory Quality Control',     labelAr: 'مراقبة الجودة المخبرية' },
-    { code: 'LIC', labelFr: 'Autorisation des officines & grossistes', labelEn: 'Licensing — Pharmacies & Wholesalers', labelAr: 'ترخيص الصيدليات وموزعي الجملة' },
-    { code: 'ADV', labelFr: 'Contrôle de la publicité',            labelEn: 'Advertising Control',            labelAr: 'مراقبة الإعلان الدوائي' },
-  ];
-  for (const f of functions) {
-    await prisma.function.upsert({ where: { code: f.code }, update: {}, create: f });
+  // Les données de référence (fonctions, pays, GTT) viennent de
+  // seed-reference.js : on vérifie qu'elles sont là avant de continuer.
+  const [nFunctions, nCountries, nTwgs] = await Promise.all([
+    prisma.function.count(), prisma.country.count(), prisma.twg.count(),
+  ]);
+  if (nFunctions === 0 || nCountries === 0 || nTwgs === 0) {
+    fail('Données de référence absentes : lancez d\'abord npm run seed:reference (ou npm run seed).');
   }
-  console.log(`✅ ${functions.length} fonctions réglementaires`);
-
-  // ----------------------------------------------------------
-  // 2. PAYS (6)  — orgRole = rôle institutionnel dans NA-MRH
-  // ----------------------------------------------------------
-  const countries = [
-    { id: 'dz', nameFr: 'Algérie',    nameEn: 'Algeria',    nameAr: 'الجزائر',
-      nraNameFr: 'Agence Nationale des Produits Pharmaceutiques (ANPP)', nraNameEn: 'National Agency of Pharmaceutical Products (ANPP)', nraNameAr: 'الوكالة الوطنية للمنتجات الصيدلانية',
-      email: 'direction_generale@anpp.dz', phone: '+213 23 36 75 22', website: 'https://anpp.dz', orgRole: 'president' },
-    { id: 'eg', nameFr: 'Égypte',     nameEn: 'Egypt',      nameAr: 'مصر',
-      nraNameFr: 'Egyptian Drug Authority (EDA)', nraNameEn: 'Egyptian Drug Authority (EDA)', nraNameAr: 'هيئة الدواء المصرية',
-      email: 'info@edaegypt.gov.eg', phone: '+20 2 2368 4288', website: 'https://edaegypt.gov.eg', orgRole: 'member' },
-    { id: 'ly', nameFr: 'Libye',      nameEn: 'Libya',      nameAr: 'ليبيا',
-      nraNameFr: 'National Food & Drug Control Centre (FDCC)', nraNameEn: 'National Food & Drug Control Centre (FDCC)', nraNameAr: 'المركز الوطني لرقابة الغذاء والدواء',
-      email: 'info@fdcc.ly', phone: '+218 21 444 1491', website: 'https://www.fdcc.ly', orgRole: 'member' },
-    { id: 'mr', nameFr: 'Mauritanie', nameEn: 'Mauritania', nameAr: 'موريتانيا',
-      nraNameFr: 'Direction de la Pharmacie et des Laboratoires (DPL) — Ministère de la Santé', nraNameEn: 'Directorate of Pharmacy and Laboratories (DPL) — Ministry of Health', nraNameAr: 'إدارة الصيدلة والمخابر — وزارة الصحة',
-      email: null, phone: null, website: 'https://www.sante.gov.mr', orgRole: 'member' },
-    { id: 'ma', nameFr: 'Maroc',      nameEn: 'Morocco',    nameAr: 'المغرب',
-      nraNameFr: 'Agence Marocaine du Médicament et des Produits de Santé (AMMPS)', nraNameEn: 'Moroccan Agency of Medicines and Health Products (AMMPS)', nraNameAr: 'الوكالة المغربية للدواء والمنتجات الصحية',
-      email: 'contact@ammps.gov.ma', phone: '+212 537 68 22 89', website: 'https://ammps.sante.gov.ma', orgRole: 'vice_president' },
-    { id: 'tn', nameFr: 'Tunisie',    nameEn: 'Tunisia',    nameAr: 'تونس',
-      nraNameFr: 'Agence Nationale du Médicament et des Produits de Santé (ANMPS) — hôte du Secrétariat NA-MRH', nraNameEn: 'National Agency of Medicines and Health Products (ANMPS) — NA-MRH Secretariat host', nraNameAr: 'الوكالة الوطنية للأدوية والمنتجات الصحية — المقر المستضيف لأمانة NA-MRH',
-      email: 'dpm@rns.tn', phone: '+216 71 78 31 95', website: 'https://portail.anmps.tn', orgRole: 'secretariat' },
-  ];
-  for (const c of countries) {
-    await prisma.country.upsert({ where: { id: c.id }, update: {}, create: c });
-  }
-  console.log(`✅ ${countries.length} pays`);
-
-  // ----------------------------------------------------------
-  // 3. GROUPES DE TRAVAIL (5)  — id = slug, functionCode + lead/colead
-  // ----------------------------------------------------------
-  const twgs = [
-    { id: 'ma-twg',  nameFr: 'Homologation / Autorisation de Mise sur le Marché', nameEn: 'Marketing Authorisation', nameAr: 'التسجيل والترخيص',
-      descFr: 'Définit le périmètre régional des évaluations conjointes, la ligne directrice générale et le guide de reliance.',
-      descEn: 'Defines the regional scope of joint assessments, the general guideline and the reliance guide.',
-      descAr: 'يحدد النطاق الإقليمي للتقييمات المشتركة والدليل العام ودليل الاعتماد التبادلي.',
-      wave: 1, functionCode: 'MA', leadCountryId: 'dz', coleadCountryId: 'mr' },
-    { id: 'gmp-twg', nameFr: 'Inspection BPF (Bonnes Pratiques de Fabrication)', nameEn: 'GMP Inspection', nameAr: 'تفتيش الممارسات الجيدة للتصنيع',
-      descFr: 'Construit la procédure et le vivier d\'inspecteurs pour les inspections conjointes de sites de fabrication.',
-      descEn: 'Builds the procedure and the pool of inspectors for joint manufacturing-site inspections.',
-      descAr: 'يضع الإجراء ومجموعة المفتشين للتفتيش المشترك لمواقع التصنيع.',
-      wave: 1, functionCode: 'GMP', leadCountryId: 'eg', coleadCountryId: 'ly' },
-    { id: 'ims-twg', nameFr: "Système d'Information (IMS)", nameEn: 'Information Management System (IMS)', nameAr: 'نظام المعلومات',
-      descFr: 'Pilote le REC-RIMS régional, la cartographie des systèmes nationaux et le futur site NA-MRH.',
-      descEn: 'Leads the regional REC-RIMS, the mapping of national systems and the future NA-MRH site.',
-      descAr: 'يقود نظام REC-RIMS الإقليمي، ومسح الأنظمة الوطنية، والموقع المستقبلي لـ NA-MRH.',
-      wave: 1, functionCode: 'IMS', leadCountryId: 'tn', coleadCountryId: 'eg' },
-    { id: 'qms-twg', nameFr: 'Système de Management de la Qualité (SMQ)', nameEn: 'Quality Management System (QMS)', nameAr: 'نظام إدارة الجودة',
-      descFr: 'A livré le mandat (ToR) et la procédure de gestion documentaire, désormais en revue par les ANR.',
-      descEn: 'Delivered the mandate (ToR) and the document management procedure, now under NRA review.',
-      descAr: 'سلّم الاختصاصات وإجراء إدارة الوثائق، وهي الآن قيد المراجعة من الهيئات الوطنية.',
-      wave: 2, functionCode: 'QMS', leadCountryId: 'ma', coleadCountryId: 'eg' },
-    { id: 'pv-twg',  nameFr: 'Pharmacovigilance', nameEn: 'Pharmacovigilance', nameAr: 'اليقظة الدوائية',
-      descFr: 'Prépare l\'échange de données de pharmacovigilance entre systèmes nationaux.',
-      descEn: 'Prepares the exchange of pharmacovigilance data between national systems.',
-      descAr: 'يُعِدّ لتبادل بيانات اليقظة الدوائية بين الأنظمة الوطنية.',
-      wave: 2, functionCode: 'PV', leadCountryId: 'eg', coleadCountryId: 'tn' },
-  ];
-  for (const w of twgs) {
-    await prisma.twg.upsert({ where: { id: w.id }, update: {}, create: w });
-  }
-  console.log(`✅ ${twgs.length} groupes de travail`);
 
   // ----------------------------------------------------------
   // 4. UTILISATEURS (10)  — tous mot de passe : "password123"
@@ -258,7 +200,7 @@ async function main() {
   });
   console.log('✅ 1 réclamation');
 
-  console.log('🎉 Seed terminé avec succès !');
+  console.log('🎉 Seed de démonstration terminé.');
 }
 
 main()
