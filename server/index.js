@@ -737,22 +737,91 @@ app.get('/api/admin/news', requireAuth, requireRole('secretariat_admin'), async 
   }
 });
 
+// Validation commune à POST et PUT (le formulaire envoie toujours
+// l'actualité complète). Calquée sur PUT /api/admin/twgs/:id : on nettoie
+// (trim), on vérifie les types, et on répond 400 avec un message clair
+// plutôt que de laisser Prisma échouer en 500.
+//
+// Selon le schéma (model News), les 9 textes sont NON NULLS :
+//   - titres FR/EN/AR : obligatoires et non vides ;
+//   - dates affichées ("Sept. 2026") et corps : facultatifs dans le
+//     formulaire, donc chaîne vide acceptée — mais ce doit être du texte ;
+//   - sortDate : obligatoire, date réelle au format AAAA-MM-JJ (ce que
+//     produit <input type="date">), ou ISO complet ;
+//   - publishNow : absent, true ou false.
+// Renvoie { error } ou { data } (data prêt pour Prisma, sans publishedAt).
+const NEWS_TEXT_LIMITS = {
+  dateFr: 50, dateEn: 50, dateAr: 50,
+  titleFr: 300, titleEn: 300, titleAr: 300,
+  bodyFr: 20000, bodyEn: 20000, bodyAr: 20000,
+};
+const NEWS_LABELS = {
+  dateFr: 'date affichée (FR)', dateEn: 'date affichée (EN)', dateAr: 'date affichée (AR)',
+  titleFr: 'titre (FR)', titleEn: 'titre (EN)', titleAr: 'titre (AR)',
+  bodyFr: 'texte (FR)', bodyEn: 'texte (EN)', bodyAr: 'texte (AR)',
+};
+
+function parseSortDate(value) {
+  if (typeof value !== 'string') return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/.exec(value.trim());
+  if (!match) return null;
+  const date = new Date(value.trim());
+  if (Number.isNaN(date.getTime())) return null;
+  // Rejette les dates qui « débordent » (2026-02-31 → 3 mars) : le jour
+  // relu doit être celui qui a été écrit.
+  const [, y, m, d] = match.map(Number);
+  const check = new Date(Date.UTC(y, m - 1, d));
+  if (check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) return null;
+  if (y < 1900 || y > 2100) return null;
+  return date;
+}
+
+function validateNewsBody(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return { error: 'Corps de requête JSON attendu.' };
+  }
+  const data = {};
+  for (const [field, max] of Object.entries(NEWS_TEXT_LIMITS)) {
+    const value = body[field];
+    if (value !== undefined && value !== null && typeof value !== 'string') {
+      return { error: `Le champ ${NEWS_LABELS[field]} doit être du texte.` };
+    }
+    const text = (value || '').trim();
+    if (text.length > max) {
+      return { error: `Le champ ${NEWS_LABELS[field]} dépasse ${max} caractères.` };
+    }
+    data[field] = text;
+  }
+  if (!data.titleFr || !data.titleEn || !data.titleAr) {
+    return { error: 'Les trois titres (FR, EN, AR) sont obligatoires.' };
+  }
+
+  if (body.sortDate === undefined || body.sortDate === null || body.sortDate === '') {
+    return { error: 'La date de tri est obligatoire.' };
+  }
+  const sortDate = parseSortDate(body.sortDate);
+  if (!sortDate) {
+    return { error: 'La date de tri est invalide (format attendu : AAAA-MM-JJ).' };
+  }
+  data.sortDate = sortDate;
+
+  if (body.publishNow !== undefined && typeof body.publishNow !== 'boolean') {
+    return { error: 'Le champ publishNow doit valoir true ou false.' };
+  }
+  return { data };
+}
+
 app.post('/api/admin/news', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const { dateFr, dateEn, dateAr, sortDate, titleFr, titleEn, titleAr,
-            bodyFr, bodyEn, bodyAr, publishNow } = req.body;
-
-    if (!titleFr || !titleEn || !titleAr || !sortDate) {
-      return res.status(400).json({ error: 'Les trois titres et la date sont obligatoires.' });
-    }
+    const { error, data } = validateNewsBody(req.body);
+    if (error) return res.status(400).json({ error });
 
     const item = await prisma.news.create({
       data: {
-        dateFr, dateEn, dateAr, sortDate: new Date(sortDate),
-        titleFr, titleEn, titleAr, bodyFr, bodyEn, bodyAr,
+        ...data,
         // publishedAt = null signifie brouillon, invisible du public
         // (voir le filtre de la route publique /api/news).
-        publishedAt: publishNow ? new Date() : null,
+        publishedAt: req.body.publishNow ? new Date() : null,
       },
     });
     res.status(201).json(item);
@@ -766,17 +835,17 @@ app.put('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'), as
   try {
     const newsId = parseId(req.params.id);
     if (newsId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
-    const { dateFr, dateEn, dateAr, sortDate, titleFr, titleEn, titleAr,
-            bodyFr, bodyEn, bodyAr, publishNow } = req.body;
-
     const existing = await prisma.news.findUnique({ where: { id: newsId } });
     if (!existing) return res.status(404).json({ error: 'Actualité introuvable.' });
+
+    const { error, data } = validateNewsBody(req.body);
+    if (error) return res.status(400).json({ error });
+    const { publishNow } = req.body;
 
     const item = await prisma.news.update({
       where: { id: newsId },
       data: {
-        dateFr, dateEn, dateAr, sortDate: new Date(sortDate),
-        titleFr, titleEn, titleAr, bodyFr, bodyEn, bodyAr,
+        ...data,
         // On ne réinitialise pas la date de publication à chaque simple
         // correction de texte sur une actualité déjà publiée.
         publishedAt: publishNow
