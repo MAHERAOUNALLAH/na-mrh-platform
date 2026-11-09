@@ -109,9 +109,18 @@ minimum) n'est **jamais** passé en argument :
     la commande, puis `unset ADMIN_PASSWORD` ;
   - PowerShell : `$env:ADMIN_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host -AsSecureString 'Mot de passe')))`,
     puis la commande, puis `Remove-Item Env:ADMIN_PASSWORD`.
+    La ligne enregistrée dans l'historique est la commande elle-même,
+    qui ne contient pas le mot de passe : celui-ci est tapé en réponse
+    à `Read-Host` (affiché en `*`), pas comme une commande. Pour le
+    vérifier après coup, affichez les lignes d'historique qui
+    mentionnent la variable et relisez-les : aucune ne doit contenir le
+    mot de passe (ne tapez surtout pas le mot de passe dans une
+    commande de recherche, il entrerait à son tour dans l'historique) :
+    `Select-String ADMIN_PASSWORD (Get-PSReadLineOption).HistorySavePath`
 
-⚠️ À éviter : `ADMIN_PASSWORD=… npm run create-admin …` sur une seule
-ligne — la valeur resterait dans l'historique du shell.
+⚠️ À éviter : `ADMIN_PASSWORD=… npm run create-admin …` (bash) ou
+`$env:ADMIN_PASSWORD = '…'` (PowerShell) — la valeur, écrite dans la
+commande, resterait dans l'historique du shell.
 
 Le script refuse si l'adresse existe déjà. Les comptes suivants se
 créent depuis l'Espace Secrétariat → Utilisateurs.
