@@ -750,7 +750,57 @@ app.delete('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'),
   }
 });
 
-// ============================================================
+// ---------- 6.6 Gestion du contenu (groupes de travail) ----------
+//
+// Pas de POST ni de DELETE : les cinq GTT sont structurels (leur id est un
+// slug utilisé dans les URL et les documents). On n'édite que leur contenu.
+// La lecture réutilise les routes publiques GET /api/twgs et /api/countries :
+// ces données sont publiques, inutile de les dupliquer côté admin.
+app.put('/api/admin/twgs/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
+  try {
+    const { nameFr, nameEn, nameAr, descFr, descEn, descAr,
+            wave, leadCountryId, coleadCountryId } = req.body;
+
+    const existing = await prisma.twg.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ error: 'Groupe de travail introuvable.' });
+
+    const clean = (v) => (typeof v === 'string' ? v.trim() : '');
+    if (!clean(nameFr) || !clean(nameEn) || !clean(nameAr)) {
+      return res.status(400).json({ error: 'Les trois noms (FR, EN, AR) sont obligatoires.' });
+    }
+
+    const waveNum = Number(wave);
+    if (!Number.isInteger(waveNum) || waveNum < 1 || waveNum > 3) {
+      return res.status(400).json({ error: 'La vague doit être 1, 2 ou 3.' });
+    }
+
+    // Chaîne vide ou absente = "aucun pays" (null en base).
+    const lead = clean(leadCountryId) || null;
+    const colead = clean(coleadCountryId) || null;
+    if (lead && lead === colead) {
+      return res.status(400).json({ error: 'Le pays lead et le pays co-lead doivent être différents.' });
+    }
+    for (const countryId of [lead, colead].filter(Boolean)) {
+      const country = await prisma.country.findUnique({ where: { id: countryId } });
+      if (!country) return res.status(400).json({ error: `Pays inconnu : ${countryId}` });
+    }
+
+    const twg = await prisma.twg.update({
+      where: { id: req.params.id },
+      data: {
+        nameFr: clean(nameFr), nameEn: clean(nameEn), nameAr: clean(nameAr),
+        descFr: clean(descFr) || null, descEn: clean(descEn) || null, descAr: clean(descAr) || null,
+        wave: waveNum,
+        leadCountryId: lead,
+        coleadCountryId: colead,
+      },
+    });
+    res.json(twg);
+  } catch (error) {
+    console.error('Erreur PUT /api/admin/twgs/:id :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});// ============================================================
 // 7. DÉMARRAGE
 // ============================================================
 

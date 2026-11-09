@@ -33,6 +33,7 @@ import CountryAccounts from './pages/secretariat/CountryAccounts';
 import UserManagement from './pages/secretariat/UserManagement';
 import DocumentWorkflow from './pages/secretariat/DocumentWorkflow';
 import ContentManagement from './pages/secretariat/ContentManagement';
+import TwgAdmin from './pages/secretariat/TwgAdmin';
 
 function App() {
   return (
@@ -85,6 +86,7 @@ function App() {
             <Route path="utilisateurs" element={<UserManagement />} />
             <Route path="documents" element={<DocumentWorkflow />} />
             <Route path="contenu" element={<ContentManagement />} />
+            <Route path="groupes-de-travail" element={<TwgAdmin />} />
           </Route>
 
           {/* Toute autre adresse : message d'erreur, pas d'écran blanc. */}
