@@ -62,9 +62,38 @@ Dossier racine du service : `server/`.
 
 ## 4. Créer les tables : `migrate:deploy`
 
-Depuis `server/`, avec `DATABASE_URL` pointant sur la base de production
-(console de l'hébergeur, ou poste local avec la variable renseignée le
-temps de la commande) :
+Les étapes 4, 5 et 6 s'exécutent depuis `server/`, avec `DATABASE_URL`
+pointant sur la base de production. Deux façons de faire :
+
+- **Console / shell de l'hébergeur de l'API** (si elle existe) : la
+  variable y est déjà définie (étape 2), rien à saisir. C'est la
+  solution la plus simple.
+- **Depuis un poste local** (dépôt cloné, `npm ci` fait dans `server/`) :
+  renseignez la variable **par une saisie masquée**, une seule fois
+  pour les étapes 4 à 6 :
+  - bash, en **deux commandes** : `read -rs DATABASE_URL` (collez l'URL
+    puis Entrée ; rien ne s'affiche), puis `export DATABASE_URL` ;
+  - PowerShell : `$env:DATABASE_URL = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host -AsSecureString 'DATABASE_URL')))`.
+
+  Une variable ainsi définie **l'emporte** sur un éventuel
+  `server/.env` local (dotenv ne remplace pas une variable déjà
+  présente). Effacez-la après l'étape 6 : `unset DATABASE_URL` (bash) ou
+  `Remove-Item Env:DATABASE_URL` (PowerShell).
+
+  ⚠️ **Vérifiez la base visée avant d'aller plus loin.** Si la variable
+  n'est pas réellement transmise (export oublié ou qui a échoué), les
+  commandes retombent **sans prévenir** sur `server/.env`, c'est-à-dire
+  en général sur votre base de développement. Chaque commande affiche
+  la base qu'elle utilise, sans mot de passe : `Datasource "db":
+  PostgreSQL database "…" … at "…"` pour `migrate:deploy`, `base : …`
+  pour `seed:reference` et `create-admin`. Si ce n'est pas la base de
+  production, arrêtez-vous.
+
+⚠️ **Ne jamais écrire `DATABASE_URL` dans une commande**
+(`DATABASE_URL=postgresql://… npm run …`, `$env:DATABASE_URL = 'postgresql://…'`,
+`psql postgresql://…`) : elle contient le mot de passe de la base et
+resterait dans l'historique du shell — même raison que pour
+`ADMIN_PASSWORD` à l'étape 6.
 
 ```bash
 npm run migrate:deploy
@@ -127,6 +156,11 @@ L'adresse est enregistrée **en minuscules** (`Admin.Reel@…` devient
 casse tapée. Le script refuse si l'adresse existe déjà, quelle que soit
 sa casse. Les comptes suivants se créent depuis l'Espace Secrétariat →
 Utilisateurs (même règle des minuscules).
+
+Fin des étapes en ligne de commande : si vous avez saisi `DATABASE_URL`
+et `ADMIN_PASSWORD` sur un poste local, effacez-les maintenant
+(`unset DATABASE_URL ADMIN_PASSWORD` en bash ;
+`Remove-Item Env:DATABASE_URL, Env:ADMIN_PASSWORD` en PowerShell).
 
 ## 7. Démarrer l'API
 
