@@ -90,6 +90,22 @@ async function requireAuth(req, res, next) {
   }
 }
 
+// Les identifiants numériques des routes (/api/admin/users/:id…) arrivent
+// sous forme de texte. Number('abc') donne NaN, Number('-1') donne -1 :
+// passés à Prisma, ils provoquent une erreur 500 au lieu d'un refus clair.
+// parseId n'accepte qu'un entier strictement positif, écrit en chiffres
+// simples, et tenant dans un Int PostgreSQL (32 bits). Sinon : null.
+// Usage :
+//   const userId = parseId(req.params.id);
+//   if (userId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
+const MAX_INT_ID = 2147483647;
+const INVALID_ID_ERROR = 'Identifiant invalide : un entier strictement positif est attendu.';
+function parseId(raw) {
+  if (typeof raw !== 'string' || !/^[1-9][0-9]*$/.test(raw)) return null;
+  const id = Number(raw);
+  return id <= MAX_INT_ID ? id : null;
+}
+
 // "Et avez-vous le bon rôle ?" — à placer TOUJOURS après requireAuth,
 // qui est ce qui remplit req.user.
 // Usage : app.get('/api/admin/xxx', requireAuth, requireRole('secretariat_admin'), ...)
@@ -563,7 +579,8 @@ app.post('/api/admin/users', requireAuth, requireRole('secretariat_admin'), asyn
 // Le mot de passe est optionnel ici : s'il est vide, on n'y touche pas.
 app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const userId = Number(req.params.id);
+    const userId = parseId(req.params.id);
+    if (userId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
     const { name, email, password, level, countryId, orgRole, orgRoleOther, functions } = req.body;
 
     const existing = await prisma.user.findUnique({ where: { id: userId } });
@@ -605,17 +622,28 @@ app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), a
 // exactement le rôle du champ isActive prévu au schéma v2 [C9].
 app.patch('/api/admin/users/:id/active', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const userId = Number(req.params.id);
-    const { isActive } = req.body;
+    const userId = parseId(req.params.id);
+    if (userId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
+    // Express 5 : req.body vaut undefined si la requête n'a pas de corps JSON.
+    const { isActive } = req.body || {};
+
+    // Un booléen strict : sans ce test, un corps vide ou { isActive: "true" }
+    // donnait Boolean(undefined) = false… et désactivait le compte.
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ error: 'Le champ isActive doit valoir true ou false.' });
+    }
 
     // Garde-fou : ne pas se désactiver soi-même et se verrouiller dehors.
     if (userId === req.user.userId && isActive === false) {
       return res.status(409).json({ error: 'Vous ne pouvez pas désactiver votre propre compte.' });
     }
 
+    const existing = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    if (!existing) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { isActive: Boolean(isActive) },
+      data: { isActive },
       select: USER_PUBLIC_SELECT,
     });
 
@@ -667,7 +695,8 @@ function visibilityForStatus(status) {
 
 app.patch('/api/admin/documents/:id/status', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const documentId = Number(req.params.id);
+    const documentId = parseId(req.params.id);
+    if (documentId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
     const { status } = req.body;
 
     if (!DOCUMENT_STATUSES.includes(status)) {
@@ -735,7 +764,8 @@ app.post('/api/admin/news', requireAuth, requireRole('secretariat_admin'), async
 
 app.put('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const newsId = Number(req.params.id);
+    const newsId = parseId(req.params.id);
+    if (newsId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
     const { dateFr, dateEn, dateAr, sortDate, titleFr, titleEn, titleAr,
             bodyFr, bodyEn, bodyAr, publishNow } = req.body;
 
@@ -766,7 +796,8 @@ app.put('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'), as
 // historique. Pas de garde-fou nécessaire ici.
 app.delete('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const newsId = Number(req.params.id);
+    const newsId = parseId(req.params.id);
+    if (newsId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
     const existing = await prisma.news.findUnique({ where: { id: newsId } });
     if (!existing) return res.status(404).json({ error: 'Actualité introuvable.' });
 
