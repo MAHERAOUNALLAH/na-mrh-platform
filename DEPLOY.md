@@ -184,7 +184,7 @@ répondre `{"status":"ok",…}`.
      nombre réel de proxys indiqué par l'hébergeur.
 - [ ] **6. Aucun compte de test** : depuis Espace Secrétariat →
   Utilisateurs, seul l'administrateur créé à l'étape 6 apparaît ;
-  `m.aounallah@anmps.tn` / `password123` est refusé.
+  le compte de démo `r.jaziri@example.org` / `password123` est refusé.
 - [ ] **7. Secrets** : `JWT_SECRET` de production est neuf (pas celui de
   l'historique Git), et `ADMIN_PASSWORD` n'est plus définie sur
   l'hébergeur ni dans votre session.

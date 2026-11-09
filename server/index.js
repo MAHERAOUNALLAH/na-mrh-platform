@@ -752,8 +752,8 @@ async function validateUserBody(body, { userId = null } = {}) {
     cleanFunctions = [];
   }
 
-  // Unicité de l'e-mail, sans tenir compte de la casse : « A.Belkacem@… »
-  // et « a.belkacem@… » désignent la même boîte. On exclut l'utilisateur
+  // Unicité de l'e-mail, sans tenir compte de la casse : « Y.Demouri@… »
+  // et « y.demouri@… » désignent la même boîte. On exclut l'utilisateur
   // modifié lui-même.
   const duplicate = await prisma.user.findFirst({
     where: {

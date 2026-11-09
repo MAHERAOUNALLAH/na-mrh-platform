@@ -2,6 +2,9 @@
 // NA-MRH — prisma/seed-demo.js  (DÉVELOPPEMENT LOCAL UNIQUEMENT)
 // Données de DÉMONSTRATION : 10 comptes de test, appartenances aux GTT,
 // documents, actualités et une réclamation d'exemple.
+// Toutes les personnes sont FICTIVES (noms inventés, e-mails @example.org,
+// domaine réservé aux exemples). Ne pas y mettre de vraies personnes : le
+// dépôt est public. Connexion admin de démo : r.jaziri@example.org.
 //
 // ⛔ JAMAIS EN PRODUCTION : tous les comptes ont le mot de passe
 // "password123", écrit en clair ci-dessous, dans un dépôt public.
@@ -45,8 +48,11 @@ const prisma = createPrisma();
 async function main() {
   console.log(`🌱 Seed de démonstration — base : ${target.label}`);
 
-  // Mot de passe commun à tous les comptes de test : "password123"
-  const passwordHash = await bcrypt.hash('password123', 10);
+  // ⛔ DÉMO LOCALE UNIQUEMENT — mot de passe PUBLIC commun aux 10 comptes
+  // fictifs ci-dessous. Jamais sur une base de production (voir le garde-fou
+  // en tête de fichier ; les vrais comptes se créent avec scripts/create-admin.js).
+  const DEMO_PASSWORD = 'password123'; // DÉMO LOCALE UNIQUEMENT
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
 
   // Les données de référence (fonctions, pays, GTT) viennent de
   // seed-reference.js : on vérifie qu'elles sont là avant de continuer.
@@ -62,16 +68,16 @@ async function main() {
   //    level : reader | contributor | validator | country_admin | secretariat_admin
   // ----------------------------------------------------------
   const usersData = [
-    { countryId: 'dz', name: 'Amine Belkacem',     email: 'a.belkacem@anpp.dz',        level: 'country_admin', orgRole: 'president',      functions: ['MA'] },
-    { countryId: 'dz', name: 'Sonia Kaddour',      email: 's.kaddour@anpp.dz',         level: 'contributor',   orgRole: null,             functions: ['MA', 'PV'] },
-    { countryId: 'eg', name: 'Heba El-Sayed',      email: 'h.elsayed@edaegypt.gov.eg', level: 'country_admin', orgRole: 'member',         functions: ['GMP', 'IMS'] },
-    { countryId: 'eg', name: 'Karim Fathy',        email: 'k.fathy@edaegypt.gov.eg',   level: 'validator',     orgRole: null,             functions: ['QMS', 'PV'] },
-    { countryId: 'ly', name: 'Mohamed Saleh',      email: 'm.saleh@fdcc.ly',           level: 'country_admin', orgRole: 'member',         functions: ['GMP'] },
-    { countryId: 'mr', name: 'Fatimetou Mint Sidi',email: 'f.sidi@sante.gov.mr',       level: 'country_admin', orgRole: 'member',         functions: ['MA'] },
-    { countryId: 'ma', name: 'Yasmine Alaoui',     email: 'y.alaoui@ammps.gov.ma',     level: 'country_admin', orgRole: 'vice_president', functions: ['QMS'] },
-    { countryId: 'ma', name: 'Omar Bennis',        email: 'o.bennis@ammps.gov.ma',     level: 'contributor',   orgRole: null,             functions: ['QMS', 'MA'] },
-    { countryId: 'tn', name: 'Mariam Aounallah',   email: 'm.aounallah@anmps.tn',      level: 'secretariat_admin', orgRole: 'secretariat', functions: ['IMS', 'PV'] },
-    { countryId: 'tn', name: 'Walid Trabelsi',     email: 'w.trabelsi@anmps.tn',       level: 'reader',        orgRole: null,             functions: ['IMS'] },
+    { countryId: 'dz', name: 'Yanis Demouri',     email: 'y.demouri@example.org',   level: 'country_admin', orgRole: 'president',      functions: ['MA'] },
+    { countryId: 'dz', name: 'Lila Hamdane',      email: 'l.hamdane@example.org',   level: 'contributor',   orgRole: null,             functions: ['MA', 'PV'] },
+    { countryId: 'eg', name: 'Nour Fakhry',       email: 'n.fakhry@example.org',    level: 'country_admin', orgRole: 'member',         functions: ['GMP', 'IMS'] },
+    { countryId: 'eg', name: 'Tarek Mansy',       email: 't.mansy@example.org',     level: 'validator',     orgRole: null,             functions: ['QMS', 'PV'] },
+    { countryId: 'ly', name: 'Salem Gheriani',    email: 's.gheriani@example.org',  level: 'country_admin', orgRole: 'member',         functions: ['GMP'] },
+    { countryId: 'mr', name: 'Aminetou Vall',     email: 'a.vall@example.org',      level: 'country_admin', orgRole: 'member',         functions: ['MA'] },
+    { countryId: 'ma', name: 'Rania Bekkali',     email: 'r.bekkali@example.org',   level: 'country_admin', orgRole: 'vice_president', functions: ['QMS'] },
+    { countryId: 'ma', name: 'Hamza Lazrak',      email: 'h.lazrak@example.org',    level: 'contributor',   orgRole: null,             functions: ['QMS', 'MA'] },
+    { countryId: 'tn', name: 'Rim Jaziri',        email: 'r.jaziri@example.org',    level: 'secretariat_admin', orgRole: 'secretariat', functions: ['IMS', 'PV'] },
+    { countryId: 'tn', name: 'Fares Mejri',       email: 'f.mejri@example.org',     level: 'reader',        orgRole: null,             functions: ['IMS'] },
   ];
 
   const usersByEmail = {};
@@ -99,19 +105,19 @@ async function main() {
   // 5. APPARTENANCES AUX GTT (TwgMember) — rôle nommé des personnes
   // ----------------------------------------------------------
   const memberships = [
-    { email: 'a.belkacem@anpp.dz',        twgId: 'ma-twg',  role: 'lead' },
-    { email: 's.kaddour@anpp.dz',         twgId: 'ma-twg',  role: 'member' },
-    { email: 'h.elsayed@edaegypt.gov.eg', twgId: 'gmp-twg', role: 'lead' },
-    { email: 'h.elsayed@edaegypt.gov.eg', twgId: 'ims-twg', role: 'colead' },
-    { email: 'k.fathy@edaegypt.gov.eg',   twgId: 'qms-twg', role: 'colead' },
-    { email: 'k.fathy@edaegypt.gov.eg',   twgId: 'pv-twg',  role: 'lead' },
-    { email: 'm.saleh@fdcc.ly',           twgId: 'gmp-twg', role: 'colead' },
-    { email: 'f.sidi@sante.gov.mr',       twgId: 'ma-twg',  role: 'colead' },
-    { email: 'y.alaoui@ammps.gov.ma',     twgId: 'qms-twg', role: 'lead' },
-    { email: 'o.bennis@ammps.gov.ma',     twgId: 'qms-twg', role: 'member' },
-    { email: 'm.aounallah@anmps.tn',      twgId: 'ims-twg', role: 'lead' },
-    { email: 'm.aounallah@anmps.tn',      twgId: 'pv-twg',  role: 'colead' },
-    { email: 'w.trabelsi@anmps.tn',       twgId: 'ims-twg', role: 'member' },
+    { email: 'y.demouri@example.org',   twgId: 'ma-twg',  role: 'lead' },
+    { email: 'l.hamdane@example.org',   twgId: 'ma-twg',  role: 'member' },
+    { email: 'n.fakhry@example.org',    twgId: 'gmp-twg', role: 'lead' },
+    { email: 'n.fakhry@example.org',    twgId: 'ims-twg', role: 'colead' },
+    { email: 't.mansy@example.org',     twgId: 'qms-twg', role: 'colead' },
+    { email: 't.mansy@example.org',     twgId: 'pv-twg',  role: 'lead' },
+    { email: 's.gheriani@example.org',  twgId: 'gmp-twg', role: 'colead' },
+    { email: 'a.vall@example.org',      twgId: 'ma-twg',  role: 'colead' },
+    { email: 'r.bekkali@example.org',   twgId: 'qms-twg', role: 'lead' },
+    { email: 'h.lazrak@example.org',    twgId: 'qms-twg', role: 'member' },
+    { email: 'r.jaziri@example.org',    twgId: 'ims-twg', role: 'lead' },
+    { email: 'r.jaziri@example.org',    twgId: 'pv-twg',  role: 'colead' },
+    { email: 'f.mejri@example.org',     twgId: 'ims-twg', role: 'member' },
   ];
   for (const m of memberships) {
     await prisma.twgMember.upsert({
@@ -125,26 +131,26 @@ async function main() {
   // ----------------------------------------------------------
   // 6. DOCUMENTS (5)  — un par statut du circuit documentaire
   // ----------------------------------------------------------
-  const amine = usersByEmail['a.belkacem@anpp.dz'];
-  const heba  = usersByEmail['h.elsayed@edaegypt.gov.eg'];
-  const yasmine = usersByEmail['y.alaoui@ammps.gov.ma'];
-  const mariam = usersByEmail['m.aounallah@anmps.tn'];
-  const karim = usersByEmail['k.fathy@edaegypt.gov.eg'];
+  const adminDz = usersByEmail['y.demouri@example.org'];
+  const adminEg = usersByEmail['n.fakhry@example.org'];
+  const adminMa = usersByEmail['r.bekkali@example.org'];
+  const secretariatAdmin = usersByEmail['r.jaziri@example.org'];
+  const validatorEg = usersByEmail['t.mansy@example.org'];
 
   const documents = [
     { twgId: 'ma-twg',  titleFr: "Grille d'évaluation harmonisée — dossiers génériques", titleEn: 'Harmonised assessment grid — generic dossiers', titleAr: 'شبكة تقييم موحدة — ملفات الأدوية الجنيسة',
-      category: 'guideline', phase: 1, visibility: 'internal', status: 'draft_twg', version: '1.0', createdById: amine },
+      category: 'guideline', phase: 1, visibility: 'internal', status: 'draft_twg', version: '1.0', createdById: adminDz },
     { twgId: 'gmp-twg', titleFr: "Procédure d'inspection conjointe — sites stériles", titleEn: 'Joint inspection procedure — sterile sites', titleAr: 'إجراء التفتيش المشترك — مواقع التصنيع المعقم',
-      category: 'sop', phase: 1, visibility: 'internal', status: 'received_secretariat', version: '1.0', createdById: heba },
+      category: 'sop', phase: 1, visibility: 'internal', status: 'received_secretariat', version: '1.0', createdById: adminEg },
     { twgId: 'qms-twg', titleFr: 'Politique régionale de gestion documentaire', titleEn: 'Regional document management policy', titleAr: 'السياسة الإقليمية لإدارة الوثائق',
       category: 'guideline', phase: 2, visibility: 'internal', status: 'pending_steering', version: '1.1',
-      validatedByBody: 'secretariat', validatedById: mariam, validatedAt: new Date('2026-08-19'), createdById: yasmine },
+      validatedByBody: 'secretariat', validatedById: secretariatAdmin, validatedAt: new Date('2026-08-19'), createdById: adminMa },
     { twgId: 'ims-twg', titleFr: 'Cartographie des systèmes nationaux RIMS', titleEn: 'National RIMS systems mapping', titleAr: 'مسح أنظمة RIMS الوطنية',
       category: 'report', phase: 1, visibility: 'internal', status: 'distributed_internal', version: '1.0',
-      validatedByBody: 'secretariat', validatedById: mariam, validatedAt: new Date('2026-08-05'), createdById: mariam },
+      validatedByBody: 'secretariat', validatedById: secretariatAdmin, validatedAt: new Date('2026-08-05'), createdById: secretariatAdmin },
     { twgId: 'pv-twg',  titleFr: 'Guide de reliance régionale', titleEn: 'Regional Reliance Guideline', titleAr: 'دليل الاعتماد التبادلي الإقليمي',
       category: 'guideline', phase: 3, visibility: 'public', status: 'published_public', version: '2.0',
-      validatedByBody: 'steering_committee', validatedById: karim, validatedAt: new Date('2026-07-20'), createdById: karim },
+      validatedByBody: 'steering_committee', validatedById: validatorEg, validatedAt: new Date('2026-07-20'), createdById: validatorEg },
   ];
   for (const d of documents) {
     const doc = await prisma.document.create({ data: d });
@@ -191,11 +197,11 @@ async function main() {
   // ----------------------------------------------------------
   await prisma.complaint.create({
     data: {
-      name: 'Amira Larbi', email: 'a.larbi@example.dz', org: 'Industrie pharmaceutique locale',
+      name: 'Nadia Kherbouche', email: 'n.kherbouche@example.org', org: 'Industrie pharmaceutique locale',
       countryId: 'dz', nature: 'delay', status: 'resolved',
       message: 'Délai de retour important sur une demande d\'avis technique adressée au Secrétariat.',
       response: 'Demande traitée ; procédure de réponse accélérée mise en place.', respondedAt: new Date('2026-08-25'),
-      handledById: mariam,
+      handledById: secretariatAdmin,
     },
   });
   console.log('✅ 1 réclamation');
