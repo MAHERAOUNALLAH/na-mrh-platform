@@ -79,16 +79,31 @@ const prisma = new PrismaClient({ adapter });
 
 const app = express();
 
-// En production, le serveur est derrière le proxy de l'hébergeur (Render,
-// Railway, Fly…) : la connexion TCP vient du proxy, et la vraie adresse
-// du visiteur n'est que dans l'en-tête X-Forwarded-For. Sans ce réglage,
-// req.ip vaudrait l'IP du proxy pour TOUT le monde, et la limitation de
-// débit bloquerait tous les visiteurs ensemble dès 10 échecs de connexion.
-// « 1 » = on fait confiance à UN seul proxy (le dernier saut) : une IP
-// inventée par le client dans X-Forwarded-For reste ignorée. Si
-// l'hébergeur empile deux proxys (ex. CDN + répartiteur), mettre
-// TRUST_PROXY=2.
-app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1));
+// TRUST_PROXY = nombre de proxys entre Internet et ce serveur. Défaut : 1.
+// Chez un hébergeur, la connexion TCP arrive presque toujours d'un proxy
+// (répartiteur de charge), et la vraie adresse du visiteur n'est que dans
+// l'en-tête X-Forwarded-For. Express lit cet en-tête en partant de la
+// droite et saute autant d'entrées qu'il y a de proxys de confiance.
+//   - Valeur TROP BASSE (0 alors qu'il y a un proxy) : req.ip vaut l'IP
+//     du proxy pour TOUT le monde → un seul compteur pour tous les
+//     visiteurs : 10 mots de passe faux de n'importe qui bloquent la
+//     connexion de tous, 5 messages de contact bloquent le formulaire
+//     pour tous.
+//   - Valeur TROP HAUTE (1 alors que le serveur est exposé directement,
+//     2 alors qu'il n'y a qu'un proxy) : req.ip vient d'une entrée que le
+//     client écrit lui-même → un attaquant change d'IP à volonté et
+//     contourne la limitation.
+// Voir server/.env.example et la vérification dans DEPLOY.md.
+const TRUST_PROXY = (() => {
+  const raw = process.env.TRUST_PROXY;
+  if (raw === undefined || raw === '') return 1;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 0) {
+    fatalConfig(`TRUST_PROXY doit être un entier ≥ 0 : 0 = pas de proxy, 1 = un proxy devant le serveur (reçu : "${raw}").`);
+  }
+  return value;
+})();
+app.set('trust proxy', TRUST_PROXY);
 
 // En-têtes de sécurité. L'API ne sert que du JSON, jamais de page HTML :
 // la politique de contenu peut donc tout interdire (aucun script, aucune
@@ -1167,6 +1182,10 @@ app.listen(PORT, () => {
   console.log(`✅ Serveur API démarré sur http://localhost:${PORT}`);
   console.log(`   Santé   : http://localhost:${PORT}/api/health`);
   console.log(`   Publique: http://localhost:${PORT}/api/countries`);
-  console.log(`   Mode    : ${IS_PRODUCTION ? 'production' : 'développement'} — CORS autorisé pour : ${ALLOWED_ORIGINS.join(', ')}`);
-  if (RATE_LIMIT_DISABLED) console.log('   ⚠️  Limitation de débit DÉSACTIVÉE (RATE_LIMIT_DISABLED=1, hors production)');
+  // UNE ligne récapitulative, volontairement sans aucun secret : ni
+  // JWT_SECRET, ni DATABASE_URL (qui contient le mot de passe de la
+  // base), ni même la liste des origines — seulement leur nombre.
+  console.log(`   Configuration : NODE_ENV=${process.env.NODE_ENV || '(vide)'} | origines CORS=${ALLOWED_ORIGINS.length}`
+    + `${configuredOrigins.length === 0 ? ' (défaut local)' : ''} | trust proxy=${TRUST_PROXY}`
+    + ` | limitation de débit=${RATE_LIMIT_DISABLED ? 'DÉSACTIVÉE (RATE_LIMIT_DISABLED=1, hors production)' : 'active'}`);
 });
