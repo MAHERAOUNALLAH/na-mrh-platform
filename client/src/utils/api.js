@@ -27,6 +27,24 @@
 // Voir client/.env.example.
 const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000').replace(/\/+$/, '');
 
+// ------------------------------------------------------------
+// Point d'entrée UNIQUE pour les refus d'authentification.
+//
+// Quand un appel envoyé AVEC un jeton reçoit 401 (session révoquée :
+// compte désactivé, supprimé, jeton expiré) ou 403 (droits retirés en
+// cours de session), on prévient AuthContext, qui déconnecte ou relit
+// le profil. Ainsi aucune page admin n'a à gérer ce cas elle-même :
+// elles continuent d'afficher err.message, et la redirection vers
+// /connexion se fait par ProtectedRoute.
+//
+// Un 401 SANS jeton (mauvais mot de passe sur /api/auth/login) ne
+// déclenche rien : ce n'est pas une session qui prend fin.
+// ------------------------------------------------------------
+let authErrorHandler = null;
+export function setAuthErrorHandler(handler) {
+  authErrorHandler = handler;
+}
+
 // Fonction interne commune aux cinq verbes
 async function request(method, path, token, body) {
   const options = { method, headers: {} };
@@ -55,6 +73,9 @@ async function request(method, path, token, body) {
       (data && data.error) || `Erreur ${response.status} — la route existe-t-elle et le serveur est-il à jour ?`,
     );
     error.status = response.status;
+    if (token && authErrorHandler && (response.status === 401 || response.status === 403)) {
+      authErrorHandler(response.status, token);
+    }
     throw error;
   }
   return data;

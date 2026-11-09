@@ -45,7 +45,16 @@ const PORT = 4000;
 // "Êtes-vous connecté ?" — vérifie le jeton envoyé par le client.
 // Si oui, req.user devient disponible dans la route et on continue
 // avec next(). Sinon on arrête tout : la route ne s'exécute jamais.
-function requireAuth(req, res, next) {
+//
+// ⚠️ RÉVOCATION DE SESSION : le jeton ne prouve qu'une chose, « cette
+// personne s'est connectée il y a moins de 7 jours ». Il ne dit rien de
+// son compte AUJOURD'HUI. On relit donc l'utilisateur en base à CHAQUE
+// requête, et ce sont son isActive et son level ACTUELS qui comptent :
+//   - compte désactivé ou supprimé → 401 immédiat, même jeton valide ;
+//   - compte rétrogradé → req.user.level est le nouveau niveau, donc
+//     requireRole répond 403 dès la requête suivante.
+// Ne jamais remplir req.user avec le level du jeton (il peut être périmé).
+async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;   // format attendu : "Bearer xxxxx"
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -53,12 +62,31 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Connexion requise.' });
   }
 
+  let payload;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload;   // { userId, level }
-    next();
+    payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     return res.status(401).json({ error: 'Session invalide ou expirée.' });
+  }
+  if (!Number.isInteger(payload.userId)) {
+    return res.status(401).json({ error: 'Session invalide ou expirée.' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, level: true, isActive: true },
+    });
+    if (!user || !user.isActive) {
+      return res.status(401).json({ error: 'Session révoquée : ce compte est désactivé ou n\'existe plus.' });
+    }
+    req.user = { userId: user.id, level: user.level };   // valeurs fraîches, pas celles du jeton
+    next();
+  } catch (error) {
+    // Base injoignable : c'est une panne (500), pas un refus (401).
+    // Le client ne doit pas effacer la session pour autant.
+    console.error('Erreur requireAuth :', error);
+    return res.status(500).json({ error: 'Erreur serveur' });
   }
 }
 

@@ -8,7 +8,9 @@ import { useAuth } from '../context/AuthContext';
 import { apiPost } from '../utils/api';
 
 function Login() {
-  const { login } = useAuth();
+  // sessionNotice : message laissé par AuthContext quand une session a
+  // été révoquée (compte désactivé…) et qu'on a été renvoyé ici.
+  const { login, sessionNotice } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ email: '', password: '' });
@@ -44,6 +46,13 @@ function Login() {
           <span className="kicker">Portail sécurisé</span>
           <h2>Connexion</h2>
         </div>
+
+        {sessionNotice && (
+          <div className="notice-box" role="alert">
+            <span aria-hidden="true">⚠</span>
+            <span>{sessionNotice}</span>
+          </div>
+        )}
 
         <div className="login-card" style={{ padding: '24px' }}>
           <form onSubmit={handleSubmit}>
