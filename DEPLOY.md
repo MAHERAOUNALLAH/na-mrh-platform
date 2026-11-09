@@ -168,6 +168,24 @@ casse tapée. Le script refuse si l'adresse existe déjà, quelle que soit
 sa casse. Les comptes suivants se créent depuis l'Espace Secrétariat →
 Utilisateurs (même règle des minuscules).
 
+**Facultatif — contenu de démonstration sans compte.** Pour qu'un site
+fraîchement déployé n'affiche pas des pages Actualités et Bibliothèque
+vides :
+
+```bash
+npm run seed:demo-content -- --admin adresse@domaine.org
+```
+
+Crée 2 actualités et 3 documents publics **fictifs**, dont chaque titre
+porte la mention « [Contenu de démonstration] » (FR/EN/AR), avec
+l'administrateur créé ci-dessus comme auteur. **Aucun compte, aucun mot
+de passe.** Le script affiche la base visée (sans identifiants) et
+demande de taper `oui` avant d'écrire ; relancé, il ne recrée ni ne
+modifie rien de ce qui existe (mais recrée un élément de démonstration
+qui aurait été renommé ou supprimé). Pour retirer ce contenu ensuite :
+supprimer les actualités depuis l'Espace Secrétariat, et passer les
+documents au statut « Archivé » dans le circuit documentaire.
+
 Fin des étapes en ligne de commande : si vous avez saisi `DATABASE_URL`
 et `ADMIN_PASSWORD` sur un poste local, effacez-les maintenant
 (`unset DATABASE_URL ADMIN_PASSWORD` en bash ;
