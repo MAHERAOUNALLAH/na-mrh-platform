@@ -24,7 +24,7 @@ const helmet = require('helmet');                    // en-têtes de sécurité 
 const { rateLimit } = require('express-rate-limit'); // limitation de débit par IP
 const jwt = require('jsonwebtoken');                 // fabrique et vérifie les jetons de session
 const bcrypt = require('bcryptjs');                  // hache et compare les mots de passe
-const { PrismaClient } = require('@prisma/client');  // le client base de données
+const { PrismaClient, UserLevel, OrgRole } = require('@prisma/client');  // client base + enums du schéma
 const { PrismaPg } = require('@prisma/adapter-pg');  // l'adaptateur Prisma 7
 
 // ------------------------------------------------------------
@@ -663,31 +663,123 @@ app.get('/api/admin/functions', requireAuth, requireRole('secretariat_admin'), a
   }
 });
 
+// Validation commune à POST et PUT /api/admin/users (même style que
+// validateNewsBody). Le formulaire envoie toujours l'utilisateur complet ;
+// conventions du formulaire conservées :
+//   - countryId ''  → aucun pays (Secrétariat régional) ;
+//   - orgRole ''    → aucun rôle institutionnel ;
+//   - password ''   → en modification : mot de passe inchangé ;
+//   - functions absent → en modification : fonctions inchangées.
+// Les valeurs permises de level et orgRole viennent des enums du schéma
+// (importés de @prisma/client) : pas de liste recopiée à maintenir.
+// Renvoie { status, error } ou { data, functions, password }.
+const USER_LEVELS = Object.values(UserLevel);
+const ORG_ROLES = Object.values(OrgRole);
+const PASSWORD_MIN_LENGTH = 12;
+const PASSWORD_MAX_LENGTH = 72;   // bcrypt ignore tout au-delà de 72 octets
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function validateUserBody(body, { userId = null } = {}) {
+  const isCreate = userId === null;
+  const bad = (error) => ({ status: 400, error });
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return bad('Corps de requête JSON attendu.');
+
+  const { name, email, password, level, countryId, orgRole, orgRoleOther, functions } = body;
+  const isOptionalString = (v) => v === undefined || v === null || typeof v === 'string';
+  for (const [label, value] of [['nom', name], ['e-mail', email], ['mot de passe', password],
+    ['niveau', level], ['pays', countryId], ['rôle institutionnel', orgRole], ['précision du rôle', orgRoleOther]]) {
+    if (!isOptionalString(value)) return bad(`Le champ ${label} doit être du texte.`);
+  }
+
+  const cleanName = (name || '').trim();
+  if (!cleanName) return bad('Le nom est obligatoire.');
+  if (cleanName.length > 200) return bad('Le nom dépasse 200 caractères.');
+
+  const cleanEmail = (email || '').trim();
+  if (!cleanEmail) return bad('L\'adresse e-mail est obligatoire.');
+  if (cleanEmail.length > 254 || !EMAIL_PATTERN.test(cleanEmail)) return bad('L\'adresse e-mail est invalide.');
+
+  if (!level) return bad('Le niveau d\'accès est obligatoire.');
+  if (!USER_LEVELS.includes(level)) return bad(`Niveau d'accès inconnu. Valeurs permises : ${USER_LEVELS.join(', ')}.`);
+
+  // Mot de passe : obligatoire à la création, facultatif en modification
+  // (vide = inchangé), mais s'il est fourni il respecte les mêmes règles.
+  const pwd = password || '';
+  if (isCreate && !pwd) return bad('Le mot de passe est obligatoire à la création.');
+  if (pwd && pwd.length < PASSWORD_MIN_LENGTH) return bad(`Le mot de passe doit faire au moins ${PASSWORD_MIN_LENGTH} caractères.`);
+  if (Buffer.byteLength(pwd, 'utf8') > PASSWORD_MAX_LENGTH) return bad(`Le mot de passe ne doit pas dépasser ${PASSWORD_MAX_LENGTH} octets.`);
+
+  const cleanCountry = (countryId || '').trim() || null;
+  if (cleanCountry) {
+    const country = await prisma.country.findUnique({ where: { id: cleanCountry }, select: { id: true } });
+    if (!country) return bad(`Pays inconnu : ${cleanCountry}`);
+  }
+
+  const cleanOrgRole = orgRole || null;
+  if (cleanOrgRole && !ORG_ROLES.includes(cleanOrgRole)) {
+    return bad(`Rôle institutionnel inconnu. Valeurs permises : ${ORG_ROLES.join(', ')}.`);
+  }
+  const cleanOrgRoleOther = cleanOrgRole === 'other' ? ((orgRoleOther || '').trim() || null) : null;
+  if (cleanOrgRoleOther && cleanOrgRoleOther.length > 200) return bad('La précision du rôle dépasse 200 caractères.');
+
+  let cleanFunctions;   // undefined = ne pas toucher (modification uniquement)
+  if (functions !== undefined && functions !== null) {
+    if (!Array.isArray(functions) || functions.some((c) => typeof c !== 'string')) {
+      return bad('Les fonctions doivent être une liste de codes (ex. ["MA", "PV"]).');
+    }
+    cleanFunctions = [...new Set(functions)];
+    if (cleanFunctions.length > 0) {
+      const found = await prisma.function.findMany({ where: { code: { in: cleanFunctions } }, select: { code: true } });
+      const unknown = cleanFunctions.filter((c) => !found.some((f) => f.code === c));
+      if (unknown.length > 0) return bad(`Fonction(s) inconnue(s) : ${unknown.join(', ')}`);
+    }
+  } else if (isCreate) {
+    cleanFunctions = [];
+  }
+
+  // Unicité de l'e-mail, sans tenir compte de la casse : « A.Belkacem@… »
+  // et « a.belkacem@… » désignent la même boîte. On exclut l'utilisateur
+  // modifié lui-même.
+  const duplicate = await prisma.user.findFirst({
+    where: {
+      email: { equals: cleanEmail, mode: 'insensitive' },
+      ...(isCreate ? {} : { NOT: { id: userId } }),
+    },
+    select: { id: true },
+  });
+  if (duplicate) return { status: 409, error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' };
+
+  return {
+    data: {
+      name: cleanName, email: cleanEmail, level,
+      countryId: cleanCountry, orgRole: cleanOrgRole, orgRoleOther: cleanOrgRoleOther,
+    },
+    functions: cleanFunctions,
+    password: pwd,
+  };
+}
+
+// Course possible entre la vérification d'unicité et l'écriture : la
+// contrainte @unique de la base tranche, on la traduit en 409.
+function isUniqueEmailViolation(error) {
+  return error && error.code === 'P2002';
+}
+
 app.post('/api/admin/users', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
-    const { name, email, password, level, countryId, orgRole, orgRoleOther, functions } = req.body;
-
-    if (!name || !email || !password || !level) {
-      return res.status(400).json({ error: 'Nom, email, mot de passe et niveau sont obligatoires.' });
-    }
-
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée.' });
-    }
+    const result = await validateUserBody(req.body);
+    if (result.error) return res.status(result.status).json({ error: result.error });
 
     // Le mot de passe n'est JAMAIS stocké en clair : bcrypt le hache
     // de façon irréversible (on ne peut que vérifier, pas relire).
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(result.password, 10);
 
     const user = await prisma.user.create({
       data: {
-        name, email, passwordHash, level,
-        countryId: countryId || null,
-        orgRole: orgRole || null,
-        orgRoleOther: orgRole === 'other' ? orgRoleOther : null,
+        ...result.data,
+        passwordHash,
         userFunctions: {
-          create: (functions || []).map((code) => ({ functionCode: code })),
+          create: result.functions.map((code) => ({ functionCode: code })),
         },
       },
       select: USER_PUBLIC_SELECT,
@@ -695,6 +787,9 @@ app.post('/api/admin/users', requireAuth, requireRole('secretariat_admin'), asyn
 
     res.status(201).json(user);
   } catch (error) {
+    if (isUniqueEmailViolation(error)) {
+      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
     console.error('Erreur POST /api/admin/users :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -705,27 +800,27 @@ app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), a
   try {
     const userId = parseId(req.params.id);
     if (userId === null) return res.status(400).json({ error: INVALID_ID_ERROR });
-    const { name, email, password, level, countryId, orgRole, orgRoleOther, functions } = req.body;
 
-    const existing = await prisma.user.findUnique({ where: { id: userId } });
+    const existing = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
     if (!existing) return res.status(404).json({ error: 'Utilisateur introuvable.' });
 
-    const data = {
-      name, email, level,
-      countryId: countryId || null,
-      orgRole: orgRole || null,
-      orgRoleOther: orgRole === 'other' ? orgRoleOther : null,
-    };
+    const result = await validateUserBody(req.body, { userId });
+    if (result.error) return res.status(result.status).json({ error: result.error });
 
-    if (password) {
-      data.passwordHash = await bcrypt.hash(password, 10);
+    const data = { ...result.data };
+    if (result.password) {
+      data.passwordHash = await bcrypt.hash(result.password, 10);
     }
 
-    // Fonctions réglementaires : deleteMany puis create = la façon
-    // Prisma de resynchroniser une relation N-N sur une table de liaison.
-    if (functions) {
-      await prisma.userFunction.deleteMany({ where: { userId } });
-      data.userFunctions = { create: functions.map((code) => ({ functionCode: code })) };
+    // Fonctions réglementaires : deleteMany puis create DANS le même
+    // update = une seule écriture atomique (avant, la suppression avait
+    // lieu à part, et un échec de l'update laissait l'utilisateur sans
+    // aucune fonction).
+    if (result.functions !== undefined) {
+      data.userFunctions = {
+        deleteMany: {},
+        create: result.functions.map((code) => ({ functionCode: code })),
+      };
     }
 
     const user = await prisma.user.update({
@@ -736,6 +831,9 @@ app.put('/api/admin/users/:id', requireAuth, requireRole('secretariat_admin'), a
 
     res.json(user);
   } catch (error) {
+    if (isUniqueEmailViolation(error)) {
+      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
     console.error('Erreur PUT /api/admin/users/:id :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
