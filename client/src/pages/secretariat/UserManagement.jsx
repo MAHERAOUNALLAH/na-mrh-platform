@@ -57,8 +57,13 @@ function UserManagement() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
+  // Pas de setLoading(true) ici : cette fonction est appelée par le
+  // useEffect, et la règle ESLint react-hooks/set-state-in-effect interdit
+  // tout setState synchrone dans un effet (loading vaut déjà true au
+  // premier rendu, voir TwgAdmin.jsx). Les rechargements déclenchés par
+  // une action passent par reloadUsers() ou changeFilter(), qui remet l'écran « Chargement… »
+  // comme avant : le comportement visible ne change pas.
   const loadUsers = useCallback(() => {
-    setLoading(true);
     const path = filterCountry
       ? `/api/admin/users?countryId=${filterCountry}`
       : '/api/admin/users';
@@ -69,6 +74,19 @@ function UserManagement() {
   }, [token, filterCountry]);
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  // Rechargement après une action (enregistrement, activation).
+  function reloadUsers() {
+    setLoading(true);
+    loadUsers();
+  }
+
+  // Changer de pays modifie filterCountry, donc loadUsers, donc relance
+  // l'effet : on affiche « Chargement… » dès le clic, comme avant.
+  function changeFilter(countryId) {
+    setLoading(true);
+    setFilterCountry(countryId);
+  }
 
   // Les pays et les fonctions ne changent pas souvent : une seule fois.
   useEffect(() => {
@@ -119,7 +137,7 @@ function UserManagement() {
       : apiPut(`/api/admin/users/${editing}`, token, form);
 
     action
-      .then(() => { setEditing(null); loadUsers(); })
+      .then(() => { setEditing(null); reloadUsers(); })
       .catch((err) => setError(err.message))
       .finally(() => setSaving(false));
   }
@@ -129,7 +147,7 @@ function UserManagement() {
     if (!window.confirm(`Voulez-vous ${action} le compte de ${user.name} ?`)) return;
 
     apiPatch(`/api/admin/users/${user.id}/active`, token, { isActive: !user.isActive })
-      .then(() => loadUsers())
+      .then(() => reloadUsers())
       .catch((err) => setError(err.message));
   }
 
@@ -146,7 +164,7 @@ function UserManagement() {
 
       <div className="field" style={{ maxWidth: '280px' }}>
         <label>Filtrer par pays</label>
-        <select value={filterCountry} onChange={(e) => setFilterCountry(e.target.value)} style={selectStyle}>
+        <select value={filterCountry} onChange={(e) => changeFilter(e.target.value)} style={selectStyle}>
           <option value="">Tous les pays</option>
           {countries.map((c) => (
             <option key={c.id} value={c.id}>{pickLang(c, 'name', lang)}</option>

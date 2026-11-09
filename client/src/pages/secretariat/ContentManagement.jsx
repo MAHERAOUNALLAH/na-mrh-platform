@@ -28,8 +28,13 @@ function ContentManagement() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
+  // Pas de setLoading(true) ici : cette fonction est appelée par le
+  // useEffect, et la règle ESLint react-hooks/set-state-in-effect interdit
+  // tout setState synchrone dans un effet (loading vaut déjà true au
+  // premier rendu, voir TwgAdmin.jsx). Les rechargements déclenchés par
+  // une action passent par reloadNews(), qui remet l'écran « Chargement… »
+  // comme avant : le comportement visible ne change pas.
   const loadNews = useCallback(() => {
-    setLoading(true);
     apiGet('/api/admin/news', token)
       .then((data) => { setNews(data); setError(null); })
       .catch((err) => setError(err.message))
@@ -37,6 +42,12 @@ function ContentManagement() {
   }, [token]);
 
   useEffect(() => { loadNews(); }, [loadNews]);
+
+  // Rechargement après une action (enregistrement, suppression).
+  function reloadNews() {
+    setLoading(true);
+    loadNews();
+  }
 
   function openCreate() {
     setForm(EMPTY_FORM);
@@ -69,7 +80,7 @@ function ContentManagement() {
       : apiPut(`/api/admin/news/${editing}`, token, form);
 
     action
-      .then(() => { setEditing(null); loadNews(); })
+      .then(() => { setEditing(null); reloadNews(); })
       .catch((err) => setError(err.message))
       .finally(() => setSaving(false));
   }
@@ -77,7 +88,7 @@ function ContentManagement() {
   function handleDelete(item) {
     if (!window.confirm(`Supprimer définitivement « ${item.titleFr} » ?`)) return;
     apiDelete(`/api/admin/news/${item.id}`, token)
-      .then(() => loadNews())
+      .then(() => reloadNews())
       .catch((err) => setError(err.message));
   }
 

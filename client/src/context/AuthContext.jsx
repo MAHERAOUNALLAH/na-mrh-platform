@@ -130,6 +130,15 @@ export function AuthProvider({ children }) {
 
 // Un petit raccourci : plutôt que useContext(AuthContext) partout,
 // on écrit juste useAuth(). Convention très courante en React.
+//
+// Pourquoi l'exception ESLint ci-dessous : la règle
+// react-refresh/only-export-components veut qu'un fichier qui exporte un
+// composant (AuthProvider) n'exporte rien d'autre, sinon le rechargement
+// à chaud de Vite (développement uniquement) recharge la page entière
+// au lieu du seul composant. Aucun effet en production. Déplacer useAuth
+// dans un autre fichier obligerait à modifier tous ses imports pour un
+// gain nul ; on garde le hook à côté de son contexte, comme c'est l'usage.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }

@@ -47,8 +47,13 @@ function CountryAccounts() {
 
   // useCallback : évite de recréer la fonction à chaque rendu,
   // ce qui ferait boucler le useEffect qui en dépend.
+  // Pas de setLoading(true) ici : cette fonction est appelée par le
+  // useEffect, et la règle ESLint react-hooks/set-state-in-effect interdit
+  // tout setState synchrone dans un effet (loading vaut déjà true au
+  // premier rendu, voir TwgAdmin.jsx). Les rechargements déclenchés par
+  // une action passent par reloadCountries(), qui remet l'écran « Chargement… »
+  // comme avant : le comportement visible ne change pas.
   const loadCountries = useCallback(() => {
-    setLoading(true);
     apiGet('/api/admin/countries', token)
       .then((data) => { setCountries(data); setError(null); })
       .catch((err) => setError(err.message))
@@ -56,6 +61,12 @@ function CountryAccounts() {
   }, [token]);
 
   useEffect(() => { loadCountries(); }, [loadCountries]);
+
+  // Rechargement après une action (enregistrement, suppression).
+  function reloadCountries() {
+    setLoading(true);
+    loadCountries();
+  }
 
   function openCreate() {
     setForm(EMPTY_FORM);
@@ -91,7 +102,7 @@ function CountryAccounts() {
     action
       .then(() => {
         setEditing(null);
-        loadCountries();     // on recharge la liste pour voir le changement
+        reloadCountries();   // on recharge la liste pour voir le changement
       })
       .catch((err) => setError(err.message))
       .finally(() => setSaving(false));
@@ -102,7 +113,7 @@ function CountryAccounts() {
     if (!window.confirm(`Supprimer définitivement le compte de ${name} ?`)) return;
 
     apiDelete(`/api/admin/countries/${country.id}`, token)
-      .then(() => loadCountries())
+      .then(() => reloadCountries())
       .catch((err) => setError(err.message));   // ex. "il est lead d'un GTT"
   }
 
