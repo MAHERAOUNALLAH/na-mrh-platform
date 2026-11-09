@@ -12,6 +12,7 @@
     "seed:reference": "node prisma/seed-reference.js",
     "seed:demo": "node prisma/seed-demo.js",
     "seed": "node prisma/seed-reference.js && node prisma/seed-demo.js",
+    "create-admin": "node scripts/create-admin.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
