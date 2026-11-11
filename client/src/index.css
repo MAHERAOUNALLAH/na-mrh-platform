@@ -35,6 +35,7 @@
     font-size:16px;
     line-height:1.55;
     -webkit-font-smoothing:antialiased;
+    overflow-wrap:break-word;   /* mots longs (adresses e-mail, mots arabes) : coupés plutôt que de déborder */
   }
   body[data-lang="ar"]{font-family:var(--ar-sans);}
   body[data-lang="ar"] h1, body[data-lang="ar"] h2, body[data-lang="ar"] h3, body[data-lang="ar"] .display{
@@ -44,7 +45,8 @@
   p{margin:0;}
   a{color:inherit;}
   button{font-family:inherit; cursor:pointer;}
-  .container{max-width:1180px; margin:0 auto; padding:0 28px;}
+  /* Gouttière fluide : 16px sur téléphone, 28px dès ~700px (valeur d'origine). */
+  .container{max-width:1180px; margin:0 auto; padding:0 clamp(16px, 4vw, 28px);}
   ::selection{background:var(--gold); color:#fff;}
   :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
 
@@ -124,7 +126,7 @@
 
   /* ---------- HERO ---------- */
   .hero{
-    padding:60px 0 50px;
+    padding-block:clamp(32px, 6vw, 60px) clamp(28px, 5vw, 50px);   /* 60 / 50 px au-dessus de 1024 */
     border-bottom:1px solid var(--line);
     background:
       radial-gradient(circle at 88% 15%, rgba(163,22,33,.06), transparent 45%),
@@ -136,7 +138,8 @@
   }
   .eyebrow-line .dash{width:34px; height:2px; background:var(--red);}
   .eyebrow-line span{font-size:13px; font-weight:700; color:var(--red-deep);}
-  .hero h1{font-size:44px; line-height:1.12; margin-bottom:18px; letter-spacing:-.01em;}
+  /* 24px à 360px (3 lignes en FR), 44px dès ~820px (valeur d'origine). */
+  .hero h1{font-size:clamp(24px, 4.4vw + 8px, 44px); line-height:1.12; margin-bottom:18px; letter-spacing:-.01em;}
   .hero p.lead{font-size:17.5px; color:var(--ink-soft); max-width:52ch; margin-bottom:28px;}
   .hero-ctas{display:flex; gap:12px; flex-wrap:wrap;}
   .btn{
@@ -175,10 +178,10 @@
   .stats-bar .stat span{font-size:12.5px; color:var(--ink-soft); font-weight:600;}
 
   /* ---------- SECTION GENERIC ---------- */
-  section.page-section{padding:56px 0;}
+  section.page-section{padding-block:clamp(32px, 5.5vw, 56px);}   /* 56px au-dessus de 1024 */
   .section-head{margin-bottom:34px; max-width:70ch;}
   .section-head .kicker{font-size:12.5px; font-weight:700; color:var(--red-deep); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; display:block;}
-  .section-head h2{font-size:30px; margin-bottom:10px;}
+  .section-head h2{font-size:clamp(24px, 2vw + 16px, 30px); margin-bottom:10px;}
   .section-head p{color:var(--ink-soft); font-size:15.5px;}
 
   /* ---------- CARDS: MEMBER STATES ---------- */
@@ -238,7 +241,7 @@
   .back-link:hover{color:var(--red);}
   .detail-hero{display:flex; gap:20px; align-items:center; margin-bottom:30px; flex-wrap:wrap;}
   .detail-hero img.flag-big{width:88px; height:60px; object-fit:cover; box-shadow:0 0 0 1px var(--line-strong);}
-  .detail-hero h2{font-size:32px;}
+  .detail-hero h2{font-size:clamp(26px, 2vw + 18px, 32px);}
   .detail-hero .sub{color:var(--ink-soft); font-weight:600; font-size:14.5px;}
   .kv-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:26px 0;}
   @media(max-width:768px){.kv-grid{grid-template-columns:1fr;}}
