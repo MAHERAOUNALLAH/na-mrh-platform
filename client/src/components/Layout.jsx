@@ -57,7 +57,7 @@ function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ---- Menu replié (écrans <= 1024 px) ----
+  // ---- Menu replié (écrans <= 1180 px, seuil propre au menu : voir index.css) ----
   // On mémorise la page sur laquelle le menu a été ouvert : dès que
   // l'adresse change, il est donc fermé, sans setState dans un effet
   // (règle ESLint react-hooks/set-state-in-effect).
@@ -81,8 +81,8 @@ function Layout() {
 
   // Hauteur réelle de l'en-tête collant -> --sticky-h, utilisée par
   // scroll-padding-top : une ancre ou un champ qui reçoit le focus au
-  // clavier ne se retrouve pas caché sous l'en-tête (y compris quand le
-  // menu FR occupe deux lignes, entre 1025 et 1169 px).
+  // clavier ne se retrouve pas caché sous l'en-tête, quelle que soit sa
+  // hauteur réelle (barre seule, ou barre + menu ouvert).
   useEffect(() => {
     const header = headerRef.current;
     if (!header || typeof ResizeObserver === 'undefined') return undefined;
@@ -153,7 +153,7 @@ function Layout() {
               </span>
             </NavLink>
 
-            {/* Bouton du menu : visible seulement sous 1024 px (CSS). */}
+            {/* Bouton du menu : visible seulement jusqu'à 1180 px (CSS). */}
             <button
               ref={toggleRef}
               type="button"

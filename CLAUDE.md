@@ -72,6 +72,9 @@ La langue se lit via `const { i18n } = useTranslation()` puis `i18n.language` : 
 - **Toujours** utiliser les classes réelles de la maquette (`className="twg-card"`, pas de `style={{...}}` improvisé)
 - ⚠️ **Piège connu** : la maquette utilise des `<button>` pour beaucoup d'éléments cliquables (cartes, liens de nav). React Router (`<Link>`, `<NavLink>`) génère des `<a>`. Si le CSS de la maquette cible `.xxx button`, et qu'on utilise un `<Link>`, il faut ajouter la même règle pour `.xxx a` (voir `client/src/index.css`, section "CORRECTIF" en bas de fichier, pour des exemples déjà traités).
 
+### Responsive
+- **Seuil du menu replié : 1180 px** (bouton « Menu » jusqu'à 1180, liens visibles au-delà), propre au menu et hors des points d'arrêt généraux. Au-dessus, les 9 liens tiennent sur une ligne à côté du logo dans la langue la plus longue (FR : dès 1170 px, mesuré). ⚠️ **Si un lien est ajouté au menu, ou un libellé allongé, remesurer et revoir ce seuil** (`@media(max-width:1180px)` dans `index.css`), sinon l'en-tête collant repasse sur deux lignes.
+
 ### Sécurité — le filtrage est toujours côté serveur
 Tout filtre qui décide **ce que l'utilisateur a le droit de voir** appartient au `where` de la requête Prisma, jamais à un `.filter()` React sur les données reçues. Sinon les données sensibles partent quand même dans le navigateur, où elles se lisent dans l'onglet Réseau : le masquage à l'affichage n'est qu'un rideau.
 

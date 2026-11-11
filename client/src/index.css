@@ -1,9 +1,10 @@
 /* ============================================================
    POINTS D'ARRÊT (max-width uniquement) : 480 / 768 / 1024 px.
-     ≤ 1024 : tablette paysage et petits écrans (menu replié, héros sur une colonne)
+     ≤ 1024 : tablette paysage et petits écrans (héros sur une colonne)
      ≤ 768  : tablette portrait et mobile (grilles sur une colonne, cibles 44 px)
      ≤ 480  : téléphone (une seule colonne partout)
    Au-dessus de 1024 px : rendu de la maquette, sans requête média.
+   Seuil à part, propre au menu : 1180 px (voir « menu replié » en bas).
    ============================================================ */
 :root{
     --bg:#F7F3EA;
@@ -567,7 +568,7 @@ a.back-link{text-decoration:none;}
 html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 
 .nav-toggle{
-  display:none;                       /* visible seulement <= 1024 px */
+  display:none;                       /* visible seulement <= 1180 px */
   align-items:center; gap:8px;
   min-height:44px; min-width:44px; padding-inline:12px;
   background:none; border:1.5px solid var(--ink); border-radius:3px;
@@ -577,7 +578,13 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .nav-toggle-icon span{display:block; height:2px; background:currentColor; border-radius:1px;}
 .nav-toggle[aria-expanded="true"]{background:var(--ink); color:#fff;}
 
-@media(max-width:1024px){
+/* SEUIL DU MENU : 1180 px, hors du jeu 480/768/1024 et identique en FR/EN/AR.
+   Au-dessus, les 9 liens tiennent sur une ligne à côté du logo dans la
+   langue la plus longue (FR : une ligne dès 1170 px, mesuré) ; en dessous,
+   ils passeraient sur deux lignes et l'en-tête collant doublerait de hauteur.
+   ⚠️ Si un lien est ajouté au menu (ou un libellé allongé), remesurer et
+   revoir ce seuil. */
+@media(max-width:1180px){
   .mainnav-inner{padding-block:8px; row-gap:0;}   /* barre de 62 px : logo 44 + 2×8 + bordure */
   .nav-toggle{display:inline-flex;}
   .navlinks{
