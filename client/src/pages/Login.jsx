@@ -4,12 +4,14 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { apiPost } from '../utils/api';
 
 function Login() {
   // sessionNotice : message laissé par AuthContext quand une session a
   // été révoquée (compte désactivé…) et qu'on a été renvoyé ici.
+  const { t } = useTranslation();
   const { login, sessionNotice } = useAuth();
   const navigate = useNavigate();
 
@@ -43,26 +45,26 @@ function Login() {
     <section className="page-section">
       <div className="container" style={{ maxWidth: '420px' }}>
         <div className="section-head">
-          <span className="kicker">Portail sécurisé</span>
-          <h2>Connexion</h2>
+          <span className="kicker">{t('auth.kicker')}</span>
+          <h2>{t('auth.title')}</h2>
         </div>
 
         {sessionNotice && (
           <div className="notice-box" role="alert">
             <span aria-hidden="true">⚠</span>
-            <span>{sessionNotice}</span>
+            <span>{t(sessionNotice)}</span>
           </div>
         )}
 
         <div className="login-card" style={{ padding: '24px' }}>
           <form onSubmit={handleSubmit}>
             <div className="field">
-              <label>Adresse e-mail</label>
-              <input type="email" name="email" value={form.email} onChange={handleChange} required autoFocus />
+              <label htmlFor="login-email">{t('auth.emailL')}</label>
+              <input id="login-email" type="email" name="email" value={form.email} onChange={handleChange} required autoFocus />
             </div>
             <div className="field">
-              <label>Mot de passe</label>
-              <input type="password" name="password" value={form.password} onChange={handleChange} required />
+              <label htmlFor="login-password">{t('auth.passwordL')}</label>
+              <input id="login-password" type="password" name="password" value={form.password} onChange={handleChange} required />
             </div>
 
             <button
@@ -71,7 +73,7 @@ function Login() {
               style={{ width: '100%', justifyContent: 'center' }}
               disabled={sending}
             >
-              {sending ? '…' : 'Se connecter'}
+              {sending ? '…' : t('auth.submit')}
             </button>
 
             {error && (

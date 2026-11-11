@@ -14,22 +14,9 @@ import { useAuth } from '../../context/AuthContext';
 import { pickLang } from '../../utils/lang';
 import { apiGet, apiPost, apiPut, apiPatch } from '../../utils/api';
 
-const LEVELS = [
-  { value: 'reader', label: 'Lecteur' },
-  { value: 'contributor', label: 'Contributeur' },
-  { value: 'validator', label: 'Validateur' },
-  { value: 'country_admin', label: 'Administrateur pays' },
-  { value: 'secretariat_admin', label: 'Administrateur Secrétariat' },
-];
-
-const ORG_ROLES = [
-  { value: '', label: '—' },
-  { value: 'president', label: 'Président' },
-  { value: 'vice_president', label: 'Vice-président' },
-  { value: 'member', label: 'Membre' },
-  { value: 'secretariat', label: 'Secrétariat' },
-  { value: 'other', label: 'Autre' },
-];
+// Libellés : clés levels.* et orgRoles.* des locales.
+const LEVELS = ['reader', 'contributor', 'validator', 'country_admin', 'secretariat_admin'];
+const ORG_ROLES = ['', 'president', 'vice_president', 'member', 'secretariat', 'other'];
 
 const EMPTY_FORM = {
   name: '', email: '', password: '', level: 'reader',
@@ -38,7 +25,7 @@ const EMPTY_FORM = {
 
 function UserManagement() {
   const { token } = useAuth();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language;
 
   const [users, setUsers] = useState([]);
@@ -138,44 +125,46 @@ function UserManagement() {
   }
 
   function toggleActive(user) {
-    const action = user.isActive ? 'désactiver' : 'réactiver';
-    if (!window.confirm(`Voulez-vous ${action} le compte de ${user.name} ?`)) return;
+    const question = user.isActive ? 'adminUsers.confirmDeactivate' : 'adminUsers.confirmReactivate';
+    if (!window.confirm(t(question, { name: user.name }))) return;
 
     apiPatch(`/api/admin/users/${user.id}/active`, token, { isActive: !user.isActive })
       .then(() => reloadUsers())
       .catch((err) => setError(err.message));
   }
 
-  if (loading) return <p>Chargement…</p>;
+  if (loading) return <p>{t('common.loading')}</p>;
 
   return (
     <div>
       <div className="admin-toolbar">
         <p style={{ fontSize: '14px', color: 'var(--ink-soft)', maxWidth: '58ch' }}>
-          Utilisateurs internes des Autorités Nationales de Réglementation et du Secrétariat.
+          {t('adminUsers.intro')}
         </p>
-        <button className="btn btn-primary btn-sm" onClick={openCreate}>+ Ajouter un utilisateur</button>
+        <button className="btn btn-primary btn-sm" onClick={openCreate}>{t('adminUsers.add')}</button>
       </div>
 
       <div className="field" style={{ maxWidth: '280px' }}>
-        <label>Filtrer par pays</label>
-        <select value={filterCountry} onChange={(e) => changeFilter(e.target.value)}>
-          <option value="">Tous les pays</option>
+        <label htmlFor="users-filter">{t('adminUsers.filterL')}</label>
+        <select id="users-filter" value={filterCountry} onChange={(e) => changeFilter(e.target.value)}>
+          <option value="">{t('adminUsers.allCountries')}</option>
           {countries.map((c) => (
             <option key={c.id} value={c.id}>{pickLang(c, 'name', lang)}</option>
           ))}
         </select>
       </div>
 
-      {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
+      {error && <p className="form-msg form-msg-error" role="alert">{error}</p>}
 
       {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
-      <div className="table-scroll" role="region" aria-label="Liste des utilisateurs" tabIndex={0}>
+      <div className="table-scroll" role="region" aria-label={t('adminUsers.tableLabel')} tabIndex={0}>
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Nom</th><th>E-mail</th><th>Pays</th><th>Niveau</th>
-              <th>Fonctions</th><th>Rôles GTT</th><th>Statut</th><th></th>
+              <th>{t('adminUsers.colName')}</th><th>{t('adminUsers.colEmail')}</th>
+              <th>{t('adminUsers.colCountry')}</th><th>{t('adminUsers.colLevel')}</th>
+              <th>{t('adminUsers.colFunctions')}</th><th>{t('adminUsers.colTwgRoles')}</th>
+              <th>{t('adminUsers.colStatus')}</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -184,7 +173,7 @@ function UserManagement() {
                 <td><b>{u.name}</b></td>
                 <td><bdi dir="ltr">{u.email}</bdi></td>
                 <td>{u.country ? pickLang(u.country, 'name', lang) : '—'}</td>
-                <td>{LEVELS.find((l) => l.value === u.level)?.label || u.level}</td>
+                <td>{t(`levels.${u.level}`, { defaultValue: u.level })}</td>
                 <td>
                   {u.userFunctions.length > 0
                     ? u.userFunctions.map((f) => (
@@ -196,17 +185,17 @@ function UserManagement() {
                   {u.twgMemberships.length > 0
                     ? u.twgMemberships.map((m) => (
                         <span key={m.twg.id} className="tag-pill">
-                          {m.role} · {pickLang(m.twg, 'name', lang)}
+                          {t(`twgRoles.${m.role}`, { defaultValue: m.role })} · {pickLang(m.twg, 'name', lang)}
                         </span>
                       ))
                     : '—'}
                 </td>
-                <td>{u.isActive ? 'Actif' : 'Désactivé'}</td>
+                <td>{u.isActive ? t('adminUsers.active') : t('adminUsers.inactive')}</td>
                 <td className="cell-actions">
                   <div className="row-actions">
-                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)}>Modifier</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)}>{t('admin.edit')}</button>
                     <button className="btn btn-outline btn-sm" onClick={() => toggleActive(u)}>
-                      {u.isActive ? 'Désactiver' : 'Réactiver'}
+                      {u.isActive ? t('adminUsers.deactivate') : t('adminUsers.reactivate')}
                     </button>
                   </div>
                 </td>
@@ -219,20 +208,19 @@ function UserManagement() {
       {editing && (
         <div className="admin-form-card">
           <h3 style={{ fontSize: '16px', marginBottom: '14px' }}>
-            {editing === 'new' ? 'Nouvel utilisateur' : `Modifier — ${form.name}`}
+            {editing === 'new' ? t('adminUsers.newTitle') : t('adminUsers.editTitle', { name: form.name })}
           </h3>
 
           <form onSubmit={handleSubmit}>
-            <div className="field"><label>Nom complet</label>
+            <div className="field"><label>{t('adminUsers.fullNameL')}</label>
               <input type="text" name="name" value={form.name} onChange={handleChange} required /></div>
 
-            <div className="field"><label>Adresse e-mail</label>
+            <div className="field"><label>{t('adminUsers.emailL')}</label>
               <input type="email" name="email" value={form.email} onChange={handleChange} required /></div>
 
             <div className="field">
               <label>
-                Mot de passe
-                {editing !== 'new' && ' (laisser vide pour ne pas le changer)'}
+                {editing === 'new' ? t('adminUsers.passwordL') : t('adminUsers.passwordKeepL')}
               </label>
               <input
                 type="password" name="password" value={form.password} onChange={handleChange}
@@ -240,34 +228,34 @@ function UserManagement() {
               />
             </div>
 
-            <div className="field"><label>Niveau d'accès</label>
+            <div className="field"><label>{t('adminUsers.levelL')}</label>
               <select name="level" value={form.level} onChange={handleChange}>
-                {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+                {LEVELS.map((l) => <option key={l} value={l}>{t(`levels.${l}`)}</option>)}
               </select>
             </div>
 
-            <div className="field"><label>Pays de rattachement</label>
+            <div className="field"><label>{t('adminUsers.countryL')}</label>
               <select name="countryId" value={form.countryId} onChange={handleChange}>
-                <option value="">— (Secrétariat régional)</option>
+                <option value="">{t('adminUsers.noCountry')}</option>
                 {countries.map((c) => (
                   <option key={c.id} value={c.id}>{pickLang(c, 'name', lang)}</option>
                 ))}
               </select>
             </div>
 
-            <div className="field"><label>Rôle dans l'organisation</label>
+            <div className="field"><label>{t('adminUsers.orgRoleL')}</label>
               <select name="orgRole" value={form.orgRole} onChange={handleChange}>
-                {ORG_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                {ORG_ROLES.map((r) => <option key={r} value={r}>{r ? t(`orgRoles.${r}`) : '—'}</option>)}
               </select>
             </div>
 
             {form.orgRole === 'other' && (
-              <div className="field"><label>Précisez le rôle</label>
+              <div className="field"><label>{t('adminUsers.orgRoleOtherL')}</label>
                 <input type="text" name="orgRoleOther" value={form.orgRoleOther} onChange={handleChange} /></div>
             )}
 
             <div className="field">
-              <label>Fonctions réglementaires</label>
+              <label>{t('adminUsers.functionsL')}</label>
               <div className="check-options">
                 {functions.map((f) => (
                   <label key={f.code} className="check-option">
@@ -284,10 +272,10 @@ function UserManagement() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
-                {saving ? '…' : 'Enregistrer'}
+                {saving ? '…' : t('admin.save')}
               </button>
               <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditing(null)}>
-                Annuler
+                {t('admin.cancel')}
               </button>
             </div>
           </form>
@@ -295,8 +283,7 @@ function UserManagement() {
       )}
 
       <div className="note-line">
-        ℹ️ Les comptes ne sont jamais supprimés mais désactivés : un utilisateur peut être
-        l'auteur de documents que l'historique doit conserver. Un compte désactivé ne peut plus se connecter.
+        ℹ️ {t('adminUsers.note')}
       </div>
     </div>
   );

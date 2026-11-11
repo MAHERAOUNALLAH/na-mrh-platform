@@ -62,15 +62,35 @@ Toute page qui affiche du contenu multilingue venant de l'API l'importe depuis l
 
 La langue se lit via `const { i18n } = useTranslation()` puis `i18n.language` : `i18n.js` n'utilise pas de détecteur, la valeur est donc toujours exactement `fr`, `en` ou `ar` (jamais `fr-FR`).
 
+### Textes de l'interface : TOUT passe par i18n
+- **Aucun texte d'interface en dur dans le client** : libellés, boutons, en-têtes de colonnes, messages de succès / d'erreur, `aria-label`, `placeholder`, `window.confirm`, options de `<select>`. Tout passe par `t()` avec une clé présente dans **les trois** fichiers `client/src/locales/{fr,en,ar}.json`.
+- **Clés regroupées par page** : `auth` (connexion, session), `myspace`, `profile`, `adminLayout`, `adminDashboard`, `adminCountries`, `adminUsers`, `adminDocuments`, `adminNews`, `adminTwgs`, `adminHome`… Libellés partagés : `levels.*`, `orgRoles.*`, `twgRoles.*`, `docStatus.*`, `langNames.*`, `admin.*` (Enregistrer, Annuler, Modifier, Supprimer ; `admin.inLang` = « {{label}} ({{lang}}) »), `common.*` (dont `networkError` et `httpError`, utilisés par `api.js`).
+- **Un message gardé dans un état ou un contexte est stocké sous forme de CLÉ** et traduit à l'affichage (ex. `AuthContext` : `sessionNotice = 'auth.sessionEnded'`, puis `t(sessionNotice)`), pour suivre un changement de langue.
+- Une liste de valeurs d'enum (niveaux, statuts…) se déclare comme une liste de codes ; le libellé vient de `t('levels.' + code)`, jamais d'un tableau `{ value, label }` en français.
+- **Messages du serveur** : encore en français, affichés tels quels (`err.message`). Ne pas les traduire côté client au cas par cas.
+- **Langue du document** : `i18n.js` pose `lang` et `dir` sur `<html>` et `data-lang` sur `<body>` à chaque changement (c'est `data-lang` qui active les polices arabes).
+- **Polices** : fichiers `.woff2` hébergés dans `client/public/fonts` (licences OFL à côté), `@font-face` en tête d'`index.css`, `font-display: swap`, sous-ensembles latin + arabe et graisses utilisées seulement. Pas de service de polices tiers. Une nouvelle graisse = un nouveau fichier tiré de la source officielle de la police, avec sa licence.
+- **Contrôle** : un texte affiché en EN ou en AR identique au texte français de la même page est suspect (sauf noms propres, données de la base, mots identiques par nature comme « Contact »).
+
 ### Composants partagés déjà en place
 - `client/src/utils/api.js` — helpers d'appel à l'API (voir ci-dessus)
 - `client/src/utils/lang.js` — `pickLang` (voir ci-dessus)
 - `server/utils/email.js` — `normalizeEmail` / `isValidEmail` (voir Backend, règle des e-mails)
+- `client/src/context/SiteContentContext.jsx` — `useSiteContent()` : `text(clé)`, `value(clé)`, `show(section)`, `reload()` (voir « Contenu du site modifiable »)
+- `server/utils/siteContent.js` — registre des clés du contenu modifiable et `validateSiteContentBody`
 - `client/src/components/Flag.jsx` — `<Flag code="tn" title="Tunisie" />`, portage du `flagIcon()` de la maquette. Cinq drapeaux sont dessinés en SVG ; celui de l'Égypte est l'image officielle, extraite du base64 de la maquette vers `client/public/flags/eg.png`.
 
 ### CSS
 - **Toujours** utiliser les classes réelles de la maquette (`className="twg-card"`, pas de `style={{...}}` improvisé)
 - ⚠️ **Piège connu** : la maquette utilise des `<button>` pour beaucoup d'éléments cliquables (cartes, liens de nav). React Router (`<Link>`, `<NavLink>`) génère des `<a>`. Si le CSS de la maquette cible `.xxx button`, et qu'on utilise un `<Link>`, il faut ajouter la même règle pour `.xxx a` (voir `client/src/index.css`, section "CORRECTIF" en bas de fichier, pour des exemples déjà traités).
+
+### Contenu du site modifiable (accueil, coordonnées du Secrétariat)
+- **Règle d'or : le contenu éditable ne vide JAMAIS le site.** Les textes des locales restent les valeurs par défaut ; la table `site_content` (modèle `SiteContent`) ne stocke que des **surcharges** : `key`, `valueFr` / `valueEn` / `valueAr` (texte ; `NULL` = texte par défaut de cette langue), `value` (valeur sans langue : e-mail, téléphone, entier, lien, affichage `'true'` / `'false'`), `updatedById`, `updatedAt`.
+- **Une clé de texte = la clé i18n qu'elle remplace** (`hero.h1`, `statsLabels.2`, `contactPage.secP`…) : `text(clé)` renvoie la surcharge de la langue affichée, sinon `t(clé)`. Valeurs sans langue par défaut : `client/src/utils/siteContentDefaults.js`.
+- **Registre côté serveur** (`server/utils/siteContent.js`) : clés autorisées, type, longueur maximale, multiligne ou non. Clé inconnue → 404 ; texte brut seulement (balises HTML et caractères de contrôle refusés), liens limités aux pages internes (liste blanche), e-mail normalisé, entiers 0–999. **Ajouter une clé** = l'ajouter au registre, à `GROUPS` de `HomeContentAdmin.jsx`, à `adminHome.fields.*` des 3 locales et, si elle est sans langue, à `siteContentDefaults.js`.
+- **Routes** : `GET /api/site-content` (public : clés et valeurs SEULEMENT, ni auteur ni date ; **200 avec `[]` sur toute erreur**, table absente comprise) ; `GET /api/admin/site-content`, `PUT` et `DELETE /api/admin/site-content/:key` (admin ; 503 explicite si la migration manque ; 409 si l'on masque la dernière section de l'accueil). Le hero n'est jamais masquable.
+- **Rendu** : toujours comme du texte React (jamais `dangerouslySetInnerHTML`) ; retours à la ligne conservés par la classe `.multiline` (`white-space: pre-line`).
+- **Accueil** : chaque section charge ses données séparément ; une section en échec affiche `homePage.sectionError`, le reste s'affiche. Pas de drapeaux sur l'accueil.
 
 ### Responsive
 - **Points d'arrêt** (toujours en `max-width`, documentés en tête de `index.css`) : **480 / 768 / 1024 px**. Au-dessus de 1024 px, rendu de la maquette, sans requête média : une nouvelle règle mobile ne doit rien changer au-delà.
@@ -111,16 +131,20 @@ app.get('/api/xxx', async (req, res) => {
 - **Identifiant numérique dans l'URL** : toujours `const id = parseId(req.params.id); if (id === null) return res.status(400).json({ error: INVALID_ID_ERROR });` — jamais `Number(req.params.id)`.
 - **Validation des entrées** : une fonction `validateXxxBody(body)` qui renvoie `{ error }` ou `{ data }`, commune à POST et PUT (modèles : `validateNewsBody`, `validateUserBody`). Types vérifiés, textes nettoyés (`trim`), longueurs bornées, valeurs d'enum lues depuis `@prisma/client` (`UserLevel`, `OrgRole`) plutôt que recopiées, clés étrangères vérifiées. 400 avec un message clair, 404 si l'enregistrement n'existe pas, 409 pour un conflit (e-mail déjà pris…).
 - **E-mails des comptes : TOUJOURS en minuscules.** Tout e-mail de compte passe par `normalizeEmail()` de `server/utils/email.js` (trim + minuscules) **à l'écriture** (création, modification, `create-admin`) **et à la lecture** (connexion, avant le `findUnique`, qui est sensible à la casse). Ne jamais enregistrer ni rechercher un e-mail tel que tapé. Le contrôle de doublon reste insensible à la casse (`mode: 'insensitive'`), pour attraper une ancienne adresse restée en majuscules. Base remplie avant cette règle : requêtes de normalisation dans l'annexe de `DEPLOY.md` (lister d'abord les adresses qui ne diffèrent que par la casse).
-- **Limitation de débit** : `loginLimiter` sur `POST /api/auth/login` (10 **échecs** / 15 min / IP), `contactLimiter` et `complaintsLimiter` (5 envois / heure / IP, compteurs séparés). Toute nouvelle route publique **d'écriture** doit recevoir son propre limiteur (`makePublicFormLimiter()`).
+- **Limitation de débit** : `loginLimiter` sur `POST /api/auth/login` (10 **échecs** / 15 min / IP), `contactLimiter` et `complaintsLimiter` (5 envois / heure / IP, compteurs séparés), `profileLimiter` sur `PUT /api/auth/me` (10 / 15 min / IP). Toute nouvelle route publique **d'écriture** doit recevoir son propre limiteur (`makePublicFormLimiter()`).
+- **Profil de l'utilisateur connecté : `PUT /api/auth/me`** (`profileLimiter` + `requireAuth`, sans `requireRole`). L'identité vient du jeton, **jamais** d'un identifiant dans l'URL ou le corps. Seuls `name`, `email`, `currentPassword` sont acceptés : tout autre champ (niveau, pays, statut, id…) → 400. Changer d'e-mail exige le mot de passe actuel ; un mot de passe faux répond **400, pas 401** (un 401 sur un appel avec jeton déconnecte l'utilisateur côté client). E-mail normalisé, doublon insensible à la casse → 409. Côté client, `updateUser()` d'`AuthContext` met l'écran à jour sans reconnexion.
 
 ### Variables d'environnement
 Toutes documentées dans `server/.env.example` et `client/.env.example` ; procédure complète dans `DEPLOY.md`.
-- **Serveur** : `DATABASE_URL`, `JWT_SECRET` (≥ 32 caractères en production), `NODE_ENV`, `CORS_ORIGIN` (liste blanche, virgules ; défaut local `http://localhost:5173` seulement ; obligatoire en production), `PORT` (défaut 4000), `TRUST_PROXY` (défaut 1 ; une mauvaise valeur casse la limitation de débit sans erreur), `RATE_LIMIT_LOGIN_MAX`, `RATE_LIMIT_FORMS_MAX`, `RATE_LIMIT_DISABLED=1` (dev/tests uniquement, ignorée en production).
+- **Serveur** : `DATABASE_URL`, `JWT_SECRET` (≥ 32 caractères en production), `NODE_ENV`, `CORS_ORIGIN` (liste blanche, virgules ; défaut local `http://localhost:5173` seulement ; obligatoire en production), `PORT` (défaut 4000), `TRUST_PROXY` (défaut 1 ; une mauvaise valeur casse la limitation de débit sans erreur), `RATE_LIMIT_LOGIN_MAX`, `RATE_LIMIT_FORMS_MAX`, `RATE_LIMIT_PROFILE_MAX`, `RATE_LIMIT_DISABLED=1` (dev/tests uniquement, ignorée en production).
 - Le serveur **refuse de démarrer** avec un message clair si la configuration est invalide, et affiche au démarrage une ligne `Configuration : …` **sans aucun secret** (ni `JWT_SECRET`, ni `DATABASE_URL`). Ne jamais journaliser ces deux variables.
 - **Client** : `VITE_API_URL` — figée **au build** et visible de tous : jamais de secret dans une variable `VITE_*`.
 - **`DATABASE_URL` contient le mot de passe de la base : ne jamais l'écrire dans une commande** destinée à la production (historique du shell) ; saisie masquée ou console de l'hébergeur (`DEPLOY.md`, étape 4). Une variable définie dans la session l'emporte sur `server/.env` (dotenv n'écrase pas) — mais si elle n'est pas exportée, scripts et Prisma retombent **en silence** sur `server/.env` : toujours lire la base affichée (`Datasource …` / `base : …`).
 - `CORS_ORIGIN` compare chaque adresse **à l'identique**, sans joker : les adresses de prévisualisation Vercel ne sont pas autorisées.
 - Tests locaux : l'API peut tourner sur un autre port et une autre base de test sans toucher au serveur de dev (`PORT=4703 DATABASE_URL=… node index.js`, base locale de test uniquement) ; pour un build servi par `vite preview` (port 4173), passer `CORS_ORIGIN=http://localhost:4173` explicitement.
+
+### Migrations
+- Une migration s'applique (`npm run migrate:deploy`) **AVANT** de déployer la version de l'API qui en a besoin (`DEPLOY.md`, étape 4). Les migrations doivent rester **additives** (nouvelle table, colonne facultative) pour que l'ancienne API tourne sans erreur sur une base déjà migrée.
 
 ### Données : seeds et premier administrateur
 - `npm run seed` (dev local) = `seed:reference` puis `seed:demo`.
@@ -145,7 +169,7 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - Fins de ligne : `.gitattributes` impose LF dans le dépôt (Windows inclus). Ne pas committer de fichiers de travail (patchs, scripts jetables) : vérifier `git status` et ajouter les fichiers un par un plutôt que `git add -A`.
 
 ## État d'avancement (Phases 0 à 3 construites, audit A-D corrigé, préparation au déploiement faite)
-> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 09/11/2026, branche `preparation-deploiement` (non poussée).
+> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 12/11/2026, branche `contenu-accueil` (non poussée ; partie de `main` à jour, responsive fusionné).
 
 **Phase 0 — fondations** ✅ CSS extrait, i18n (FR/EN/AR + RTL), routeur, Layout (header/footer), `Flag.jsx`, `lang.js`.
 
@@ -159,8 +183,8 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 **Phase 2 — authentification** ✅ `Login.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx`, `MonEspace.jsx` ; `POST /api/auth/login`, `GET /api/auth/me` ; middlewares `requireAuth` et `requireRole` ; niveaux `reader | contributor | validator | country_admin | secretariat_admin`.
 
 **Phase 3 — espace Secrétariat** ✅
-- ✅ Tableau de bord, Comptes pays (CRUD), Utilisateurs (CRUD + activation), Circuit documentaire (changement de statut), Gestion du contenu (actualités CRUD), Groupes de travail (édition).
-- ✅ Les 17 routes `/api/admin/*` exigent `requireAuth` + `requireRole('secretariat_admin')` (recompté le 09/11 ; l'ancien chiffre « 18 » comptait une ligne de commentaire).
+- ✅ Tableau de bord, Comptes pays (CRUD), Utilisateurs (CRUD + activation), Circuit documentaire (changement de statut), Gestion du contenu (actualités CRUD), Groupes de travail (édition), Page d'accueil (contenu modifiable, branche `contenu-accueil`).
+- ✅ Les 20 routes `/api/admin/*` exigent `requireAuth` + `requireRole('secretariat_admin')` (recompté le 12/11 : 17 + 3 routes `site-content`).
 - ✅ Critère de la méthodologie rejoué le 09/11 dans Chrome headless (base de test) : téléphone de la Tunisie modifié via Comptes pays → nouvelle valeur affichée sur `/contact`.
 - ✅ Les 4 pages Actualités, Pays, Documents, Utilisateurs testées dans Chrome headless (liste, création, modification, suppression/désactivation, filtre, erreurs du serveur), comportement identique avant/après la correction D.
 
@@ -176,6 +200,13 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - ⏳ Non vérifiés faute d'environnement : saisie masquée de `create-admin` (pas de terminal interactif), historique PSReadLine réel des commandes PowerShell de `DEPLOY.md` (`ADMIN_PASSWORD`, `DATABASE_URL`), connexion à une base avec SSL, comportement sur un hébergeur réel (proxys / `TRUST_PROXY`, port, réécriture `vercel.json`), rendu visuel et arabe/RTL des messages ajoutés (en français seulement).
 - Nettoyage du 09/11 : `server/.env` et `server/node_modules` retirés du suivi Git, `.gitignore` racine, `.env.example` et `.gitattributes` ajoutés. ⚠️ L'ancien `JWT_SECRET` reste lisible dans l'historique Git public : il doit être remplacé par un nouveau secret dans chaque environnement.
 - ⚠️ Les bases de dev créées avant `2434250` contiennent encore les anciens comptes de démo (noms réels, domaines des agences) : les recréer (`npm run seed` sur une base vide) pour n'avoir que les comptes fictifs.
+
+**Branche `contenu-accueil`** (12/11/2026)
+- ✅ Polices hébergées (Zilla Slab, Public Sans, Cairo, Amiri ; 264 Ko de `.woff2` + licences OFL) ; `lang` / `dir` / `data-lang` posés à chaque changement de langue ; titre « NA-MRH ».
+- ✅ Contenu du site modifiable (table `site_content`, migration `contenu_du_site`) : accueil (textes, liens des boutons, 2 chiffres, sections affichées), coordonnées du Secrétariat (Contact, pied de page, Gouvernance). Accueil sans drapeaux, sections indépendantes. Onglet « Page d'accueil ».
+- ✅ Espace Secrétariat, connexion, Mon espace, messages de session et d'erreur du client traduits FR/EN/AR (contrôle automatique : 0 texte identique au français non justifié sur 32 états).
+- ✅ « Mon profil » : nom et e-mail modifiables (`PUT /api/auth/me`).
+- ⏳ Messages du serveur toujours en français. Relecture de l'arabe par un arabophone non faite.
 
 **Phase 4 — au-delà du MVP** ❌ pas commencée. À ne démarrer qu'une fois les Phases 0-3 stables (voir méthodologie) : versionnage des documents, missions, réunions/discussions de GTT, budget, veille réglementaire, répertoire d'experts, espace national par persona, chatbots.
 

@@ -23,13 +23,13 @@ function Actualites() {
       })
       .catch((err) => {
         console.error('Erreur de chargement :', err);
-        setError('Impossible de charger les actualités.');
+        setError('newsPage.loadError');   // clé i18n : traduite à l'affichage
         setLoading(false);
       });
   }, []);
 
-  if (loading) return <p style={{ padding: '2rem' }}>Chargement…</p>;
-  if (error) return <p style={{ padding: '2rem', color: 'red' }}>{error}</p>;
+  if (loading) return <p style={{ padding: '2rem' }}>{t('common.loading')}</p>;
+  if (error) return <p style={{ padding: '2rem', color: 'red' }}>{t(error)}</p>;
 
   const lang = i18n.language;
 

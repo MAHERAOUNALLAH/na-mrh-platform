@@ -22,10 +22,10 @@ import { apiGet, setAuthErrorHandler } from '../utils/api';
 
 const AuthContext = createContext(null);
 
-const SESSION_ENDED_MESSAGE =
-  'Votre session a pris fin (compte désactivé, supprimé ou session expirée). Veuillez vous reconnecter.';
-const SESSION_CHECK_FAILED_MESSAGE =
-  'Impossible de vérifier votre session : le serveur ne répond pas. Vos identifiants sont conservés.';
+// Messages stockés sous forme de CLÉS i18n (traduites à l'affichage par
+// Login et ProtectedRoute) : ils suivent ainsi la langue choisie.
+const SESSION_ENDED_MESSAGE = 'auth.sessionEnded';
+const SESSION_CHECK_FAILED_MESSAGE = 'auth.sessionCheckFailed';
 
 const isRefusal = (err) => err.status === 401 || err.status === 403;
 
@@ -36,9 +36,9 @@ export function AuthProvider({ children }) {
   // jeton, il n'y a rien à vérifier : loading part directement à false
   // (plutôt que d'appeler setLoading(false) dans l'effet).
   const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('token')));
-  // Panne pendant la vérification de session (pas un refus)
+  // Panne pendant la vérification de session (pas un refus) — clé i18n
   const [sessionError, setSessionError] = useState(null);
-  // Message à afficher sur la page de connexion après une fin de session
+  // Message (clé i18n) à afficher sur la page de connexion après une fin de session
   const [sessionNotice, setSessionNotice] = useState(null);
   // Incrémenté par « Réessayer » pour relancer la vérification
   const [retryCount, setRetryCount] = useState(0);
@@ -111,6 +111,12 @@ export function AuthProvider({ children }) {
     clearSession(null);
   }
 
+  // Profil modifié (nom, e-mail) depuis « Mon espace » : le jeton reste
+  // valable (il ne contient que l'identifiant), seul l'affichage change.
+  function updateUser(newUser) {
+    setUser(newUser);
+  }
+
   // « Réessayer » après une panne : appelé depuis un clic, pas depuis
   // un effet, donc setLoading(true) est permis ici.
   function retrySession() {
@@ -121,7 +127,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, sessionError, sessionNotice, login, logout, retrySession }}
+      value={{ user, token, loading, sessionError, sessionNotice, login, logout, retrySession, updateUser }}
     >
       {children}
     </AuthContext.Provider>

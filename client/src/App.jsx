@@ -34,6 +34,7 @@ import UserManagement from './pages/secretariat/UserManagement';
 import DocumentWorkflow from './pages/secretariat/DocumentWorkflow';
 import ContentManagement from './pages/secretariat/ContentManagement';
 import TwgAdmin from './pages/secretariat/TwgAdmin';
+import HomeContentAdmin from './pages/secretariat/HomeContentAdmin';
 
 function App() {
   return (
@@ -87,6 +88,7 @@ function App() {
             <Route path="documents" element={<DocumentWorkflow />} />
             <Route path="contenu" element={<ContentManagement />} />
             <Route path="groupes-de-travail" element={<TwgAdmin />} />
+            <Route path="accueil" element={<HomeContentAdmin />} />
           </Route>
 
           {/* Toute autre adresse : message d'erreur, pas d'écran blanc. */}

@@ -27,6 +27,7 @@ const bcrypt = require('bcryptjs');                  // hache et compare les mot
 const { PrismaClient, UserLevel, OrgRole } = require('@prisma/client');  // client base + enums du schéma
 const { PrismaPg } = require('@prisma/adapter-pg');  // l'adaptateur Prisma 7
 const { normalizeEmail, isValidEmail } = require('./utils/email');  // e-mails toujours en minuscules
+const siteContent = require('./utils/siteContent');  // registre du contenu modifiable (accueil, coordonnées)
 
 // ------------------------------------------------------------
 // Vérifications au démarrage : mieux vaut un serveur qui REFUSE de
@@ -177,6 +178,13 @@ const makePublicFormLimiter = () => makeLimiter({
 });
 const contactLimiter = makePublicFormLimiter();
 const complaintsLimiter = makePublicFormLimiter();
+// Modification de son propre profil (PUT /api/auth/me) : la route vérifie
+// le mot de passe actuel quand l'e-mail change, on borne donc les essais.
+const profileLimiter = makeLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: positiveIntFromEnv('RATE_LIMIT_PROFILE_MAX', 10),
+  message: 'Trop de modifications du profil depuis cette adresse. Réessayez dans 15 minutes.',
+});
 
 // ============================================================
 // 3. MIDDLEWARES D'AUTHENTIFICATION
@@ -382,6 +390,27 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
+// --- Contenu du site modifiable (surcharges des textes par défaut) ---
+// Ne renvoie QUE les clés et leurs valeurs : ni auteur, ni date, ni
+// identifiant d'utilisateur (select explicite).
+// ROBUSTESSE : en cas d'échec (table pas encore créée parce que la
+// migration n'est pas appliquée, base injoignable…), on répond 200 avec
+// une liste vide : le client affiche alors les textes par défaut et le
+// site reste complet. Seules les clés du registre sont renvoyées.
+app.get('/api/site-content', async (req, res) => {
+  try {
+    const rows = await prisma.siteContent.findMany({
+      where: { key: { in: siteContent.SITE_CONTENT_KEYS } },
+      select: { key: true, valueFr: true, valueEn: true, valueAr: true, value: true },
+      orderBy: { key: 'asc' },
+    });
+    res.json(rows);
+  } catch (error) {
+    console.error('Erreur /api/site-content (textes par défaut servis) :', error.code || error.message);
+    res.json([]);
+  }
+});
+
 // --- Réclamations (écriture publique) ---
 app.post('/api/complaints', complaintsLimiter, async (req, res) => {
   try {
@@ -499,6 +528,83 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
     res.json({ user });
   } catch (error) {
     console.error('Erreur /api/auth/me :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// --- Mon profil : nom et e-mail de l'utilisateur CONNECTÉ ---
+// L'identité vient du jeton (req.user, relu en base par requireAuth),
+// jamais d'un identifiant dans l'URL ou le corps : impossible de modifier
+// le profil de quelqu'un d'autre.
+// Seuls name, email et currentPassword sont acceptés : niveau, pays,
+// rôle, statut… sont REFUSÉS (400), jamais modifiables par cette route.
+// Changer d'e-mail exige le mot de passe actuel. Un mot de passe faux
+// répond 400 (et non 401) : côté client, un 401 sur un appel authentifié
+// signifie « session terminée » et déconnecterait l'utilisateur.
+const PROFILE_FIELDS = ['name', 'email', 'currentPassword'];
+const NAME_MAX_LENGTH = 200;
+const EMAIL_MAX_LENGTH = 254;
+
+function validateProfileBody(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Corps de requête JSON attendu.' };
+  const forbidden = Object.keys(body).filter((k) => !PROFILE_FIELDS.includes(k));
+  if (forbidden.length) {
+    return { error: `Champ non modifiable depuis le profil : ${forbidden.join(', ')}. Seuls le nom et l'adresse e-mail peuvent être modifiés.` };
+  }
+  const { name, email, currentPassword } = body;
+  if (typeof name !== 'string') return { error: 'Le nom est obligatoire.' };
+  if (typeof email !== 'string') return { error: 'L\'adresse e-mail est obligatoire.' };
+  if (currentPassword !== undefined && currentPassword !== null && typeof currentPassword !== 'string') {
+    return { error: 'Le mot de passe actuel doit être du texte.' };
+  }
+  const cleanName = name.trim().replace(/\s+/g, ' ');
+  if (!cleanName) return { error: 'Le nom est obligatoire.' };
+  if (cleanName.length > NAME_MAX_LENGTH) return { error: `Le nom dépasse ${NAME_MAX_LENGTH} caractères.` };
+  const cleanEmail = normalizeEmail(email);   // minuscules, sans espaces (utils/email.js)
+  if (!cleanEmail) return { error: 'L\'adresse e-mail est obligatoire.' };
+  if (cleanEmail.length > EMAIL_MAX_LENGTH || !isValidEmail(cleanEmail)) return { error: 'L\'adresse e-mail est invalide.' };
+  return { data: { name: cleanName, email: cleanEmail, currentPassword: currentPassword || '' } };
+}
+
+app.put('/api/auth/me', profileLimiter, requireAuth, async (req, res) => {
+  try {
+    const { error, data } = validateProfileBody(req.body);
+    if (error) return res.status(400).json({ error });
+
+    const me = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { id: true, email: true, passwordHash: true },
+    });
+    if (!me) return res.status(401).json({ error: 'Session révoquée : ce compte est désactivé ou n\'existe plus.' });
+
+    const emailChanged = data.email !== me.email;
+    if (emailChanged) {
+      if (!data.currentPassword) {
+        return res.status(400).json({ error: 'Le mot de passe actuel est requis pour changer d\'adresse e-mail.' });
+      }
+      if (Buffer.byteLength(data.currentPassword, 'utf8') > PASSWORD_MAX_LENGTH
+          || !(await bcrypt.compare(data.currentPassword, me.passwordHash))) {
+        return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+      }
+      // Doublon insensible à la casse (attrape une ancienne adresse restée en majuscules).
+      const taken = await prisma.user.findFirst({
+        where: { email: { equals: data.email, mode: 'insensitive' }, id: { not: me.id } },
+        select: { id: true },
+      });
+      if (taken) return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: me.id },
+      data: { name: data.name, email: data.email },
+      select: { id: true, name: true, email: true, level: true, countryId: true, orgRole: true },
+    });
+    res.json({ user });
+  } catch (error) {
+    if (isUniqueEmailViolation(error)) {
+      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
+    console.error('Erreur PUT /api/auth/me :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1181,7 +1287,93 @@ app.put('/api/admin/twgs/:id', requireAuth, requireRole('secretariat_admin'), as
     console.error('Erreur PUT /api/admin/twgs/:id :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
-});// ============================================================
+});
+
+// ---------- 6.7 Contenu du site (accueil, coordonnées du Secrétariat) ----------
+// Les clés autorisées, leurs types et longueurs sont dans
+// utils/siteContent.js. Une clé inconnue → 404.
+const SITE_CONTENT_TABLE_MISSING =
+  'La table du contenu n\'existe pas encore : appliquez la migration (npm run migrate:deploy).';
+const SITE_CONTENT_ADMIN_SELECT = {
+  key: true, valueFr: true, valueEn: true, valueAr: true, value: true, updatedAt: true,
+  updatedBy: { select: { id: true, name: true } },
+};
+function siteContentError(res, route, error) {
+  if (error && error.code === 'P2021') return res.status(503).json({ error: SITE_CONTENT_TABLE_MISSING });
+  console.error(`Erreur ${route} :`, error);
+  return res.status(500).json({ error: 'Erreur serveur' });
+}
+
+app.get('/api/admin/site-content', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
+  try {
+    const rows = await prisma.siteContent.findMany({
+      where: { key: { in: siteContent.SITE_CONTENT_KEYS } },
+      select: SITE_CONTENT_ADMIN_SELECT,
+      orderBy: { key: 'asc' },
+    });
+    res.json({ fields: siteContent.describeFields(), overrides: rows });
+  } catch (error) {
+    siteContentError(res, 'GET /api/admin/site-content', error);
+  }
+});
+
+// Enregistre la surcharge d'une clé. Les langues laissées vides (ou null)
+// reprennent le texte par défaut ; si plus rien n'est surchargé, la ligne
+// est supprimée. Auteur et date sont enregistrés sur la ligne.
+app.put('/api/admin/site-content/:key', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
+  try {
+    const { key } = req.params;
+    if (!Object.hasOwn(siteContent.SITE_CONTENT_FIELDS, key)) {
+      return res.status(404).json({ error: 'Champ de contenu inconnu.' });
+    }
+    const { error, data } = siteContent.validateSiteContentBody(key, req.body);
+    if (error) return res.status(400).json({ error });
+
+    // Garde-fou : l'accueil ne peut pas masquer toutes ses sections.
+    if (siteContent.SHOW_KEYS.includes(key) && data.value === 'false') {
+      const others = await prisma.siteContent.findMany({
+        where: { key: { in: siteContent.SHOW_KEYS.filter((k) => k !== key) }, value: 'false' },
+        select: { key: true },
+      });
+      if (others.length === siteContent.SHOW_KEYS.length - 1) {
+        return res.status(409).json({ error: 'Impossible de masquer toutes les sections de l\'accueil : au moins une doit rester affichée.' });
+      }
+    }
+
+    if (siteContent.isEmptyOverride(data)) {
+      await prisma.siteContent.deleteMany({ where: { key } });
+      console.info(`Contenu du site : « ${key} » remis par défaut par l'utilisateur #${req.user.userId}`);
+      return res.json({ key, restored: true });
+    }
+    const row = await prisma.siteContent.upsert({
+      where: { key },
+      create: { key, ...data, updatedById: req.user.userId },
+      update: { ...data, updatedById: req.user.userId },
+      select: SITE_CONTENT_ADMIN_SELECT,
+    });
+    console.info(`Contenu du site : « ${key} » modifié par l'utilisateur #${req.user.userId}`);
+    res.json(row);
+  } catch (error) {
+    siteContentError(res, 'PUT /api/admin/site-content/:key', error);
+  }
+});
+
+// Remet une clé à sa valeur par défaut, dans toutes les langues.
+app.delete('/api/admin/site-content/:key', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
+  try {
+    const { key } = req.params;
+    if (!Object.hasOwn(siteContent.SITE_CONTENT_FIELDS, key)) {
+      return res.status(404).json({ error: 'Champ de contenu inconnu.' });
+    }
+    await prisma.siteContent.deleteMany({ where: { key } });
+    console.info(`Contenu du site : « ${key} » remis par défaut par l'utilisateur #${req.user.userId}`);
+    res.json({ key, restored: true });
+  } catch (error) {
+    siteContentError(res, 'DELETE /api/admin/site-content/:key', error);
+  }
+});
+
+// ============================================================
 // 7. DÉMARRAGE
 // ============================================================
 

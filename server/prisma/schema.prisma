@@ -179,6 +179,7 @@ model User {
   documentComments   DocumentComment[]
   documentEvents     DocumentEvent[]
   complaintsHandled  Complaint[]         @relation("ComplaintHandledBy")
+  siteContentEdits   SiteContent[]       @relation("SiteContentUpdatedBy")
 
   @@index([countryId])
   @@index([level])
@@ -430,4 +431,28 @@ model Complaint {
   @@index([handledById])
   @@index([status])
   @@map("complaints")
+}
+
+// ------------------------------------------------------------
+// Contenu du site modifiable par le Secrétariat (accueil, coordonnées…)
+// La base ne stocke QUE les surcharges : les textes par défaut restent
+// dans les fichiers de traduction du client (clé i18n = key). Pas de
+// ligne, ou valeur NULL pour une langue = texte par défaut. Le site ne
+// peut donc jamais devenir vide à cause de cette table.
+// Clés autorisées, types et longueurs : server/utils/siteContent.js.
+// ------------------------------------------------------------
+model SiteContent {
+  key     String  @id // ex. "hero.h1", "contact.email", "home.show.news"
+  // Texte traduit (clés de type texte) — texte brut, jamais de HTML
+  valueFr String?
+  valueEn String?
+  valueAr String?
+  // Valeur sans langue (e-mail, téléphone, nombre, lien, affichage oui/non)
+  value   String?
+
+  updatedById Int?
+  updatedBy   User?    @relation("SiteContentUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_content")
 }

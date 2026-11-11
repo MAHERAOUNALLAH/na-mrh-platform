@@ -7,19 +7,21 @@ import { useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+// Libellés : clés adminLayout.tabs.* des locales.
 const TABS = [
-  { to: '/secretariat', label: 'Tableau de bord', end: true },
-  { to: '/secretariat/pays', label: 'Comptes des pays' },
-  { to: '/secretariat/utilisateurs', label: 'Gestion des utilisateurs' },
-  { to: '/secretariat/documents', label: 'Circuit documentaire' },
-  { to: '/secretariat/contenu', label: 'Gestion du contenu' },
-  { to: '/secretariat/groupes-de-travail', label: 'Groupes de travail' },
+  { to: '/secretariat', label: 'dashboard', end: true },
+  { to: '/secretariat/pays', label: 'countries' },
+  { to: '/secretariat/utilisateurs', label: 'users' },
+  { to: '/secretariat/documents', label: 'documents' },
+  { to: '/secretariat/contenu', label: 'news' },
+  { to: '/secretariat/groupes-de-travail', label: 'twgs' },
+  { to: '/secretariat/accueil', label: 'home' },
 ];
 
 function SecretariatLayout() {
   const tabsRef = useRef(null);
   const location = useLocation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Sur mobile, les onglets forment une rangée qui défile : on amène
   // l'onglet actif au centre de la rangée, à chaque changement de page ET
@@ -48,15 +50,15 @@ function SecretariatLayout() {
     <section className="page-section">
       <div className="container">
         <div className="section-head">
-          <span className="kicker">Zone réservée</span>
-          <h2>Espace Secrétariat</h2>
+          <span className="kicker">{t('adminLayout.kicker')}</span>
+          <h2>{t('adminLayout.title')}</h2>
         </div>
 
         <div className="admin-layout">
-          <nav className="admin-tabs" aria-label="Espace Secrétariat" ref={tabsRef}>
+          <nav className="admin-tabs" aria-label={t('adminLayout.tabsLabel')} ref={tabsRef}>
             {TABS.map((tab) => (
               <NavLink key={tab.to} to={tab.to} end={tab.end}>
-                {tab.label}
+                {t(`adminLayout.tabs.${tab.label}`)}
               </NavLink>
             ))}
           </nav>

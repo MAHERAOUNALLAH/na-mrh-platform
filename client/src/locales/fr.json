@@ -16,15 +16,16 @@
   },
   "common": {
     "loading": "Chargement…",
-    "error": "Impossible de charger les données. Le serveur est-il démarré ?"
+    "error": "Impossible de charger les données. Le serveur est-il démarré ?",
+    "networkError": "Le serveur est injoignable. Vérifiez votre connexion puis réessayez.",
+    "httpError": "Erreur {{status}} : le serveur n'a pas pu traiter la demande."
   },
   "hero": {
     "kicker": "Afrique du Nord — Harmonisation réglementaire pharmaceutique",
     "h1": "Le point d'accès unique à l'information réglementaire de la région",
     "lead": "La NA-MRH Digital Collaboration Platform réunit les Autorités Nationales de Réglementation d'Afrique du Nord : communication institutionnelle, collaboration sécurisée et gestion des connaissances réglementaires.",
     "cta1": "Découvrir les États membres",
-    "cta2": "Accéder au portail RIMS",
-    "mapTitle": "Les autorités membres, une même plateforme"
+    "cta2": "Accéder au portail RIMS"
   },
   "statsLabels": [
     "États membres",
@@ -40,7 +41,8 @@
     "twgH": "Cinq groupes de travail techniques",
     "twgP": "Chaque GTT est co-dirigé par deux pays membres et priorisé en vagues selon sa maturité.",
     "newsKicker": "Vie de la région",
-    "newsH": "Actualités récentes"
+    "newsH": "Actualités récentes",
+    "countriesH": "Les États membres de l'initiative"
   },
   "governance": {
     "kicker": "Structure de coordination",
@@ -58,7 +60,8 @@
   "newsPage": {
     "kicker": "Fil d'annonces",
     "h": "Actualités régionales",
-    "p": "Suivi des activités du Secrétariat, des groupes de travail et des partenaires."
+    "p": "Suivi des activités du Secrétariat, des groupes de travail et des partenaires.",
+    "loadError": "Impossible de charger les actualités."
   },
   "contactPage": {
     "kicker": "Nous contacter",
@@ -152,5 +155,261 @@
     "contactT": "Secrétariat",
     "contactP": "Hébergé par l'ANMPS, Tunisie",
     "partners": "Partenaires techniques et financiers : AUDA-NEPAD · AMA · OMS · Swissmedic · Banque mondiale · BAD  ·  © 2026 NA-MRH Secretariat"
+  },
+  "homePage": {
+    "sectionError": "Cette section est momentanément indisponible."
+  },
+  "adminHome": {
+    "intro": "Textes de la page d'accueil et coordonnées du Secrétariat. Chaque champ est pré-rempli avec le texte actuel. Une langue laissée identique au texte par défaut n'est pas enregistrée. Les modifications sont visibles immédiatement sur le site public.",
+    "save": "Enregistrer",
+    "saved": "Modification enregistrée.",
+    "restore": "Restaurer la valeur par défaut",
+    "restored": "Valeur par défaut restaurée.",
+    "badgeDefault": "Texte par défaut",
+    "badgeCustom": "Modifié",
+    "counter": "{{count}} / {{max}} caractères",
+    "intRange": "Nombre entier de {{min}} à {{max}}",
+    "notModifiedIn": "Texte par défaut conservé en : {{langs}}. Pensez à traduire la modification.",
+    "sectionsLegend": "Sections affichées sur l'accueil",
+    "sectionsHelp": "Le bandeau principal est toujours affiché. Au moins une autre section doit rester visible.",
+    "lastSection": "Dernière section affichée : elle ne peut pas être masquée.",
+    "sections": {
+      "stats": "Chiffres clés",
+      "mission": "Mission",
+      "countries": "États membres",
+      "twgs": "Groupes de travail",
+      "news": "Actualités récentes"
+    },
+    "groups": {
+      "hero": "Bandeau principal",
+      "stats": "Chiffres clés",
+      "mission": "Mission et États membres",
+      "twgs": "Groupes de travail",
+      "news": "Actualités récentes",
+      "contact": "Coordonnées du Secrétariat"
+    },
+    "fields": {
+      "hero_kicker": "Accroche",
+      "hero_h1": "Titre",
+      "hero_lead": "Texte d'introduction",
+      "hero_cta1": "Bouton 1 : libellé",
+      "hero_cta1Link": "Bouton 1 : page visée",
+      "hero_cta2": "Bouton 2 : libellé",
+      "hero_cta2Link": "Bouton 2 : page visée",
+      "statsLabels_0": "Chiffre 1 : libellé (nombre de pays, calculé)",
+      "statsLabels_1": "Chiffre 2 : libellé (nombre de groupes de travail, calculé)",
+      "statsLabels_2": "Chiffre 3 : libellé",
+      "home_stat3Value": "Chiffre 3 : valeur",
+      "statsLabels_3": "Chiffre 4 : libellé",
+      "home_stat4Value": "Chiffre 4 : valeur",
+      "homeSections_missionKicker": "Mission : sur-titre",
+      "homeSections_missionH": "Mission : titre",
+      "homeSections_missionP": "Mission : texte",
+      "homeSections_countriesH": "États membres : titre de la liste",
+      "homeSections_twgKicker": "Groupes de travail : sur-titre",
+      "homeSections_twgH": "Groupes de travail : titre",
+      "homeSections_twgP": "Groupes de travail : texte",
+      "homeSections_newsKicker": "Actualités : sur-titre",
+      "homeSections_newsH": "Actualités : titre",
+      "contact_email": "E-mail du Secrétariat",
+      "contact_phone": "Téléphone du Secrétariat",
+      "contactPage_secP": "Page Contact : texte du Secrétariat",
+      "footer_contactP": "Pied de page : ligne du Secrétariat",
+      "governance_secretariatD": "Page Gouvernance : description du Secrétariat"
+    }
+  },
+  "langNames": {
+    "fr": "Français",
+    "en": "Anglais",
+    "ar": "Arabe"
+  },
+  "levels": {
+    "reader": "Lecteur",
+    "contributor": "Contributeur",
+    "validator": "Validateur",
+    "country_admin": "Administrateur pays",
+    "secretariat_admin": "Administrateur Secrétariat"
+  },
+  "orgRoles": {
+    "president": "Président",
+    "vice_president": "Vice-président",
+    "member": "Membre",
+    "secretariat": "Secrétariat",
+    "other": "Autre"
+  },
+  "twgRoles": {
+    "lead": "Lead",
+    "colead": "Co-lead",
+    "member": "Membre"
+  },
+  "docStatus": {
+    "draft_twg": "Brouillon GTT",
+    "received_secretariat": "Reçu par le Secrétariat",
+    "revision_requested": "Révision demandée",
+    "pending_steering": "Soumis au Comité de Pilotage",
+    "distributed_internal": "Diffusé en interne",
+    "published_public": "Publié au public",
+    "archived": "Archivé"
+  },
+  "layout": {
+    "login": "Se connecter",
+    "logout": "Déconnexion"
+  },
+  "auth": {
+    "kicker": "Portail sécurisé",
+    "title": "Connexion",
+    "emailL": "Adresse e-mail",
+    "passwordL": "Mot de passe",
+    "submit": "Se connecter",
+    "sessionEnded": "Votre session a pris fin (compte désactivé, supprimé ou session expirée). Veuillez vous reconnecter.",
+    "sessionCheckFailed": "Impossible de vérifier votre session : le serveur ne répond pas. Vos identifiants sont conservés.",
+    "retry": "Réessayer",
+    "deniedT": "Accès refusé",
+    "deniedP": "Votre niveau d'accès ({{level}}) ne permet pas de consulter cette page."
+  },
+  "myspace": {
+    "kicker": "Espace personnel",
+    "hello": "Bonjour, {{name}}",
+    "connectedAs": "Connecté en tant que {{level}}.",
+    "emailL": "E-mail",
+    "levelL": "Niveau d'accès",
+    "toSecretariat": "Accéder à l'Espace Secrétariat →",
+    "logout": "Se déconnecter"
+  },
+  "admin": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "noneOption": "— Aucun —",
+    "inLang": "{{label}} ({{lang}})"
+  },
+  "adminLayout": {
+    "kicker": "Zone réservée",
+    "title": "Espace Secrétariat",
+    "tabsLabel": "Rubriques de l'Espace Secrétariat",
+    "tabs": {
+      "dashboard": "Tableau de bord",
+      "countries": "Comptes des pays",
+      "users": "Gestion des utilisateurs",
+      "documents": "Circuit documentaire",
+      "news": "Gestion du contenu",
+      "twgs": "Groupes de travail",
+      "home": "Page d'accueil"
+    }
+  },
+  "adminDashboard": {
+    "countries": "Comptes pays actifs",
+    "users": "Utilisateurs internes",
+    "pending": "Documents en attente de décision"
+  },
+  "adminCountries": {
+    "intro": "Gestion des comptes des États membres : identité, coordonnées de l'ANR, et rôle dans l'organisation régionale.",
+    "add": "+ Ajouter un pays",
+    "tableLabel": "Comptes des pays",
+    "colCountry": "Pays",
+    "colOrgRole": "Rôle dans l'organisation",
+    "colTwgRoles": "Rôles GTT",
+    "colUsers": "Utilisateurs",
+    "confirmDelete": "Supprimer définitivement le compte de {{name}} ?",
+    "newTitle": "Nouveau pays",
+    "editTitle": "Modifier — {{name}}",
+    "codeL": "Code pays (2 lettres, ex. sn)",
+    "nameL": "Nom",
+    "nraL": "Nom de l'ANR",
+    "emailL": "Courriel",
+    "phoneL": "Téléphone",
+    "websiteL": "Site web",
+    "orgRoleL": "Rôle dans l'organisation",
+    "orgRoleOtherL": "Précisez le rôle",
+    "note": "Les rôles GTT (lead / co-lead) se gèrent depuis l'onglet Groupes de travail ; les utilisateurs de chaque pays depuis l'onglet Gestion des utilisateurs."
+  },
+  "adminUsers": {
+    "intro": "Utilisateurs internes des Autorités Nationales de Réglementation et du Secrétariat.",
+    "add": "+ Ajouter un utilisateur",
+    "filterL": "Filtrer par pays",
+    "allCountries": "Tous les pays",
+    "tableLabel": "Liste des utilisateurs",
+    "colName": "Nom",
+    "colEmail": "E-mail",
+    "colCountry": "Pays",
+    "colLevel": "Niveau",
+    "colFunctions": "Fonctions",
+    "colTwgRoles": "Rôles GTT",
+    "colStatus": "Statut",
+    "active": "Actif",
+    "inactive": "Désactivé",
+    "deactivate": "Désactiver",
+    "reactivate": "Réactiver",
+    "confirmDeactivate": "Voulez-vous désactiver le compte de {{name}} ?",
+    "confirmReactivate": "Voulez-vous réactiver le compte de {{name}} ?",
+    "newTitle": "Nouvel utilisateur",
+    "editTitle": "Modifier — {{name}}",
+    "fullNameL": "Nom complet",
+    "emailL": "Adresse e-mail",
+    "passwordL": "Mot de passe",
+    "passwordKeepL": "Mot de passe (laisser vide pour ne pas le changer)",
+    "levelL": "Niveau d'accès",
+    "countryL": "Pays de rattachement",
+    "noCountry": "— (Secrétariat régional)",
+    "orgRoleL": "Rôle dans l'organisation",
+    "orgRoleOtherL": "Précisez le rôle",
+    "functionsL": "Fonctions réglementaires",
+    "note": "Les comptes ne sont jamais supprimés mais désactivés : un utilisateur peut être l'auteur de documents que l'historique doit conserver. Un compte désactivé ne peut plus se connecter."
+  },
+  "adminDocuments": {
+    "intro": "Ensemble des documents produits par les groupes de travail, tous statuts confondus. Changer le statut vers « Publié au public » le rend immédiatement visible sur la Bibliothèque publique ; tout autre statut le garde réservé au portail sécurisé.",
+    "tableLabel": "Circuit documentaire : documents",
+    "colDocument": "Document",
+    "colTwg": "GTT",
+    "colVersion": "Version",
+    "colAuthor": "Auteur",
+    "colStatus": "Statut",
+    "statusSelect": "Statut de « {{title}} »",
+    "note": "Le versionnage, les commentaires et l'historique détaillé par document arriveront dans une prochaine étape (Phase 4)."
+  },
+  "adminNews": {
+    "intro": "Actualités affichées sur le site public. Un brouillon non publié n'apparaît jamais côté public, seulement ici.",
+    "add": "+ Ajouter une actualité",
+    "tableLabel": "Liste des actualités",
+    "colDate": "Date",
+    "colTitle": "Titre",
+    "colStatus": "Statut",
+    "published": "Publiée",
+    "draft": "Brouillon",
+    "confirmDelete": "Supprimer définitivement « {{title}} » ?",
+    "newTitle": "Nouvelle actualité",
+    "editTitle": "Modifier l'actualité",
+    "sortDateL": "Date de tri (pour l'ordre d'affichage)",
+    "dateL": "Date affichée",
+    "titleL": "Titre",
+    "bodyL": "Texte",
+    "publishL": "Publier sur le site public"
+  },
+  "adminTwgs": {
+    "intro": "Contenu des groupes de travail affiché sur le site public. Les modifications sont visibles immédiatement sur la page « Groupes de travail ».",
+    "tableLabel": "Liste des groupes de travail",
+    "colWave": "Vague",
+    "colTwg": "Groupe de travail",
+    "colLead": "Lead",
+    "colColead": "Co-lead",
+    "editTitle": "Modifier le groupe de travail",
+    "nameL": "Nom",
+    "descL": "Description",
+    "waveL": "Vague",
+    "waveN": "Vague {{n}}",
+    "leadL": "Pays lead",
+    "coleadL": "Pays co-lead"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "help": "Vous pouvez modifier votre nom et votre adresse e-mail. Le niveau d'accès et le pays de rattachement sont gérés par le Secrétariat.",
+    "nameL": "Prénom et nom",
+    "emailL": "Adresse e-mail",
+    "currentPasswordL": "Mot de passe actuel",
+    "passwordHint": "Requis seulement pour changer d'adresse e-mail.",
+    "passwordNeeded": "Nouvelle adresse e-mail : saisissez votre mot de passe actuel pour confirmer.",
+    "save": "Enregistrer mon profil",
+    "saved": "Profil mis à jour."
   }
 }

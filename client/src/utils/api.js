@@ -25,6 +25,8 @@
 // - En production (Vercel) : VITE_API_URL=https://api.exemple.org
 // - En local, sans variable : le serveur Express de développement.
 // Voir client/.env.example.
+import i18n from '../i18n';   // messages d'erreur du client, dans la langue choisie
+
 const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000').replace(/\/+$/, '');
 
 // ------------------------------------------------------------
@@ -57,7 +59,16 @@ async function request(method, path, token, body) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, options);
+  // Panne réseau (serveur injoignable, coupure) : fetch rejette avec un
+  // message du navigateur (« Failed to fetch »), remplacé par un message
+  // traduit. err.status reste undefined : c'est ainsi que les pages
+  // distinguent une panne d'un refus.
+  let response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, options);
+  } catch {
+    throw new Error(i18n.t('common.networkError'));
+  }
 
   // Une réponse d'erreur peut ne pas être du JSON (ex. page HTML
   // "Cannot GET" si la route n'existe pas). On gère ce cas pour
@@ -70,7 +81,7 @@ async function request(method, path, token, body) {
 
   if (!response.ok) {
     const error = new Error(
-      (data && data.error) || `Erreur ${response.status} — la route existe-t-elle et le serveur est-il à jour ?`,
+      (data && data.error) || i18n.t('common.httpError', { status: response.status }),
     );
     error.status = response.status;
     if (token && authErrorHandler && (response.status === 401 || response.status === 403)) {
