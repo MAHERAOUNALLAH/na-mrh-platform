@@ -596,3 +596,24 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
   }
   .navlinks a.active{border-bottom-color:var(--line); border-inline-start-color:var(--red);}
 }
+
+
+/* ============================================================
+   RESPONSIVE — champs de formulaire et cibles tactiles (<= 768 px)
+   (Tableaux, onglets du Secrétariat et filtres de la Bibliothèque :
+   traités avec leurs blocs respectifs.)
+   ============================================================ */
+@media(max-width:768px){
+  /* 16 px minimum : en dessous, Safari iOS zoome toute la page dès
+     qu'un champ reçoit le focus. !important nécessaire et volontaire :
+     plusieurs <select> reçoivent leur taille (13-14 px) par un style en
+     ligne dans les pages (Reclamations, UserManagement, CountryAccounts,
+     DocumentWorkflow), qu'aucune règle CSS ne peut battre autrement. */
+  input:not([type=checkbox]):not([type=radio]), select, textarea{font-size:16px !important;}
+  input:not([type=checkbox]):not([type=radio]), select{min-height:44px;}
+
+  /* Zones tactiles de 44 px minimum */
+  .btn:not(.btn-sm){min-height:44px;}   /* .btn-sm : boutons des tableaux admin (bloc 4) */
+  .back-link{min-height:44px;}
+  footer li a{display:inline-flex; align-items:center; min-height:44px;}
+}
