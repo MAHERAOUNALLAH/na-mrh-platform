@@ -96,7 +96,7 @@ function ContentManagement() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
+      <div className="admin-toolbar">
         <p style={{ fontSize: '14px', color: 'var(--ink-soft)', maxWidth: '58ch' }}>
           Actualités affichées sur le site public. Un brouillon non publié n'apparaît
           jamais côté public, seulement ici.
@@ -172,7 +172,7 @@ function ContentManagement() {
               <label htmlFor="publishNow">Publier sur le site public</label>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+            <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
                 {saving ? '…' : 'Enregistrer'}
               </button>

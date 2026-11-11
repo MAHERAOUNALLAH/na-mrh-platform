@@ -20,11 +20,6 @@ const ORG_ROLES = [
   { value: 'other', label: 'Autre' },
 ];
 
-const selectStyle = {
-  width: '100%', padding: '10px 12px', border: '1px solid var(--line-strong)',
-  borderRadius: '2px', background: 'var(--bg)', fontFamily: 'inherit', fontSize: '14px',
-};
-
 const EMPTY_FORM = {
   id: '', nameFr: '', nameEn: '', nameAr: '',
   nraNameFr: '', nraNameEn: '', nraNameAr: '',
@@ -121,7 +116,7 @@ function CountryAccounts() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
+      <div className="admin-toolbar">
         <p style={{ fontSize: '14px', color: 'var(--ink-soft)', maxWidth: '60ch' }}>
           Gestion des comptes des États membres : identité, coordonnées de l'ANR,
           et rôle dans l'organisation régionale.
@@ -220,7 +215,7 @@ function CountryAccounts() {
 
             <div className="field">
               <label>Rôle dans l'organisation</label>
-              <select name="orgRole" value={form.orgRole} onChange={handleChange} style={selectStyle}>
+              <select name="orgRole" value={form.orgRole} onChange={handleChange}>
                 {ORG_ROLES.map((r) => (
                   <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
@@ -234,7 +229,7 @@ function CountryAccounts() {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+            <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
                 {saving ? '…' : 'Enregistrer'}
               </button>

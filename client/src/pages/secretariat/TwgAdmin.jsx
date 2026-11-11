@@ -146,7 +146,7 @@ function TwgAdmin() {
                 </select></div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+            <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
                 {saving ? '…' : 'Enregistrer'}
               </button>

@@ -21,11 +21,6 @@ const STATUSES = [
   { value: 'archived', label: 'Archivé' },
 ];
 
-const selectStyle = {
-  padding: '7px 10px', border: '1px solid var(--line-strong)',
-  borderRadius: '2px', background: 'var(--bg)', fontFamily: 'inherit', fontSize: '13px',
-};
-
 function statusLabel(value) {
   return STATUSES.find((s) => s.value === value)?.label || value;
 }
@@ -94,13 +89,13 @@ function DocumentWorkflow() {
                 <td>v{doc.version}</td>
                 <td>{doc.createdBy?.name || '—'}</td>
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="status-cell">
                     <span className={`status-chip status-${doc.status}`}>{statusLabel(doc.status)}</span>
                     <select
                       value={doc.status}
                       onChange={(e) => handleStatusChange(doc, e.target.value)}
                       disabled={updatingId === doc.id}
-                      style={selectStyle}
+                      className="status-select"
                     >
                       {STATUSES.map((s) => (
                         <option key={s.value} value={s.value}>{s.label}</option>
