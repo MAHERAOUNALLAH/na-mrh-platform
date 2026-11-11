@@ -620,9 +620,11 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
   input:not([type=checkbox]):not([type=radio]), select{min-height:44px;}
 
   /* Zones tactiles de 44 px minimum */
-  /* Tous les boutons, y compris .btn-sm des pages publiques (accueil,
-     404, page d'attente) ; l'Espace Secrétariat est traité au bloc 4. */
-  .btn:not(.admin-layout .btn){min-height:44px;}
+  /* Tous les boutons, .btn-sm compris (pages publiques, et boutons
+     d'action des tableaux et formulaires du Secrétariat). Le menu de
+     statut du circuit documentaire reçoit ses 44 px par la règle des
+     <select> ci-dessus. */
+  .btn{min-height:44px; justify-content:center;}
   .back-link{min-height:44px;}
   footer li a{display:inline-flex; align-items:center; min-height:44px; min-width:44px;}
 }
