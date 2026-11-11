@@ -155,5 +155,69 @@
   },
   "homePage": {
     "sectionError": "Cette section est momentanément indisponible."
+  },
+  "adminHome": {
+    "intro": "Textes de la page d'accueil et coordonnées du Secrétariat. Chaque champ est pré-rempli avec le texte actuel. Une langue laissée identique au texte par défaut n'est pas enregistrée. Les modifications sont visibles immédiatement sur le site public.",
+    "save": "Enregistrer",
+    "saved": "Modification enregistrée.",
+    "restore": "Restaurer la valeur par défaut",
+    "restored": "Valeur par défaut restaurée.",
+    "badgeDefault": "Texte par défaut",
+    "badgeCustom": "Modifié",
+    "counter": "{{count}} / {{max}} caractères",
+    "intRange": "Nombre entier de {{min}} à {{max}}",
+    "notModifiedIn": "Texte par défaut conservé en : {{langs}}. Pensez à traduire la modification.",
+    "lang": {
+      "fr": "Français",
+      "en": "Anglais",
+      "ar": "Arabe"
+    },
+    "sectionsLegend": "Sections affichées sur l'accueil",
+    "sectionsHelp": "Le bandeau principal est toujours affiché. Au moins une autre section doit rester visible.",
+    "lastSection": "Dernière section affichée : elle ne peut pas être masquée.",
+    "sections": {
+      "stats": "Chiffres clés",
+      "mission": "Mission",
+      "countries": "États membres",
+      "twgs": "Groupes de travail",
+      "news": "Actualités récentes"
+    },
+    "groups": {
+      "hero": "Bandeau principal",
+      "stats": "Chiffres clés",
+      "mission": "Mission et États membres",
+      "twgs": "Groupes de travail",
+      "news": "Actualités récentes",
+      "contact": "Coordonnées du Secrétariat"
+    },
+    "fields": {
+      "hero_kicker": "Accroche",
+      "hero_h1": "Titre",
+      "hero_lead": "Texte d'introduction",
+      "hero_cta1": "Bouton 1 : libellé",
+      "hero_cta1Link": "Bouton 1 : page visée",
+      "hero_cta2": "Bouton 2 : libellé",
+      "hero_cta2Link": "Bouton 2 : page visée",
+      "statsLabels_0": "Chiffre 1 : libellé (nombre de pays, calculé)",
+      "statsLabels_1": "Chiffre 2 : libellé (nombre de groupes de travail, calculé)",
+      "statsLabels_2": "Chiffre 3 : libellé",
+      "home_stat3Value": "Chiffre 3 : valeur",
+      "statsLabels_3": "Chiffre 4 : libellé",
+      "home_stat4Value": "Chiffre 4 : valeur",
+      "homeSections_missionKicker": "Mission : sur-titre",
+      "homeSections_missionH": "Mission : titre",
+      "homeSections_missionP": "Mission : texte",
+      "homeSections_countriesH": "États membres : titre de la liste",
+      "homeSections_twgKicker": "Groupes de travail : sur-titre",
+      "homeSections_twgH": "Groupes de travail : titre",
+      "homeSections_twgP": "Groupes de travail : texte",
+      "homeSections_newsKicker": "Actualités : sur-titre",
+      "homeSections_newsH": "Actualités : titre",
+      "contact_email": "E-mail du Secrétariat",
+      "contact_phone": "Téléphone du Secrétariat",
+      "contactPage_secP": "Page Contact : texte du Secrétariat",
+      "footer_contactP": "Pied de page : ligne du Secrétariat",
+      "governance_secretariatD": "Page Gouvernance : description du Secrétariat"
+    }
   }
 }

@@ -14,6 +14,7 @@ const TABS = [
   { to: '/secretariat/documents', label: 'Circuit documentaire' },
   { to: '/secretariat/contenu', label: 'Gestion du contenu' },
   { to: '/secretariat/groupes-de-travail', label: 'Groupes de travail' },
+  { to: '/secretariat/accueil', label: "Page d'accueil" },
 ];
 
 function SecretariatLayout() {

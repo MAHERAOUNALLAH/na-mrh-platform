@@ -811,3 +811,23 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .home-countries a:hover{border-color:var(--ink);}
 /* Section de l'accueil en attente ou indisponible : message discret. */
 .section-note{font-size:13.5px; color:var(--ink-soft); margin-block:6px 14px;}
+
+/* ---------- Espace Secrétariat : messages de formulaire ---------- */
+.admin-intro{font-size:14px; color:var(--ink-soft); max-width:62ch; margin-bottom:14px;}
+.form-msg{font-size:13.5px; margin-top:10px;}
+.form-msg-ok{color:var(--green-deep);}
+.form-msg-error{color:var(--red-deep);}
+
+/* ---------- Onglet « Page d'accueil » ---------- */
+.content-group{margin-top:26px;}
+.content-group > h3{font-size:18px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:12px;}
+.content-field{background:var(--surface); border:1px solid var(--line); padding:18px; margin:0 0 12px; min-width:0;}
+.content-field h4, .content-field legend{font-size:14.5px; font-weight:700; margin:0 0 10px; padding:0;}
+.content-field-meta{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; margin-top:5px; font-size:12px; color:var(--ink-soft);}
+.content-badge{font-weight:700;}
+.content-badge.custom{color:#8a6414;}   /* même brun doré que .phase-pill.p2 */
+.content-field-help{font-size:13px; color:var(--ink-soft); margin-bottom:6px;}
+.content-field-warning{font-size:13px; color:#8a6414; margin-block:4px 10px;}
+@media(max-width:768px){
+  .content-field{padding:14px;}
+}
