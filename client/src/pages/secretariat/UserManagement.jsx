@@ -174,47 +174,50 @@ function UserManagement() {
 
       {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
 
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Nom</th><th>E-mail</th><th>Pays</th><th>Niveau</th>
-            <th>Fonctions</th><th>Rôles GTT</th><th>Statut</th><th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id} style={{ opacity: u.isActive ? 1 : 0.5 }}>
-              <td><b>{u.name}</b></td>
-              <td><bdi dir="ltr">{u.email}</bdi></td>
-              <td>{u.country ? pickLang(u.country, 'name', lang) : '—'}</td>
-              <td>{LEVELS.find((l) => l.value === u.level)?.label || u.level}</td>
-              <td>
-                {u.userFunctions.length > 0
-                  ? u.userFunctions.map((f) => (
-                      <span key={f.functionCode} className="tag-pill">{f.functionCode}</span>
-                    ))
-                  : '—'}
-              </td>
-              <td>
-                {u.twgMemberships.length > 0
-                  ? u.twgMemberships.map((m) => (
-                      <span key={m.twg.id} className="tag-pill">
-                        {m.role} · {pickLang(m.twg, 'name', lang)}
-                      </span>
-                    ))
-                  : '—'}
-              </td>
-              <td>{u.isActive ? 'Actif' : 'Désactivé'}</td>
-              <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)}>Modifier</button>
-                <button className="btn btn-outline btn-sm" onClick={() => toggleActive(u)}>
-                  {u.isActive ? 'Désactiver' : 'Réactiver'}
-                </button>
-              </td>
+      {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
+      <div className="table-scroll" role="region" aria-label="Liste des utilisateurs" tabIndex={0}>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Nom</th><th>E-mail</th><th>Pays</th><th>Niveau</th>
+              <th>Fonctions</th><th>Rôles GTT</th><th>Statut</th><th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id} style={{ opacity: u.isActive ? 1 : 0.5 }}>
+                <td><b>{u.name}</b></td>
+                <td><bdi dir="ltr">{u.email}</bdi></td>
+                <td>{u.country ? pickLang(u.country, 'name', lang) : '—'}</td>
+                <td>{LEVELS.find((l) => l.value === u.level)?.label || u.level}</td>
+                <td>
+                  {u.userFunctions.length > 0
+                    ? u.userFunctions.map((f) => (
+                        <span key={f.functionCode} className="tag-pill">{f.functionCode}</span>
+                      ))
+                    : '—'}
+                </td>
+                <td>
+                  {u.twgMemberships.length > 0
+                    ? u.twgMemberships.map((m) => (
+                        <span key={m.twg.id} className="tag-pill">
+                          {m.role} · {pickLang(m.twg, 'name', lang)}
+                        </span>
+                      ))
+                    : '—'}
+                </td>
+                <td>{u.isActive ? 'Actif' : 'Désactivé'}</td>
+                <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)}>Modifier</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => toggleActive(u)}>
+                    {u.isActive ? 'Désactiver' : 'Réactiver'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {editing && (
         <div className="admin-form-card">

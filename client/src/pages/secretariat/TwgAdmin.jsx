@@ -81,24 +81,27 @@ function TwgAdmin() {
 
       {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
 
-      <table className="admin-table">
-        <thead>
-          <tr><th>Vague</th><th>Groupe de travail</th><th>Lead</th><th>Co-lead</th><th></th></tr>
-        </thead>
-        <tbody>
-          {twgs.map((twg) => (
-            <tr key={twg.id}>
-              <td>{twg.wave}</td>
-              <td><b>{twg.nameFr}</b></td>
-              <td>{twg.leadCountry ? twg.leadCountry.nameFr : '—'}</td>
-              <td>{twg.coleadCountry ? twg.coleadCountry.nameFr : '—'}</td>
-              <td style={{ textAlign: 'end' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => openEdit(twg)}>Modifier</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
+      <div className="table-scroll" role="region" aria-label="Liste des groupes de travail" tabIndex={0}>
+        <table className="admin-table">
+          <thead>
+            <tr><th>Vague</th><th>Groupe de travail</th><th>Lead</th><th>Co-lead</th><th></th></tr>
+          </thead>
+          <tbody>
+            {twgs.map((twg) => (
+              <tr key={twg.id}>
+                <td>{twg.wave}</td>
+                <td><b>{twg.nameFr}</b></td>
+                <td>{twg.leadCountry ? twg.leadCountry.nameFr : '—'}</td>
+                <td>{twg.coleadCountry ? twg.coleadCountry.nameFr : '—'}</td>
+                <td style={{ textAlign: 'end' }}>
+                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(twg)}>Modifier</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {editing && form && (
         <div className="admin-form-card">

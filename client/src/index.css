@@ -639,3 +639,31 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 [dir="rtl"] input[name="email"], [dir="rtl"] input[name="phone"], [dir="rtl"] input[name="website"]{
   direction:ltr; text-align:end;
 }
+
+
+/* ============================================================
+   RESPONSIVE — tableaux de l'Espace Secrétariat
+   ============================================================ */
+
+/* Un tableau large défile dans SON conteneur (.table-scroll), jamais la
+   page. Dans le JSX : role="region", aria-label et tabIndex={0}, pour
+   qu'on puisse le faire défiler au clavier (flèches) une fois focalisé.
+   Indice de défilement : une ombre apparaît sur le bord où du contenu
+   est caché, et disparaît en bout de course (les « caches » en
+   background-attachment:local suivent le contenu). La paire gauche/droite
+   est symétrique : l'indice marche aussi en RTL, où le défilement part
+   de la droite (seule exception justifiée aux propriétés logiques). */
+.table-scroll{
+  overflow-x:auto;
+  overscroll-behavior-inline:contain;
+  background:
+    linear-gradient(to right, var(--bg) 30%, rgba(247,243,234,0)) left center / 40px 100% no-repeat local,
+    linear-gradient(to left, var(--bg) 30%, rgba(247,243,234,0)) right center / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(32,26,21,.22), transparent) left center / 14px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(32,26,21,.22), transparent) right center / 14px 100% no-repeat scroll;
+}
+
+/* Les colonnes de .admin-layout (onglets, contenu) peuvent rétrécir sous
+   la largeur de leur contenu : sans cela, la colonne prenait la largeur
+   du tableau et élargissait toute la page (987 px à 360 px, mesuré). */
+.admin-layout > *{min-width:0;}

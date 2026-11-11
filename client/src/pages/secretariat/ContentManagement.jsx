@@ -106,28 +106,31 @@ function ContentManagement() {
 
       {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
 
-      <table className="admin-table">
-        <thead>
-          <tr><th>Date</th><th>Titre</th><th>Statut</th><th></th></tr>
-        </thead>
-        <tbody>
-          {news.map((item) => (
-            <tr key={item.id}>
-              <td>{item.dateFr}</td>
-              <td><b>{item.titleFr}</b></td>
-              <td>
-                <span className={`status-chip ${item.publishedAt ? 'status-published_public' : 'status-draft_twg'}`}>
-                  {item.publishedAt ? 'Publiée' : 'Brouillon'}
-                </span>
-              </td>
-              <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => openEdit(item)}>Modifier</button>
-                <button className="btn btn-outline btn-sm" onClick={() => handleDelete(item)}>Supprimer</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
+      <div className="table-scroll" role="region" aria-label="Liste des actualités" tabIndex={0}>
+        <table className="admin-table">
+          <thead>
+            <tr><th>Date</th><th>Titre</th><th>Statut</th><th></th></tr>
+          </thead>
+          <tbody>
+            {news.map((item) => (
+              <tr key={item.id}>
+                <td>{item.dateFr}</td>
+                <td><b>{item.titleFr}</b></td>
+                <td>
+                  <span className={`status-chip ${item.publishedAt ? 'status-published_public' : 'status-draft_twg'}`}>
+                    {item.publishedAt ? 'Publiée' : 'Brouillon'}
+                  </span>
+                </td>
+                <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(item)}>Modifier</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => handleDelete(item)}>Supprimer</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {editing && (
         <div className="admin-form-card">

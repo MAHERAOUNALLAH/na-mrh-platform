@@ -133,48 +133,51 @@ function CountryAccounts() {
         <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>
       )}
 
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Pays</th>
-            <th>Rôle dans l'organisation</th>
-            <th>Rôles GTT</th>
-            <th>Utilisateurs</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {countries.map((c) => (
-            <tr key={c.id}>
-              <td style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Flag code={c.id} width={26} height={18} />
-                <b>{pickLang(c, 'name', lang)}</b>
-              </td>
-              <td>
-                {c.orgRole
-                  ? (c.orgRole === 'other'
-                      ? (c.orgRoleOther || 'Autre')
-                      : (ORG_ROLES.find((r) => r.value === c.orgRole)?.label || c.orgRole))
-                  : '—'}
-              </td>
-              <td>
-                {c.twgsAsLead.map((w) => (
-                  <span key={`l-${w.id}`} className="tag-pill">Lead · {pickLang(w, 'name', lang)}</span>
-                ))}
-                {c.twgsAsColead.map((w) => (
-                  <span key={`c-${w.id}`} className="tag-pill">Co-lead · {pickLang(w, 'name', lang)}</span>
-                ))}
-                {c.twgsAsLead.length === 0 && c.twgsAsColead.length === 0 && '—'}
-              </td>
-              <td>{c._count.users}</td>
-              <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => openEdit(c)}>Modifier</button>
-                <button className="btn btn-outline btn-sm" onClick={() => handleDelete(c)}>Supprimer</button>
-              </td>
+      {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
+      <div className="table-scroll" role="region" aria-label="Comptes des pays" tabIndex={0}>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Pays</th>
+              <th>Rôle dans l'organisation</th>
+              <th>Rôles GTT</th>
+              <th>Utilisateurs</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {countries.map((c) => (
+              <tr key={c.id}>
+                <td style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Flag code={c.id} width={26} height={18} />
+                  <b>{pickLang(c, 'name', lang)}</b>
+                </td>
+                <td>
+                  {c.orgRole
+                    ? (c.orgRole === 'other'
+                        ? (c.orgRoleOther || 'Autre')
+                        : (ORG_ROLES.find((r) => r.value === c.orgRole)?.label || c.orgRole))
+                    : '—'}
+                </td>
+                <td>
+                  {c.twgsAsLead.map((w) => (
+                    <span key={`l-${w.id}`} className="tag-pill">Lead · {pickLang(w, 'name', lang)}</span>
+                  ))}
+                  {c.twgsAsColead.map((w) => (
+                    <span key={`c-${w.id}`} className="tag-pill">Co-lead · {pickLang(w, 'name', lang)}</span>
+                  ))}
+                  {c.twgsAsLead.length === 0 && c.twgsAsColead.length === 0 && '—'}
+                </td>
+                <td>{c._count.users}</td>
+                <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(c)}>Modifier</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => handleDelete(c)}>Supprimer</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {editing && (
         <div className="admin-form-card">
