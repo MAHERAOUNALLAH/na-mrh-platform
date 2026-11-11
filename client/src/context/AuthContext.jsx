@@ -111,6 +111,12 @@ export function AuthProvider({ children }) {
     clearSession(null);
   }
 
+  // Profil modifié (nom, e-mail) depuis « Mon espace » : le jeton reste
+  // valable (il ne contient que l'identifiant), seul l'affichage change.
+  function updateUser(newUser) {
+    setUser(newUser);
+  }
+
   // « Réessayer » après une panne : appelé depuis un clic, pas depuis
   // un effet, donc setLoading(true) est permis ici.
   function retrySession() {
@@ -121,7 +127,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, sessionError, sessionNotice, login, logout, retrySession }}
+      value={{ user, token, loading, sessionError, sessionNotice, login, logout, retrySession, updateUser }}
     >
       {children}
     </AuthContext.Provider>

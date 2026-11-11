@@ -178,6 +178,13 @@ const makePublicFormLimiter = () => makeLimiter({
 });
 const contactLimiter = makePublicFormLimiter();
 const complaintsLimiter = makePublicFormLimiter();
+// Modification de son propre profil (PUT /api/auth/me) : la route vérifie
+// le mot de passe actuel quand l'e-mail change, on borne donc les essais.
+const profileLimiter = makeLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: positiveIntFromEnv('RATE_LIMIT_PROFILE_MAX', 10),
+  message: 'Trop de modifications du profil depuis cette adresse. Réessayez dans 15 minutes.',
+});
 
 // ============================================================
 // 3. MIDDLEWARES D'AUTHENTIFICATION
@@ -521,6 +528,83 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
     res.json({ user });
   } catch (error) {
     console.error('Erreur /api/auth/me :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// --- Mon profil : nom et e-mail de l'utilisateur CONNECTÉ ---
+// L'identité vient du jeton (req.user, relu en base par requireAuth),
+// jamais d'un identifiant dans l'URL ou le corps : impossible de modifier
+// le profil de quelqu'un d'autre.
+// Seuls name, email et currentPassword sont acceptés : niveau, pays,
+// rôle, statut… sont REFUSÉS (400), jamais modifiables par cette route.
+// Changer d'e-mail exige le mot de passe actuel. Un mot de passe faux
+// répond 400 (et non 401) : côté client, un 401 sur un appel authentifié
+// signifie « session terminée » et déconnecterait l'utilisateur.
+const PROFILE_FIELDS = ['name', 'email', 'currentPassword'];
+const NAME_MAX_LENGTH = 200;
+const EMAIL_MAX_LENGTH = 254;
+
+function validateProfileBody(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Corps de requête JSON attendu.' };
+  const forbidden = Object.keys(body).filter((k) => !PROFILE_FIELDS.includes(k));
+  if (forbidden.length) {
+    return { error: `Champ non modifiable depuis le profil : ${forbidden.join(', ')}. Seuls le nom et l'adresse e-mail peuvent être modifiés.` };
+  }
+  const { name, email, currentPassword } = body;
+  if (typeof name !== 'string') return { error: 'Le nom est obligatoire.' };
+  if (typeof email !== 'string') return { error: 'L\'adresse e-mail est obligatoire.' };
+  if (currentPassword !== undefined && currentPassword !== null && typeof currentPassword !== 'string') {
+    return { error: 'Le mot de passe actuel doit être du texte.' };
+  }
+  const cleanName = name.trim().replace(/\s+/g, ' ');
+  if (!cleanName) return { error: 'Le nom est obligatoire.' };
+  if (cleanName.length > NAME_MAX_LENGTH) return { error: `Le nom dépasse ${NAME_MAX_LENGTH} caractères.` };
+  const cleanEmail = normalizeEmail(email);   // minuscules, sans espaces (utils/email.js)
+  if (!cleanEmail) return { error: 'L\'adresse e-mail est obligatoire.' };
+  if (cleanEmail.length > EMAIL_MAX_LENGTH || !isValidEmail(cleanEmail)) return { error: 'L\'adresse e-mail est invalide.' };
+  return { data: { name: cleanName, email: cleanEmail, currentPassword: currentPassword || '' } };
+}
+
+app.put('/api/auth/me', profileLimiter, requireAuth, async (req, res) => {
+  try {
+    const { error, data } = validateProfileBody(req.body);
+    if (error) return res.status(400).json({ error });
+
+    const me = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { id: true, email: true, passwordHash: true },
+    });
+    if (!me) return res.status(401).json({ error: 'Session révoquée : ce compte est désactivé ou n\'existe plus.' });
+
+    const emailChanged = data.email !== me.email;
+    if (emailChanged) {
+      if (!data.currentPassword) {
+        return res.status(400).json({ error: 'Le mot de passe actuel est requis pour changer d\'adresse e-mail.' });
+      }
+      if (Buffer.byteLength(data.currentPassword, 'utf8') > PASSWORD_MAX_LENGTH
+          || !(await bcrypt.compare(data.currentPassword, me.passwordHash))) {
+        return res.status(400).json({ error: 'Mot de passe actuel incorrect.' });
+      }
+      // Doublon insensible à la casse (attrape une ancienne adresse restée en majuscules).
+      const taken = await prisma.user.findFirst({
+        where: { email: { equals: data.email, mode: 'insensitive' }, id: { not: me.id } },
+        select: { id: true },
+      });
+      if (taken) return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: me.id },
+      data: { name: data.name, email: data.email },
+      select: { id: true, name: true, email: true, level: true, countryId: true, orgRole: true },
+    });
+    res.json({ user });
+  } catch (error) {
+    if (isUniqueEmailViolation(error)) {
+      return res.status(409).json({ error: 'Cette adresse e-mail est déjà utilisée par un autre compte.' });
+    }
+    console.error('Erreur PUT /api/auth/me :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

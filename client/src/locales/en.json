@@ -398,5 +398,16 @@
     "waveN": "Wave {{n}}",
     "leadL": "Lead country",
     "coleadL": "Co-lead country"
+  },
+  "profile": {
+    "title": "My profile",
+    "help": "You can change your name and email address. Your access level and country are managed by the Secretariat.",
+    "nameL": "First and last name",
+    "emailL": "Email address",
+    "currentPasswordL": "Current password",
+    "passwordHint": "Only required to change your email address.",
+    "passwordNeeded": "New email address: enter your current password to confirm.",
+    "save": "Save my profile",
+    "saved": "Profile updated."
   }
 }

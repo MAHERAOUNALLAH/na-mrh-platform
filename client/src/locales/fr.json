@@ -398,5 +398,16 @@
     "waveN": "Vague {{n}}",
     "leadL": "Pays lead",
     "coleadL": "Pays co-lead"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "help": "Vous pouvez modifier votre nom et votre adresse e-mail. Le niveau d'accès et le pays de rattachement sont gérés par le Secrétariat.",
+    "nameL": "Prénom et nom",
+    "emailL": "Adresse e-mail",
+    "currentPasswordL": "Mot de passe actuel",
+    "passwordHint": "Requis seulement pour changer d'adresse e-mail.",
+    "passwordNeeded": "Nouvelle adresse e-mail : saisissez votre mot de passe actuel pour confirmer.",
+    "save": "Enregistrer mon profil",
+    "saved": "Profil mis à jour."
   }
 }
