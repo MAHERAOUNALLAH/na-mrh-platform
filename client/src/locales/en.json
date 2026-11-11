@@ -2,6 +2,7 @@
   "dir": "ltr",
   "logoSub": "Regional Secretariat",
   "nav": {
+    "menu": "Menu",
     "home": "Home",
     "governance": "Governance",
     "members": "Member States",
@@ -149,7 +150,7 @@
     "aboutP": "North African Medicines Regulatory Harmonization Initiative — pharmaceutical regulatory convergence in North Africa, aligned with the priorities of the African Medicines Agency (AMA) and AUDA-NEPAD.",
     "linksT": "Navigation",
     "contactT": "Secretariat",
-    "contactP": "Hosted by ANMPS, Tunisia\ndpm@rns.tn · +216 71 78 31 95",
+    "contactP": "Hosted by ANMPS, Tunisia",
     "partners": "Technical & financial partners: AUDA-NEPAD · AMA · WHO · Swissmedic · World Bank · AfDB  ·  © 2026 NA-MRH Secretariat"
   }
 }

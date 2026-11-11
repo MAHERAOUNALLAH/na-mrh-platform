@@ -20,11 +20,6 @@ const ORG_ROLES = [
   { value: 'other', label: 'Autre' },
 ];
 
-const selectStyle = {
-  width: '100%', padding: '10px 12px', border: '1px solid var(--line-strong)',
-  borderRadius: '2px', background: 'var(--bg)', fontFamily: 'inherit', fontSize: '14px',
-};
-
 const EMPTY_FORM = {
   id: '', nameFr: '', nameEn: '', nameAr: '',
   nraNameFr: '', nraNameEn: '', nraNameAr: '',
@@ -121,7 +116,7 @@ function CountryAccounts() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
+      <div className="admin-toolbar">
         <p style={{ fontSize: '14px', color: 'var(--ink-soft)', maxWidth: '60ch' }}>
           Gestion des comptes des États membres : identité, coordonnées de l'ANR,
           et rôle dans l'organisation régionale.
@@ -133,48 +128,55 @@ function CountryAccounts() {
         <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>
       )}
 
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Pays</th>
-            <th>Rôle dans l'organisation</th>
-            <th>Rôles GTT</th>
-            <th>Utilisateurs</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {countries.map((c) => (
-            <tr key={c.id}>
-              <td style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Flag code={c.id} width={26} height={18} />
-                <b>{pickLang(c, 'name', lang)}</b>
-              </td>
-              <td>
-                {c.orgRole
-                  ? (c.orgRole === 'other'
-                      ? (c.orgRoleOther || 'Autre')
-                      : (ORG_ROLES.find((r) => r.value === c.orgRole)?.label || c.orgRole))
-                  : '—'}
-              </td>
-              <td>
-                {c.twgsAsLead.map((w) => (
-                  <span key={`l-${w.id}`} className="tag-pill">Lead · {pickLang(w, 'name', lang)}</span>
-                ))}
-                {c.twgsAsColead.map((w) => (
-                  <span key={`c-${w.id}`} className="tag-pill">Co-lead · {pickLang(w, 'name', lang)}</span>
-                ))}
-                {c.twgsAsLead.length === 0 && c.twgsAsColead.length === 0 && '—'}
-              </td>
-              <td>{c._count.users}</td>
-              <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => openEdit(c)}>Modifier</button>
-                <button className="btn btn-outline btn-sm" onClick={() => handleDelete(c)}>Supprimer</button>
-              </td>
+      {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
+      <div className="table-scroll" role="region" aria-label="Comptes des pays" tabIndex={0}>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Pays</th>
+              <th>Rôle dans l'organisation</th>
+              <th>Rôles GTT</th>
+              <th>Utilisateurs</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {countries.map((c) => (
+              <tr key={c.id}>
+                <td>
+                  <div className="cell-country">
+                    <Flag code={c.id} width={26} height={18} />
+                    <b>{pickLang(c, 'name', lang)}</b>
+                  </div>
+                </td>
+                <td>
+                  {c.orgRole
+                    ? (c.orgRole === 'other'
+                        ? (c.orgRoleOther || 'Autre')
+                        : (ORG_ROLES.find((r) => r.value === c.orgRole)?.label || c.orgRole))
+                    : '—'}
+                </td>
+                <td>
+                  {c.twgsAsLead.map((w) => (
+                    <span key={`l-${w.id}`} className="tag-pill">Lead · {pickLang(w, 'name', lang)}</span>
+                  ))}
+                  {c.twgsAsColead.map((w) => (
+                    <span key={`c-${w.id}`} className="tag-pill">Co-lead · {pickLang(w, 'name', lang)}</span>
+                  ))}
+                  {c.twgsAsLead.length === 0 && c.twgsAsColead.length === 0 && '—'}
+                </td>
+                <td>{c._count.users}</td>
+                <td className="cell-actions">
+                  <div className="row-actions">
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(c)}>Modifier</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => handleDelete(c)}>Supprimer</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {editing && (
         <div className="admin-form-card">
@@ -213,7 +215,7 @@ function CountryAccounts() {
 
             <div className="field">
               <label>Rôle dans l'organisation</label>
-              <select name="orgRole" value={form.orgRole} onChange={handleChange} style={selectStyle}>
+              <select name="orgRole" value={form.orgRole} onChange={handleChange}>
                 {ORG_ROLES.map((r) => (
                   <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
@@ -227,7 +229,7 @@ function CountryAccounts() {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+            <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
                 {saving ? '…' : 'Enregistrer'}
               </button>

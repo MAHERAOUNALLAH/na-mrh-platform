@@ -37,7 +37,7 @@ function MonEspace() {
         <div className="kv-grid">
           <div className="kv">
             <span className="label">E-mail</span>
-            <span className="value" style={{ fontWeight: 400, fontSize: '14.5px' }}>{user.email}</span>
+            <span className="value" style={{ fontWeight: 400, fontSize: '14.5px' }}><bdi dir="ltr">{user.email}</bdi></span>
           </div>
           <div className="kv">
             <span className="label">Niveau d'accès</span>

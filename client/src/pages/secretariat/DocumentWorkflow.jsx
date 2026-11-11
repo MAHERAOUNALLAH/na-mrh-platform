@@ -21,11 +21,6 @@ const STATUSES = [
   { value: 'archived', label: 'Archivé' },
 ];
 
-const selectStyle = {
-  padding: '7px 10px', border: '1px solid var(--line-strong)',
-  borderRadius: '2px', background: 'var(--bg)', fontFamily: 'inherit', fontSize: '13px',
-};
-
 function statusLabel(value) {
   return STATUSES.find((s) => s.value === value)?.label || value;
 }
@@ -78,38 +73,41 @@ function DocumentWorkflow() {
 
       {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
 
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Document</th><th>GTT</th><th>Version</th><th>Auteur</th><th>Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {documents.map((doc) => (
-            <tr key={doc.id}>
-              <td><b>{pickLang(doc, 'title', lang)}</b></td>
-              <td>{doc.twg ? pickLang(doc.twg, 'name', lang) : '—'}</td>
-              <td>v{doc.version}</td>
-              <td>{doc.createdBy?.name || '—'}</td>
-              <td>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className={`status-chip status-${doc.status}`}>{statusLabel(doc.status)}</span>
-                  <select
-                    value={doc.status}
-                    onChange={(e) => handleStatusChange(doc, e.target.value)}
-                    disabled={updatingId === doc.id}
-                    style={selectStyle}
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </td>
+      {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
+      <div className="table-scroll" role="region" aria-label="Circuit documentaire : documents" tabIndex={0}>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Document</th><th>GTT</th><th>Version</th><th>Auteur</th><th>Statut</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {documents.map((doc) => (
+              <tr key={doc.id}>
+                <td><b>{pickLang(doc, 'title', lang)}</b></td>
+                <td>{doc.twg ? pickLang(doc.twg, 'name', lang) : '—'}</td>
+                <td>v{doc.version}</td>
+                <td>{doc.createdBy?.name || '—'}</td>
+                <td>
+                  <div className="status-cell">
+                    <span className={`status-chip status-${doc.status}`}>{statusLabel(doc.status)}</span>
+                    <select
+                      value={doc.status}
+                      onChange={(e) => handleStatusChange(doc, e.target.value)}
+                      disabled={updatingId === doc.id}
+                      className="status-select"
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div className="note-line">
         ℹ️ Le versionning, les commentaires et l'historique détaillé par document
