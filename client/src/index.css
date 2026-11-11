@@ -342,6 +342,20 @@
   .field{margin-bottom:14px;}
   .field label{display:block; font-size:12.5px; font-weight:700; margin-bottom:5px; color:var(--ink-soft);}
   .field input{width:100%; padding:10px 12px; border:1px solid var(--line-strong); font-size:14px; border-radius:2px; font-family:inherit; background:var(--bg);}
+  /* <select> des formulaires : même apparence que .field input (les <select>
+     du formulaire GTT n'avaient aucun style ; ceux des utilisateurs et des
+     pays recevaient ces mêmes valeurs par un style en ligne, supprimé). */
+  .field select{
+    width:100%; padding:10px 12px; border:1px solid var(--line-strong);
+    font-size:14px; border-radius:2px; font-family:inherit; background:var(--bg); color:inherit;
+  }
+  /* Menu de statut du circuit documentaire (dans le tableau) : valeurs
+     reprises de l'ancien style en ligne. */
+  .status-cell{display:flex; align-items:center; gap:8px;}
+  .status-select{
+    padding:7px 10px; border:1px solid var(--line-strong); border-radius:2px;
+    background:var(--bg); font-family:inherit; font-size:13px; color:inherit;
+  }
   .field-check{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); margin-bottom:18px;}
   .rims-list{display:flex; flex-direction:column; gap:10px;}
   .rims-btn{
@@ -612,11 +626,14 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
    ============================================================ */
 @media(max-width:768px){
   /* 16 px minimum : en dessous, Safari iOS zoome toute la page dès
-     qu'un champ reçoit le focus. !important nécessaire et volontaire :
-     plusieurs <select> reçoivent leur taille (13-14 px) par un style en
-     ligne dans les pages (Reclamations, UserManagement, CountryAccounts,
-     DocumentWorkflow), qu'aucune règle CSS ne peut battre autrement. */
-  input:not([type=checkbox]):not([type=radio]), select, textarea{font-size:16px !important;}
+     qu'un champ reçoit le focus. Plus aucun champ ne fixe sa taille par
+     un style en ligne (tous passent par .field input / .field select /
+     textarea / .status-select) : pas besoin de !important. Les sélecteurs
+     .field select et .status-select sont nommés ici pour égaler la
+     spécificité de leurs règles de base (cette règle-ci, plus bas dans
+     le fichier, l'emporte alors). */
+  input:not([type=checkbox]):not([type=radio]), select, textarea,
+  .field select, .status-select{font-size:16px;}
   input:not([type=checkbox]):not([type=radio]), select{min-height:44px;}
 
   /* Zones tactiles de 44 px minimum */
@@ -697,20 +714,8 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 }
 
 /* ---------- Formulaires du Secrétariat ---------- */
-/* <select> des formulaires : même apparence que .field input (les <select>
-   du formulaire GTT n'avaient aucun style ; ceux des utilisateurs et des
-   pays recevaient ces mêmes valeurs par un style en ligne, supprimé). */
-.field select{
-  width:100%; padding:10px 12px; border:1px solid var(--line-strong);
-  font-size:14px; border-radius:2px; font-family:inherit; background:var(--bg); color:inherit;
-}
-/* Menu de statut du circuit documentaire (dans le tableau) : valeurs
-   reprises de l'ancien style en ligne. */
-.status-cell{display:flex; align-items:center; gap:8px;}
-.status-select{
-  padding:7px 10px; border:1px solid var(--line-strong); border-radius:2px;
-  background:var(--bg); font-family:inherit; font-size:13px; color:inherit;
-}
+/* (.field select et .status-select : définis avec .field input, plus haut,
+   pour précéder les règles mobiles des champs.) */
 /* Barre au-dessus d'un tableau (texte + « + Ajouter ») et rangée de
    boutons d'un formulaire : passent à la ligne au lieu de se comprimer. */
 .admin-toolbar{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px;}

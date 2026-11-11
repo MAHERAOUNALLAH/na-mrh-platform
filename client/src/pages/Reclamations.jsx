@@ -10,13 +10,6 @@ import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
 import { apiGet, apiPost } from '../utils/api';
 
-// Style partagé pour les <select> — la maquette n'a pas de règle CSS
-// générique pour ça, chaque <select> est stylé en ligne (voir CLAUDE.md).
-const selectStyle = {
-  width: '100%', padding: '10px 12px', border: '1px solid var(--line-strong)',
-  borderRadius: '2px', background: 'var(--bg)', fontFamily: 'inherit', fontSize: '14px',
-};
-
 function Reclamations() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -76,7 +69,7 @@ function Reclamations() {
             </div>
             <div className="field">
               <label>{t('complaintsPage.countryL')}</label>
-              <select name="countryId" value={form.countryId} onChange={handleChange} style={selectStyle}>
+              <select name="countryId" value={form.countryId} onChange={handleChange}>
                 <option value="">—</option>
                 {countries.map((c) => (
                   <option key={c.id} value={c.id}>{pickLang(c, 'name', lang)}</option>
@@ -85,7 +78,7 @@ function Reclamations() {
             </div>
             <div className="field">
               <label>{t('complaintsPage.natureL')}</label>
-              <select name="nature" value={form.nature} onChange={handleChange} style={selectStyle}>
+              <select name="nature" value={form.nature} onChange={handleChange}>
                 {natureKeys.map((key) => (
                   <option key={key} value={key}>{t(`complaintsPage.natureOptions.${key}`)}</option>
                 ))}
