@@ -27,6 +27,7 @@ const bcrypt = require('bcryptjs');                  // hache et compare les mot
 const { PrismaClient, UserLevel, OrgRole } = require('@prisma/client');  // client base + enums du schéma
 const { PrismaPg } = require('@prisma/adapter-pg');  // l'adaptateur Prisma 7
 const { normalizeEmail, isValidEmail } = require('./utils/email');  // e-mails toujours en minuscules
+const siteContent = require('./utils/siteContent');  // registre du contenu modifiable (accueil, coordonnées)
 
 // ------------------------------------------------------------
 // Vérifications au démarrage : mieux vaut un serveur qui REFUSE de
@@ -379,6 +380,27 @@ app.get('/api/news', async (req, res) => {
   } catch (error) {
     console.error('Erreur /api/news :', error);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// --- Contenu du site modifiable (surcharges des textes par défaut) ---
+// Ne renvoie QUE les clés et leurs valeurs : ni auteur, ni date, ni
+// identifiant d'utilisateur (select explicite).
+// ROBUSTESSE : en cas d'échec (table pas encore créée parce que la
+// migration n'est pas appliquée, base injoignable…), on répond 200 avec
+// une liste vide : le client affiche alors les textes par défaut et le
+// site reste complet. Seules les clés du registre sont renvoyées.
+app.get('/api/site-content', async (req, res) => {
+  try {
+    const rows = await prisma.siteContent.findMany({
+      where: { key: { in: siteContent.SITE_CONTENT_KEYS } },
+      select: { key: true, valueFr: true, valueEn: true, valueAr: true, value: true },
+      orderBy: { key: 'asc' },
+    });
+    res.json(rows);
+  } catch (error) {
+    console.error('Erreur /api/site-content (textes par défaut servis) :', error.code || error.message);
+    res.json([]);
   }
 });
 
@@ -1181,7 +1203,93 @@ app.put('/api/admin/twgs/:id', requireAuth, requireRole('secretariat_admin'), as
     console.error('Erreur PUT /api/admin/twgs/:id :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
-});// ============================================================
+});
+
+// ---------- 6.7 Contenu du site (accueil, coordonnées du Secrétariat) ----------
+// Les clés autorisées, leurs types et longueurs sont dans
+// utils/siteContent.js. Une clé inconnue → 404.
+const SITE_CONTENT_TABLE_MISSING =
+  'La table du contenu n\'existe pas encore : appliquez la migration (npm run migrate:deploy).';
+const SITE_CONTENT_ADMIN_SELECT = {
+  key: true, valueFr: true, valueEn: true, valueAr: true, value: true, updatedAt: true,
+  updatedBy: { select: { id: true, name: true } },
+};
+function siteContentError(res, route, error) {
+  if (error && error.code === 'P2021') return res.status(503).json({ error: SITE_CONTENT_TABLE_MISSING });
+  console.error(`Erreur ${route} :`, error);
+  return res.status(500).json({ error: 'Erreur serveur' });
+}
+
+app.get('/api/admin/site-content', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
+  try {
+    const rows = await prisma.siteContent.findMany({
+      where: { key: { in: siteContent.SITE_CONTENT_KEYS } },
+      select: SITE_CONTENT_ADMIN_SELECT,
+      orderBy: { key: 'asc' },
+    });
+    res.json({ fields: siteContent.describeFields(), overrides: rows });
+  } catch (error) {
+    siteContentError(res, 'GET /api/admin/site-content', error);
+  }
+});
+
+// Enregistre la surcharge d'une clé. Les langues laissées vides (ou null)
+// reprennent le texte par défaut ; si plus rien n'est surchargé, la ligne
+// est supprimée. Auteur et date sont enregistrés sur la ligne.
+app.put('/api/admin/site-content/:key', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
+  try {
+    const { key } = req.params;
+    if (!Object.hasOwn(siteContent.SITE_CONTENT_FIELDS, key)) {
+      return res.status(404).json({ error: 'Champ de contenu inconnu.' });
+    }
+    const { error, data } = siteContent.validateSiteContentBody(key, req.body);
+    if (error) return res.status(400).json({ error });
+
+    // Garde-fou : l'accueil ne peut pas masquer toutes ses sections.
+    if (siteContent.SHOW_KEYS.includes(key) && data.value === 'false') {
+      const others = await prisma.siteContent.findMany({
+        where: { key: { in: siteContent.SHOW_KEYS.filter((k) => k !== key) }, value: 'false' },
+        select: { key: true },
+      });
+      if (others.length === siteContent.SHOW_KEYS.length - 1) {
+        return res.status(409).json({ error: 'Impossible de masquer toutes les sections de l\'accueil : au moins une doit rester affichée.' });
+      }
+    }
+
+    if (siteContent.isEmptyOverride(data)) {
+      await prisma.siteContent.deleteMany({ where: { key } });
+      console.info(`Contenu du site : « ${key} » remis par défaut par l'utilisateur #${req.user.userId}`);
+      return res.json({ key, restored: true });
+    }
+    const row = await prisma.siteContent.upsert({
+      where: { key },
+      create: { key, ...data, updatedById: req.user.userId },
+      update: { ...data, updatedById: req.user.userId },
+      select: SITE_CONTENT_ADMIN_SELECT,
+    });
+    console.info(`Contenu du site : « ${key} » modifié par l'utilisateur #${req.user.userId}`);
+    res.json(row);
+  } catch (error) {
+    siteContentError(res, 'PUT /api/admin/site-content/:key', error);
+  }
+});
+
+// Remet une clé à sa valeur par défaut, dans toutes les langues.
+app.delete('/api/admin/site-content/:key', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
+  try {
+    const { key } = req.params;
+    if (!Object.hasOwn(siteContent.SITE_CONTENT_FIELDS, key)) {
+      return res.status(404).json({ error: 'Champ de contenu inconnu.' });
+    }
+    await prisma.siteContent.deleteMany({ where: { key } });
+    console.info(`Contenu du site : « ${key} » remis par défaut par l'utilisateur #${req.user.userId}`);
+    res.json({ key, restored: true });
+  } catch (error) {
+    siteContentError(res, 'DELETE /api/admin/site-content/:key', error);
+  }
+});
+
+// ============================================================
 // 7. DÉMARRAGE
 // ============================================================
 
