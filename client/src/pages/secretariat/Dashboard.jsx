@@ -6,10 +6,12 @@
 // ============================================================
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { apiGet } from '../../utils/api';
 
 function Dashboard() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
@@ -22,23 +24,23 @@ function Dashboard() {
       .catch((err) => setError(err.message));
   }, [token]);
 
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  if (!stats) return <p>Chargement…</p>;
+  if (error) return <p className="form-msg form-msg-error" role="alert">{error}</p>;
+  if (!stats) return <p>{t('common.loading')}</p>;
 
   return (
     <div>
       <div className="kpi-grid">
         <div className="kpi-card">
           <b>{stats.countriesCount}</b>
-          <span>Comptes pays actifs</span>
+          <span>{t('adminDashboard.countries')}</span>
         </div>
         <div className="kpi-card">
           <b>{stats.usersCount}</b>
-          <span>Utilisateurs internes</span>
+          <span>{t('adminDashboard.users')}</span>
         </div>
         <div className="kpi-card">
           <b>{stats.pendingDocuments}</b>
-          <span>Documents en attente de décision</span>
+          <span>{t('adminDashboard.pending')}</span>
         </div>
       </div>
     </div>

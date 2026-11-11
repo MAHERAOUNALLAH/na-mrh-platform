@@ -103,7 +103,7 @@ function TextFieldEditor({ field, override, onSaved }) {
         const Input = field.multiline ? 'textarea' : 'input';
         return (
           <div key={l.code} className="field">
-            <label htmlFor={id}>{t(`adminHome.lang.${l.code}`)}</label>
+            <label htmlFor={id}>{t(`langNames.${l.code}`)}</label>
             <Input
               id={id} lang={l.code} dir={l.dir}
               {...(field.multiline ? { rows: 3 } : { type: 'text' })}

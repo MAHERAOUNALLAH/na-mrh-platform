@@ -11,23 +11,16 @@ import { useAuth } from '../../context/AuthContext';
 import { pickLang } from '../../utils/lang';
 import { apiGet, apiPatch } from '../../utils/api';
 
+// Libellés : clés docStatus.* des locales.
 const STATUSES = [
-  { value: 'draft_twg', label: 'Brouillon GTT' },
-  { value: 'received_secretariat', label: 'Reçu par le Secrétariat' },
-  { value: 'revision_requested', label: 'Révision demandée' },
-  { value: 'pending_steering', label: 'Soumis au Comité de Pilotage' },
-  { value: 'distributed_internal', label: 'Diffusé en interne' },
-  { value: 'published_public', label: 'Publié au public' },
-  { value: 'archived', label: 'Archivé' },
+  'draft_twg', 'received_secretariat', 'revision_requested', 'pending_steering',
+  'distributed_internal', 'published_public', 'archived',
 ];
-
-function statusLabel(value) {
-  return STATUSES.find((s) => s.value === value)?.label || value;
-}
 
 function DocumentWorkflow() {
   const { token } = useAuth();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const statusLabel = (value) => t(`docStatus.${value}`, { defaultValue: value });
   const lang = i18n.language;
 
   const [documents, setDocuments] = useState([]);
@@ -61,24 +54,23 @@ function DocumentWorkflow() {
       .finally(() => setUpdatingId(null));
   }
 
-  if (loading) return <p>Chargement…</p>;
+  if (loading) return <p>{t('common.loading')}</p>;
 
   return (
     <div>
       <p style={{ fontSize: '14px', color: 'var(--ink-soft)', maxWidth: '65ch', marginBottom: '16px' }}>
-        Ensemble des documents produits par les groupes de travail, tous statuts confondus.
-        Changer le statut vers « Publié au public » le rend immédiatement visible sur la
-        Bibliothèque publique ; tout autre statut le garde réservé au portail sécurisé.
+        {t('adminDocuments.intro')}
       </p>
 
-      {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
+      {error && <p className="form-msg form-msg-error" role="alert">{error}</p>}
 
       {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
-      <div className="table-scroll" role="region" aria-label="Circuit documentaire : documents" tabIndex={0}>
+      <div className="table-scroll" role="region" aria-label={t('adminDocuments.tableLabel')} tabIndex={0}>
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Document</th><th>GTT</th><th>Version</th><th>Auteur</th><th>Statut</th>
+              <th>{t('adminDocuments.colDocument')}</th><th>{t('adminDocuments.colTwg')}</th><th>{t('adminDocuments.colVersion')}</th>
+              <th>{t('adminDocuments.colAuthor')}</th><th>{t('adminDocuments.colStatus')}</th>
             </tr>
           </thead>
           <tbody>
@@ -96,9 +88,10 @@ function DocumentWorkflow() {
                       onChange={(e) => handleStatusChange(doc, e.target.value)}
                       disabled={updatingId === doc.id}
                       className="status-select"
+                      aria-label={t('adminDocuments.statusSelect', { title: pickLang(doc, 'title', lang) })}
                     >
                       {STATUSES.map((s) => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
+                        <option key={s} value={s}>{statusLabel(s)}</option>
                       ))}
                     </select>
                   </div>
@@ -110,8 +103,7 @@ function DocumentWorkflow() {
       </div>
 
       <div className="note-line">
-        ℹ️ Le versionning, les commentaires et l'historique détaillé par document
-        arriveront dans une prochaine étape (Phase 4).
+        ℹ️ {t('adminDocuments.note')}
       </div>
     </div>
   );

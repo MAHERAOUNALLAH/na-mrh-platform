@@ -58,7 +58,8 @@
   "newsPage": {
     "kicker": "Announcements",
     "h": "Regional news",
-    "p": "Tracking Secretariat, working-group and partner activities."
+    "p": "Tracking Secretariat, working-group and partner activities.",
+    "loadError": "Unable to load the news."
   },
   "contactPage": {
     "kicker": "Get in touch",
@@ -167,11 +168,6 @@
     "counter": "{{count}} / {{max}} characters",
     "intRange": "Whole number from {{min}} to {{max}}",
     "notModifiedIn": "Default text kept in: {{langs}}. Remember to translate the change.",
-    "lang": {
-      "fr": "French",
-      "en": "English",
-      "ar": "Arabic"
-    },
     "sectionsLegend": "Sections shown on the home page",
     "sectionsHelp": "The main banner is always shown. At least one other section must remain visible.",
     "lastSection": "Last visible section: it cannot be hidden.",
@@ -219,5 +215,188 @@
       "footer_contactP": "Footer: Secretariat line",
       "governance_secretariatD": "Governance page: Secretariat description"
     }
+  },
+  "langNames": {
+    "fr": "French",
+    "en": "English",
+    "ar": "Arabic"
+  },
+  "levels": {
+    "reader": "Reader",
+    "contributor": "Contributor",
+    "validator": "Validator",
+    "country_admin": "Country administrator",
+    "secretariat_admin": "Secretariat administrator"
+  },
+  "orgRoles": {
+    "president": "President",
+    "vice_president": "Vice-president",
+    "member": "Member",
+    "secretariat": "Secretariat",
+    "other": "Other"
+  },
+  "twgRoles": {
+    "lead": "Lead",
+    "colead": "Co-lead",
+    "member": "Member"
+  },
+  "docStatus": {
+    "draft_twg": "TWG draft",
+    "received_secretariat": "Received by the Secretariat",
+    "revision_requested": "Revision requested",
+    "pending_steering": "Submitted to the Steering Committee",
+    "distributed_internal": "Distributed internally",
+    "published_public": "Published to the public",
+    "archived": "Archived"
+  },
+  "layout": {
+    "login": "Sign in",
+    "logout": "Sign out"
+  },
+  "auth": {
+    "kicker": "Secure portal",
+    "title": "Sign in",
+    "emailL": "Email address",
+    "passwordL": "Password",
+    "submit": "Sign in",
+    "sessionEnded": "Your session has ended (account deactivated or deleted, or session expired). Please sign in again.",
+    "sessionCheckFailed": "Unable to verify your session: the server is not responding. Your sign-in is kept.",
+    "retry": "Try again",
+    "deniedT": "Access denied",
+    "deniedP": "Your access level ({{level}}) does not allow you to view this page."
+  },
+  "myspace": {
+    "kicker": "Personal space",
+    "hello": "Hello, {{name}}",
+    "connectedAs": "Signed in as {{level}}.",
+    "emailL": "Email",
+    "levelL": "Access level",
+    "toSecretariat": "Go to the Secretariat area →",
+    "logout": "Sign out"
+  },
+  "admin": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "noneOption": "— None —",
+    "inLang": "{{label}} ({{lang}})"
+  },
+  "adminLayout": {
+    "kicker": "Restricted area",
+    "title": "Secretariat area",
+    "tabsLabel": "Secretariat area sections",
+    "tabs": {
+      "dashboard": "Dashboard",
+      "countries": "Country accounts",
+      "users": "User management",
+      "documents": "Document workflow",
+      "news": "Content management",
+      "twgs": "Working groups",
+      "home": "Home page"
+    }
+  },
+  "adminDashboard": {
+    "countries": "Active country accounts",
+    "users": "Internal users",
+    "pending": "Documents awaiting a decision"
+  },
+  "adminCountries": {
+    "intro": "Management of Member State accounts: identity, NRA contact details, and role in the regional organisation.",
+    "add": "+ Add a country",
+    "tableLabel": "Country accounts",
+    "colCountry": "Country",
+    "colOrgRole": "Role in the organisation",
+    "colTwgRoles": "TWG roles",
+    "colUsers": "Users",
+    "confirmDelete": "Permanently delete the account of {{name}}?",
+    "newTitle": "New country",
+    "editTitle": "Edit — {{name}}",
+    "codeL": "Country code (2 letters, e.g. sn)",
+    "nameL": "Name",
+    "nraL": "NRA name",
+    "emailL": "Email",
+    "phoneL": "Phone",
+    "websiteL": "Website",
+    "orgRoleL": "Role in the organisation",
+    "orgRoleOtherL": "Specify the role",
+    "note": "TWG roles (lead / co-lead) are managed from the Working groups tab; each country's users from the User management tab."
+  },
+  "adminUsers": {
+    "intro": "Internal users of the National Regulatory Authorities and the Secretariat.",
+    "add": "+ Add a user",
+    "filterL": "Filter by country",
+    "allCountries": "All countries",
+    "tableLabel": "User list",
+    "colName": "Name",
+    "colEmail": "Email",
+    "colCountry": "Country",
+    "colLevel": "Level",
+    "colFunctions": "Functions",
+    "colTwgRoles": "TWG roles",
+    "colStatus": "Status",
+    "active": "Active",
+    "inactive": "Deactivated",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "confirmDeactivate": "Do you want to deactivate the account of {{name}}?",
+    "confirmReactivate": "Do you want to reactivate the account of {{name}}?",
+    "newTitle": "New user",
+    "editTitle": "Edit — {{name}}",
+    "fullNameL": "Full name",
+    "emailL": "Email address",
+    "passwordL": "Password",
+    "passwordKeepL": "Password (leave empty to keep it unchanged)",
+    "levelL": "Access level",
+    "countryL": "Country of attachment",
+    "noCountry": "— (Regional Secretariat)",
+    "orgRoleL": "Role in the organisation",
+    "orgRoleOtherL": "Specify the role",
+    "functionsL": "Regulatory functions",
+    "note": "Accounts are never deleted, only deactivated: a user may be the author of documents whose history must be kept. A deactivated account can no longer sign in."
+  },
+  "adminDocuments": {
+    "intro": "All documents produced by the working groups, whatever their status. Changing the status to “Published to the public” makes a document immediately visible in the public Library; any other status keeps it restricted to the secure portal.",
+    "tableLabel": "Document workflow: documents",
+    "colDocument": "Document",
+    "colTwg": "TWG",
+    "colVersion": "Version",
+    "colAuthor": "Author",
+    "colStatus": "Status",
+    "statusSelect": "Status of “{{title}}”",
+    "note": "Versioning, comments and a detailed history for each document will come in a later stage (Phase 4)."
+  },
+  "adminNews": {
+    "intro": "News shown on the public site. An unpublished draft never appears publicly, only here.",
+    "add": "+ Add a news item",
+    "tableLabel": "News list",
+    "colDate": "Date",
+    "colTitle": "Title",
+    "colStatus": "Status",
+    "published": "Published",
+    "draft": "Draft",
+    "confirmDelete": "Permanently delete “{{title}}”?",
+    "newTitle": "New news item",
+    "editTitle": "Edit the news item",
+    "sortDateL": "Sort date (for display order)",
+    "dateL": "Displayed date",
+    "titleL": "Title",
+    "bodyL": "Text",
+    "publishL": "Publish on the public site"
+  },
+  "adminTwgs": {
+    "intro": "Working group content shown on the public site. Changes appear immediately on the “Working groups” page.",
+    "tableLabel": "Working group list",
+    "colWave": "Wave",
+    "colTwg": "Working group",
+    "colLead": "Lead",
+    "colColead": "Co-lead",
+    "editTitle": "Edit the working group",
+    "nameL": "Name",
+    "descL": "Description",
+    "waveL": "Wave",
+    "waveN": "Wave {{n}}",
+    "leadL": "Lead country",
+    "coleadL": "Co-lead country"
   }
 }

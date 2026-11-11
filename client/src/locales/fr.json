@@ -58,7 +58,8 @@
   "newsPage": {
     "kicker": "Fil d'annonces",
     "h": "Actualités régionales",
-    "p": "Suivi des activités du Secrétariat, des groupes de travail et des partenaires."
+    "p": "Suivi des activités du Secrétariat, des groupes de travail et des partenaires.",
+    "loadError": "Impossible de charger les actualités."
   },
   "contactPage": {
     "kicker": "Nous contacter",
@@ -167,11 +168,6 @@
     "counter": "{{count}} / {{max}} caractères",
     "intRange": "Nombre entier de {{min}} à {{max}}",
     "notModifiedIn": "Texte par défaut conservé en : {{langs}}. Pensez à traduire la modification.",
-    "lang": {
-      "fr": "Français",
-      "en": "Anglais",
-      "ar": "Arabe"
-    },
     "sectionsLegend": "Sections affichées sur l'accueil",
     "sectionsHelp": "Le bandeau principal est toujours affiché. Au moins une autre section doit rester visible.",
     "lastSection": "Dernière section affichée : elle ne peut pas être masquée.",
@@ -219,5 +215,188 @@
       "footer_contactP": "Pied de page : ligne du Secrétariat",
       "governance_secretariatD": "Page Gouvernance : description du Secrétariat"
     }
+  },
+  "langNames": {
+    "fr": "Français",
+    "en": "Anglais",
+    "ar": "Arabe"
+  },
+  "levels": {
+    "reader": "Lecteur",
+    "contributor": "Contributeur",
+    "validator": "Validateur",
+    "country_admin": "Administrateur pays",
+    "secretariat_admin": "Administrateur Secrétariat"
+  },
+  "orgRoles": {
+    "president": "Président",
+    "vice_president": "Vice-président",
+    "member": "Membre",
+    "secretariat": "Secrétariat",
+    "other": "Autre"
+  },
+  "twgRoles": {
+    "lead": "Lead",
+    "colead": "Co-lead",
+    "member": "Membre"
+  },
+  "docStatus": {
+    "draft_twg": "Brouillon GTT",
+    "received_secretariat": "Reçu par le Secrétariat",
+    "revision_requested": "Révision demandée",
+    "pending_steering": "Soumis au Comité de Pilotage",
+    "distributed_internal": "Diffusé en interne",
+    "published_public": "Publié au public",
+    "archived": "Archivé"
+  },
+  "layout": {
+    "login": "Se connecter",
+    "logout": "Déconnexion"
+  },
+  "auth": {
+    "kicker": "Portail sécurisé",
+    "title": "Connexion",
+    "emailL": "Adresse e-mail",
+    "passwordL": "Mot de passe",
+    "submit": "Se connecter",
+    "sessionEnded": "Votre session a pris fin (compte désactivé, supprimé ou session expirée). Veuillez vous reconnecter.",
+    "sessionCheckFailed": "Impossible de vérifier votre session : le serveur ne répond pas. Vos identifiants sont conservés.",
+    "retry": "Réessayer",
+    "deniedT": "Accès refusé",
+    "deniedP": "Votre niveau d'accès ({{level}}) ne permet pas de consulter cette page."
+  },
+  "myspace": {
+    "kicker": "Espace personnel",
+    "hello": "Bonjour, {{name}}",
+    "connectedAs": "Connecté en tant que {{level}}.",
+    "emailL": "E-mail",
+    "levelL": "Niveau d'accès",
+    "toSecretariat": "Accéder à l'Espace Secrétariat →",
+    "logout": "Se déconnecter"
+  },
+  "admin": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "noneOption": "— Aucun —",
+    "inLang": "{{label}} ({{lang}})"
+  },
+  "adminLayout": {
+    "kicker": "Zone réservée",
+    "title": "Espace Secrétariat",
+    "tabsLabel": "Rubriques de l'Espace Secrétariat",
+    "tabs": {
+      "dashboard": "Tableau de bord",
+      "countries": "Comptes des pays",
+      "users": "Gestion des utilisateurs",
+      "documents": "Circuit documentaire",
+      "news": "Gestion du contenu",
+      "twgs": "Groupes de travail",
+      "home": "Page d'accueil"
+    }
+  },
+  "adminDashboard": {
+    "countries": "Comptes pays actifs",
+    "users": "Utilisateurs internes",
+    "pending": "Documents en attente de décision"
+  },
+  "adminCountries": {
+    "intro": "Gestion des comptes des États membres : identité, coordonnées de l'ANR, et rôle dans l'organisation régionale.",
+    "add": "+ Ajouter un pays",
+    "tableLabel": "Comptes des pays",
+    "colCountry": "Pays",
+    "colOrgRole": "Rôle dans l'organisation",
+    "colTwgRoles": "Rôles GTT",
+    "colUsers": "Utilisateurs",
+    "confirmDelete": "Supprimer définitivement le compte de {{name}} ?",
+    "newTitle": "Nouveau pays",
+    "editTitle": "Modifier — {{name}}",
+    "codeL": "Code pays (2 lettres, ex. sn)",
+    "nameL": "Nom",
+    "nraL": "Nom de l'ANR",
+    "emailL": "Courriel",
+    "phoneL": "Téléphone",
+    "websiteL": "Site web",
+    "orgRoleL": "Rôle dans l'organisation",
+    "orgRoleOtherL": "Précisez le rôle",
+    "note": "Les rôles GTT (lead / co-lead) se gèrent depuis l'onglet Groupes de travail ; les utilisateurs de chaque pays depuis l'onglet Gestion des utilisateurs."
+  },
+  "adminUsers": {
+    "intro": "Utilisateurs internes des Autorités Nationales de Réglementation et du Secrétariat.",
+    "add": "+ Ajouter un utilisateur",
+    "filterL": "Filtrer par pays",
+    "allCountries": "Tous les pays",
+    "tableLabel": "Liste des utilisateurs",
+    "colName": "Nom",
+    "colEmail": "E-mail",
+    "colCountry": "Pays",
+    "colLevel": "Niveau",
+    "colFunctions": "Fonctions",
+    "colTwgRoles": "Rôles GTT",
+    "colStatus": "Statut",
+    "active": "Actif",
+    "inactive": "Désactivé",
+    "deactivate": "Désactiver",
+    "reactivate": "Réactiver",
+    "confirmDeactivate": "Voulez-vous désactiver le compte de {{name}} ?",
+    "confirmReactivate": "Voulez-vous réactiver le compte de {{name}} ?",
+    "newTitle": "Nouvel utilisateur",
+    "editTitle": "Modifier — {{name}}",
+    "fullNameL": "Nom complet",
+    "emailL": "Adresse e-mail",
+    "passwordL": "Mot de passe",
+    "passwordKeepL": "Mot de passe (laisser vide pour ne pas le changer)",
+    "levelL": "Niveau d'accès",
+    "countryL": "Pays de rattachement",
+    "noCountry": "— (Secrétariat régional)",
+    "orgRoleL": "Rôle dans l'organisation",
+    "orgRoleOtherL": "Précisez le rôle",
+    "functionsL": "Fonctions réglementaires",
+    "note": "Les comptes ne sont jamais supprimés mais désactivés : un utilisateur peut être l'auteur de documents que l'historique doit conserver. Un compte désactivé ne peut plus se connecter."
+  },
+  "adminDocuments": {
+    "intro": "Ensemble des documents produits par les groupes de travail, tous statuts confondus. Changer le statut vers « Publié au public » le rend immédiatement visible sur la Bibliothèque publique ; tout autre statut le garde réservé au portail sécurisé.",
+    "tableLabel": "Circuit documentaire : documents",
+    "colDocument": "Document",
+    "colTwg": "GTT",
+    "colVersion": "Version",
+    "colAuthor": "Auteur",
+    "colStatus": "Statut",
+    "statusSelect": "Statut de « {{title}} »",
+    "note": "Le versionnage, les commentaires et l'historique détaillé par document arriveront dans une prochaine étape (Phase 4)."
+  },
+  "adminNews": {
+    "intro": "Actualités affichées sur le site public. Un brouillon non publié n'apparaît jamais côté public, seulement ici.",
+    "add": "+ Ajouter une actualité",
+    "tableLabel": "Liste des actualités",
+    "colDate": "Date",
+    "colTitle": "Titre",
+    "colStatus": "Statut",
+    "published": "Publiée",
+    "draft": "Brouillon",
+    "confirmDelete": "Supprimer définitivement « {{title}} » ?",
+    "newTitle": "Nouvelle actualité",
+    "editTitle": "Modifier l'actualité",
+    "sortDateL": "Date de tri (pour l'ordre d'affichage)",
+    "dateL": "Date affichée",
+    "titleL": "Titre",
+    "bodyL": "Texte",
+    "publishL": "Publier sur le site public"
+  },
+  "adminTwgs": {
+    "intro": "Contenu des groupes de travail affiché sur le site public. Les modifications sont visibles immédiatement sur la page « Groupes de travail ».",
+    "tableLabel": "Liste des groupes de travail",
+    "colWave": "Vague",
+    "colTwg": "Groupe de travail",
+    "colLead": "Lead",
+    "colColead": "Co-lead",
+    "editTitle": "Modifier le groupe de travail",
+    "nameL": "Nom",
+    "descL": "Description",
+    "waveL": "Vague",
+    "waveN": "Vague {{n}}",
+    "leadL": "Pays lead",
+    "coleadL": "Pays co-lead"
   }
 }

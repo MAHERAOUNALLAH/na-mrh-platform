@@ -16,12 +16,14 @@
 // ============================================================
 
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 function ProtectedRoute({ children, allowedLevels }) {
+  const { t } = useTranslation();
   const { user, loading, sessionError, retrySession } = useAuth();
 
-  if (loading) return <p style={{ padding: '2rem' }}>Chargement…</p>;
+  if (loading) return <p style={{ padding: '2rem' }}>{t('common.loading')}</p>;
 
   // Panne pendant la vérification de session (serveur injoignable,
   // erreur 5xx) : le jeton est conservé, on ne renvoie PAS vers la
@@ -29,9 +31,9 @@ function ProtectedRoute({ children, allowedLevels }) {
   if (!user && sessionError) {
     return (
       <div style={{ padding: '2rem' }}>
-        <p style={{ color: 'red', marginBottom: '12px' }}>{sessionError}</p>
+        <p style={{ color: 'red', marginBottom: '12px' }}>{t(sessionError)}</p>
         <button type="button" className="btn btn-outline btn-sm" onClick={retrySession}>
-          Réessayer
+          {t('auth.retry')}
         </button>
       </div>
     );
@@ -44,9 +46,9 @@ function ProtectedRoute({ children, allowedLevels }) {
   if (allowedLevels && !allowedLevels.includes(user.level)) {
     return (
       <div style={{ padding: '2rem' }}>
-        <p style={{ fontWeight: 700 }}>Accès refusé</p>
+        <p style={{ fontWeight: 700 }}>{t('auth.deniedT')}</p>
         <p style={{ color: 'var(--ink-soft)' }}>
-          Votre niveau d'accès ({user.level}) ne permet pas de consulter cette page.
+          {t('auth.deniedP', { level: t(`levels.${user.level}`, { defaultValue: user.level }) })}
         </p>
       </div>
     );

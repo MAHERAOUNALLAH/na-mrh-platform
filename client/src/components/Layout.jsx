@@ -117,12 +117,12 @@ function Layout() {
                 🔒 <span className="topbar-user-name">{user.name}</span>
               </Link>
               <button type="button" className="topbar-logout" onClick={handleLogout}>
-                Déconnexion
+                {t('layout.logout')}
               </button>
             </div>
           ) : (
             <Link to="/connexion" className="admin-badge-btn">
-              🔒 <span>Se connecter</span>
+              🔒 <span>{t('layout.login')}</span>
             </Link>
           )}
 

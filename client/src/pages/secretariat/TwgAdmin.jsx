@@ -10,10 +10,14 @@
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { pickLang } from '../../utils/lang';
 import { useAuth } from '../../context/AuthContext';
 import { apiGet, apiPut } from '../../utils/api';
 
 function TwgAdmin() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { token } = useAuth();
 
   const [twgs, setTwgs] = useState([]);
@@ -70,33 +74,32 @@ function TwgAdmin() {
       .finally(() => setSaving(false));
   }
 
-  if (loading) return <p>Chargement…</p>;
+  if (loading) return <p>{t('common.loading')}</p>;
 
   return (
     <div>
       <p style={{ fontSize: '14px', color: 'var(--ink-soft)', maxWidth: '58ch', marginBottom: '14px' }}>
-        Contenu des groupes de travail affiché sur le site public. Les modifications
-        sont visibles immédiatement sur la page « Groupes de travail ».
+        {t('adminTwgs.intro')}
       </p>
 
-      {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
+      {error && <p className="form-msg form-msg-error" role="alert">{error}</p>}
 
       {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
-      <div className="table-scroll" role="region" aria-label="Liste des groupes de travail" tabIndex={0}>
+      <div className="table-scroll" role="region" aria-label={t('adminTwgs.tableLabel')} tabIndex={0}>
         <table className="admin-table">
           <thead>
-            <tr><th>Vague</th><th>Groupe de travail</th><th>Lead</th><th>Co-lead</th><th></th></tr>
+            <tr><th>{t('adminTwgs.colWave')}</th><th>{t('adminTwgs.colTwg')}</th><th>{t('adminTwgs.colLead')}</th><th>{t('adminTwgs.colColead')}</th><th></th></tr>
           </thead>
           <tbody>
             {twgs.map((twg) => (
               <tr key={twg.id}>
                 <td>{twg.wave}</td>
-                <td><b>{twg.nameFr}</b></td>
-                <td>{twg.leadCountry ? twg.leadCountry.nameFr : '—'}</td>
-                <td>{twg.coleadCountry ? twg.coleadCountry.nameFr : '—'}</td>
+                <td><b>{pickLang(twg, 'name', lang)}</b></td>
+                <td>{twg.leadCountry ? pickLang(twg.leadCountry, 'name', lang) : '—'}</td>
+                <td>{twg.coleadCountry ? pickLang(twg.coleadCountry, 'name', lang) : '—'}</td>
                 <td className="cell-actions">
                   <div className="row-actions">
-                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(twg)}>Modifier</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(twg)}>{t('admin.edit')}</button>
                   </div>
                 </td>
               </tr>
@@ -108,50 +111,50 @@ function TwgAdmin() {
       {editing && form && (
         <div className="admin-form-card">
           <h3 style={{ fontSize: '16px', marginBottom: '14px' }}>
-            Modifier le groupe de travail
+            {t('adminTwgs.editTitle')}
           </h3>
 
           <form onSubmit={handleSubmit}>
-            <div className="field"><label>Nom (Français)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminTwgs.nameL'), lang: t('langNames.fr') })}</label>
               <input type="text" name="nameFr" value={form.nameFr} onChange={handleChange} required /></div>
-            <div className="field"><label>Nom (Anglais)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminTwgs.nameL'), lang: t('langNames.en') })}</label>
               <input type="text" name="nameEn" value={form.nameEn} onChange={handleChange} required /></div>
-            <div className="field"><label>Nom (Arabe)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminTwgs.nameL'), lang: t('langNames.ar') })}</label>
               <input type="text" name="nameAr" value={form.nameAr} onChange={handleChange} dir="rtl" required /></div>
 
-            <div className="field"><label>Description (Français)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminTwgs.descL'), lang: t('langNames.fr') })}</label>
               <textarea rows="3" name="descFr" value={form.descFr} onChange={handleChange} /></div>
-            <div className="field"><label>Description (Anglais)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminTwgs.descL'), lang: t('langNames.en') })}</label>
               <textarea rows="3" name="descEn" value={form.descEn} onChange={handleChange} /></div>
-            <div className="field"><label>Description (Arabe)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminTwgs.descL'), lang: t('langNames.ar') })}</label>
               <textarea rows="3" name="descAr" value={form.descAr} onChange={handleChange} dir="rtl" /></div>
 
-            <div className="field"><label>Vague</label>
+            <div className="field"><label>{t('adminTwgs.waveL')}</label>
               <select name="wave" value={form.wave} onChange={handleChange}>
-                <option value="1">Vague 1</option>
-                <option value="2">Vague 2</option>
-                <option value="3">Vague 3</option>
+                <option value="1">{t('adminTwgs.waveN', { n: 1 })}</option>
+                <option value="2">{t('adminTwgs.waveN', { n: 2 })}</option>
+                <option value="3">{t('adminTwgs.waveN', { n: 3 })}</option>
               </select></div>
 
             <div className="kv-grid" style={{ margin: '0 0 14px' }}>
-              <div className="field" style={{ margin: 0 }}><label>Pays lead</label>
+              <div className="field" style={{ margin: 0 }}><label>{t('adminTwgs.leadL')}</label>
                 <select name="leadCountryId" value={form.leadCountryId} onChange={handleChange}>
-                  <option value="">— Aucun —</option>
-                  {countries.map((c) => <option key={c.id} value={c.id}>{c.nameFr}</option>)}
+                  <option value="">{t('admin.noneOption')}</option>
+                  {countries.map((c) => <option key={c.id} value={c.id}>{pickLang(c, 'name', lang)}</option>)}
                 </select></div>
-              <div className="field" style={{ margin: 0 }}><label>Pays co-lead</label>
+              <div className="field" style={{ margin: 0 }}><label>{t('adminTwgs.coleadL')}</label>
                 <select name="coleadCountryId" value={form.coleadCountryId} onChange={handleChange}>
-                  <option value="">— Aucun —</option>
-                  {countries.map((c) => <option key={c.id} value={c.id}>{c.nameFr}</option>)}
+                  <option value="">{t('admin.noneOption')}</option>
+                  {countries.map((c) => <option key={c.id} value={c.id}>{pickLang(c, 'name', lang)}</option>)}
                 </select></div>
             </div>
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
-                {saving ? '…' : 'Enregistrer'}
+                {saving ? '…' : t('admin.save')}
               </button>
               <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditing(null)}>
-                Annuler
+                {t('admin.cancel')}
               </button>
             </div>
           </form>

@@ -7,6 +7,8 @@
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { pickLang } from '../../utils/lang';
 import { useAuth } from '../../context/AuthContext';
 import { apiGet, apiPost, apiPut, apiDelete } from '../../utils/api';
 
@@ -18,6 +20,8 @@ const EMPTY_FORM = {
 };
 
 function ContentManagement() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { token } = useAuth();
 
   const [news, setNews] = useState([]);
@@ -86,46 +90,45 @@ function ContentManagement() {
   }
 
   function handleDelete(item) {
-    if (!window.confirm(`Supprimer définitivement « ${item.titleFr} » ?`)) return;
+    if (!window.confirm(t('adminNews.confirmDelete', { title: pickLang(item, 'title', lang) }))) return;
     apiDelete(`/api/admin/news/${item.id}`, token)
       .then(() => reloadNews())
       .catch((err) => setError(err.message));
   }
 
-  if (loading) return <p>Chargement…</p>;
+  if (loading) return <p>{t('common.loading')}</p>;
 
   return (
     <div>
       <div className="admin-toolbar">
         <p style={{ fontSize: '14px', color: 'var(--ink-soft)', maxWidth: '58ch' }}>
-          Actualités affichées sur le site public. Un brouillon non publié n'apparaît
-          jamais côté public, seulement ici.
+          {t('adminNews.intro')}
         </p>
-        <button className="btn btn-primary btn-sm" onClick={openCreate}>+ Ajouter une actualité</button>
+        <button className="btn btn-primary btn-sm" onClick={openCreate}>{t('adminNews.add')}</button>
       </div>
 
-      {error && <p style={{ color: 'red', fontSize: '13.5px', marginBottom: '12px' }}>{error}</p>}
+      {error && <p className="form-msg form-msg-error" role="alert">{error}</p>}
 
       {/* Le tableau défile dans son propre cadre : la page ne déborde jamais. */}
-      <div className="table-scroll" role="region" aria-label="Liste des actualités" tabIndex={0}>
+      <div className="table-scroll" role="region" aria-label={t('adminNews.tableLabel')} tabIndex={0}>
         <table className="admin-table">
           <thead>
-            <tr><th>Date</th><th>Titre</th><th>Statut</th><th></th></tr>
+            <tr><th>{t('adminNews.colDate')}</th><th>{t('adminNews.colTitle')}</th><th>{t('adminNews.colStatus')}</th><th></th></tr>
           </thead>
           <tbody>
             {news.map((item) => (
               <tr key={item.id}>
-                <td>{item.dateFr}</td>
-                <td><b>{item.titleFr}</b></td>
+                <td>{pickLang(item, 'date', lang)}</td>
+                <td><b>{pickLang(item, 'title', lang)}</b></td>
                 <td>
                   <span className={`status-chip ${item.publishedAt ? 'status-published_public' : 'status-draft_twg'}`}>
-                    {item.publishedAt ? 'Publiée' : 'Brouillon'}
+                    {item.publishedAt ? t('adminNews.published') : t('adminNews.draft')}
                   </span>
                 </td>
                 <td className="cell-actions">
                   <div className="row-actions">
-                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(item)}>Modifier</button>
-                    <button className="btn btn-outline btn-sm" onClick={() => handleDelete(item)}>Supprimer</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(item)}>{t('admin.edit')}</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => handleDelete(item)}>{t('admin.delete')}</button>
                   </div>
                 </td>
               </tr>
@@ -137,47 +140,47 @@ function ContentManagement() {
       {editing && (
         <div className="admin-form-card">
           <h3 style={{ fontSize: '16px', marginBottom: '14px' }}>
-            {editing === 'new' ? 'Nouvelle actualité' : 'Modifier l\'actualité'}
+            {editing === 'new' ? t('adminNews.newTitle') : t('adminNews.editTitle')}
           </h3>
 
           <form onSubmit={handleSubmit}>
-            <div className="field"><label>Date de tri (pour l'ordre d'affichage)</label>
+            <div className="field"><label>{t('adminNews.sortDateL')}</label>
               <input type="date" name="sortDate" value={form.sortDate} onChange={handleChange} required /></div>
 
             <div className="kv-grid" style={{ margin: '0 0 14px' }}>
-              <div className="field" style={{ margin: 0 }}><label>Date affichée (Français)</label>
+              <div className="field" style={{ margin: 0 }}><label>{t('admin.inLang', { label: t('adminNews.dateL'), lang: t('langNames.fr') })}</label>
                 <input type="text" name="dateFr" value={form.dateFr} onChange={handleChange} placeholder="Sept. 2026" /></div>
-              <div className="field" style={{ margin: 0 }}><label>Date affichée (Anglais)</label>
+              <div className="field" style={{ margin: 0 }}><label>{t('admin.inLang', { label: t('adminNews.dateL'), lang: t('langNames.en') })}</label>
                 <input type="text" name="dateEn" value={form.dateEn} onChange={handleChange} placeholder="Sep 2026" /></div>
             </div>
-            <div className="field"><label>Date affichée (Arabe)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminNews.dateL'), lang: t('langNames.ar') })}</label>
               <input type="text" name="dateAr" value={form.dateAr} onChange={handleChange} dir="rtl" /></div>
 
-            <div className="field"><label>Titre (Français)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminNews.titleL'), lang: t('langNames.fr') })}</label>
               <input type="text" name="titleFr" value={form.titleFr} onChange={handleChange} required /></div>
-            <div className="field"><label>Titre (Anglais)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminNews.titleL'), lang: t('langNames.en') })}</label>
               <input type="text" name="titleEn" value={form.titleEn} onChange={handleChange} required /></div>
-            <div className="field"><label>Titre (Arabe)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminNews.titleL'), lang: t('langNames.ar') })}</label>
               <input type="text" name="titleAr" value={form.titleAr} onChange={handleChange} dir="rtl" required /></div>
 
-            <div className="field"><label>Texte (Français)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminNews.bodyL'), lang: t('langNames.fr') })}</label>
               <textarea rows="3" name="bodyFr" value={form.bodyFr} onChange={handleChange} /></div>
-            <div className="field"><label>Texte (Anglais)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminNews.bodyL'), lang: t('langNames.en') })}</label>
               <textarea rows="3" name="bodyEn" value={form.bodyEn} onChange={handleChange} /></div>
-            <div className="field"><label>Texte (Arabe)</label>
+            <div className="field"><label>{t('admin.inLang', { label: t('adminNews.bodyL'), lang: t('langNames.ar') })}</label>
               <textarea rows="3" name="bodyAr" value={form.bodyAr} onChange={handleChange} dir="rtl" /></div>
 
             <div className="field-check">
               <input type="checkbox" id="publishNow" name="publishNow" checked={form.publishNow} onChange={handleChange} />
-              <label htmlFor="publishNow">Publier sur le site public</label>
+              <label htmlFor="publishNow">{t('adminNews.publishL')}</label>
             </div>
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
-                {saving ? '…' : 'Enregistrer'}
+                {saving ? '…' : t('admin.save')}
               </button>
               <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditing(null)}>
-                Annuler
+                {t('admin.cancel')}
               </button>
             </div>
           </form>
