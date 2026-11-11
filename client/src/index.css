@@ -729,3 +729,21 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
   .admin-toolbar .btn{width:100%; justify-content:center;}
   .form-actions .btn{flex:1 1 0; justify-content:center;}
 }
+
+
+/* ============================================================
+   RESPONSIVE — pages publiques
+   ============================================================ */
+
+/* Bibliothèque : sur mobile, les 5 filtres de catégorie passent de 5
+   lignes empilées à des pastilles qui se partagent la largeur et passent
+   à la ligne (tout reste visible, sans défilement), 44 px de zone tactile. */
+@media(max-width:768px){
+  .lib-filters{flex-direction:row; flex-wrap:wrap; gap:8px;}
+  .lib-filters button{
+    min-height:44px; padding-inline:14px;
+    border:1px solid var(--line-strong); border-radius:22px;
+    background:var(--surface);
+  }
+  .lib-filters button.active{background:var(--red); border-color:var(--red); color:#fff;}
+}
