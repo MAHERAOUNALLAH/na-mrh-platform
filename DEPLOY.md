@@ -114,6 +114,27 @@ Applique les migrations de `server/prisma/migrations/`. Sans danger à
 relancer : seules les migrations manquantes sont appliquées. À refaire
 à chaque déploiement qui ajoute une migration.
 
+⚠️ **Mise à jour d'une installation existante : la migration AVANT
+l'API.** Quand une nouvelle version ajoute une migration (c'est le cas
+de `contenu_du_site`, table `site_content` du contenu modifiable de
+l'accueil), l'ordre est :
+
+1. sauvegarde de la base (outil de l'hébergeur) ;
+2. `npm run migrate:deploy` sur la base de production, avec les mêmes
+   précautions que ci-dessus (saisie masquée, vérifier la ligne
+   `Datasource …`) ;
+3. **ensuite seulement**, déploiement de la nouvelle API (étapes 3 et 7) ;
+4. puis déploiement du site (étape 8).
+
+Pourquoi : la nouvelle API lit des tables que seule la migration crée.
+Les migrations de ce projet ne font qu'**ajouter** (nouvelle table) :
+l'ancienne API fonctionne normalement sur une base déjà migrée, il n'y a
+donc aucun risque à migrer d'abord. Dans l'ordre inverse, le site
+public reste complet (`GET /api/site-content` répond une liste vide et
+les textes par défaut s'affichent), mais l'onglet « Page d'accueil » de
+l'Espace Secrétariat répond « La table du contenu n'existe pas encore :
+appliquez la migration » tant que l'étape 2 n'est pas faite.
+
 ## 5. Données de référence : `seed:reference`
 
 ```bash
@@ -272,6 +293,14 @@ répondre `{"status":"ok",…}`.
 - [ ] **7. Secrets** : `JWT_SECRET` de production est neuf (pas celui de
   l'historique Git), et `ADMIN_PASSWORD` n'est plus définie sur
   l'hébergeur ni dans votre session.
+- [ ] **8. Contenu modifiable de l'accueil** : Espace Secrétariat →
+  « Page d'accueil » s'ouvre (sinon : migration non appliquée, voir
+  l'étape 4). Modifiez le titre en français, enregistrez : l'accueil
+  affiche le nouveau titre, l'anglais et l'arabe gardent le leur. Puis
+  « Restaurer la valeur par défaut » : le titre d'origine revient.
+- [ ] **9. Polices** : l'accueil en arabe s'affiche avec les polices
+  Amiri (titres) et Cairo (texte) ; outils de développement → Réseau :
+  les fichiers `/fonts/*.woff2` répondent 200 (pas de service tiers).
 
 ---
 
