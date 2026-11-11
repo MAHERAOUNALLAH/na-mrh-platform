@@ -16,7 +16,9 @@
   },
   "common": {
     "loading": "Chargement…",
-    "error": "Impossible de charger les données. Le serveur est-il démarré ?"
+    "error": "Impossible de charger les données. Le serveur est-il démarré ?",
+    "networkError": "Le serveur est injoignable. Vérifiez votre connexion puis réessayez.",
+    "httpError": "Erreur {{status}} : le serveur n'a pas pu traiter la demande."
   },
   "hero": {
     "kicker": "Afrique du Nord — Harmonisation réglementaire pharmaceutique",

@@ -16,7 +16,9 @@
   },
   "common": {
     "loading": "Loading…",
-    "error": "Unable to load the data. Is the server running?"
+    "error": "Unable to load the data. Is the server running?",
+    "networkError": "The server cannot be reached. Check your connection and try again.",
+    "httpError": "Error {{status}}: the server could not process the request."
   },
   "hero": {
     "kicker": "North Africa — Pharmaceutical Regulatory Harmonization",
