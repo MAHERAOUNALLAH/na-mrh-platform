@@ -653,9 +653,9 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
    background-attachment:local suivent le contenu). La paire gauche/droite
    est symétrique : l'indice marche aussi en RTL, où le défilement part
    de la droite (seule exception justifiée aux propriétés logiques). */
-.table-scroll{
-  overflow-x:auto;
-  overscroll-behavior-inline:contain;
+.table-scroll{overflow-x:auto; overscroll-behavior-inline:contain;}
+/* Indice de défilement partagé : tableaux, et onglets du Secrétariat sur mobile. */
+.table-scroll, .admin-tabs{
   background:
     linear-gradient(to right, var(--bg) 30%, rgba(247,243,234,0)) left center / 40px 100% no-repeat local,
     linear-gradient(to left, var(--bg) 30%, rgba(247,243,234,0)) right center / 40px 100% no-repeat local,
@@ -675,3 +675,21 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .admin-table .cell-actions{text-align:end;}
 .row-actions{display:flex; align-items:center; justify-content:flex-end; gap:6px;}
 .cell-country{display:flex; align-items:center; gap:10px;}
+
+/* Onglets du Secrétariat sur mobile : une rangée horizontale qui défile
+   (sans retour à la ligne), au lieu de 6 onglets empilés (~270 px).
+   L'onglet actif est amené dans la vue par SecretariatLayout.jsx. */
+@media(max-width:768px){
+  .admin-layout{gap:20px;}
+  .admin-tabs{
+    flex-direction:row; flex-wrap:nowrap; gap:0;
+    overflow-x:auto; overscroll-behavior-inline:contain;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-tabs a{
+    flex:0 0 auto; white-space:nowrap;
+    display:flex; align-items:center; min-height:44px;
+    border-inline-start:none; border-bottom:3px solid transparent;
+  }
+  .admin-tabs a.active{border-bottom-color:var(--red);}
+}
