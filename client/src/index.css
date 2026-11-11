@@ -752,3 +752,15 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
   }
   .lib-filters button.active{background:var(--red); border-color:var(--red); color:#fff;}
 }
+
+/* Pied de page sur mobile : les 9 liens de navigation sur deux colonnes
+   (grille : l'ordre suit le sens de lecture, RTL compris), au lieu d'une
+   colonne de 9 x 44 px. */
+@media(max-width:768px){
+  footer ul{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:16px;}
+}
+/* Ligne des partenaires : hors de tout .container, elle n'avait aucune
+   marge latérale (texte collé aux bords sur mobile). Même gouttière que
+   le .container ; sans effet en grand écran, où le texte tient sur une
+   ligne centrée. */
+.partners-row{padding-inline:clamp(16px, 4vw, 28px);}
