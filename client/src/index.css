@@ -60,7 +60,7 @@
   }
   .topbar-inner{
     display:flex; align-items:center; justify-content:space-between;
-    padding:9px 0;
+    padding-block:9px;  /* padding-block : ne pas écraser le padding-inline du .container */
     gap:16px;
     flex-wrap:wrap;
   }
@@ -93,7 +93,7 @@
   }
   .mainnav-inner{
     display:flex; align-items:center; justify-content:space-between;
-    padding:14px 0; gap:20px; flex-wrap:wrap;
+    padding-block:14px; gap:20px; flex-wrap:wrap;  /* padding-block : idem */
   }
   .logo{display:flex; align-items:center; gap:11px; cursor:pointer; background:none; border:none; padding:0;}
   .logo-mark{
@@ -458,7 +458,7 @@
 
   /* ---------- FOOTER ---------- */
   footer{background:var(--ink); color:#E9E2D4; margin-top:20px;}
-  .footer-inner{padding:44px 0 26px; display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:40px;}
+  .footer-inner{padding-block:44px 26px; display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:40px;}
   @media(max-width:800px){.footer-inner{grid-template-columns:1fr;}}
   footer h4{color:#fff; font-size:13px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:14px; font-family:var(--sans); font-weight:700;}
   footer .flags-foot{display:flex; gap:7px; margin:14px 0 16px; flex-wrap:wrap;}
@@ -480,7 +480,10 @@
    ============================================================ */
 
 .navlinks a{
-  background:none; border:none; padding:9px 13px;
+  /* padding-inline 10px (et non 13px) : depuis que l'en-tête retrouve la
+     marge du .container, les 9 liens FR ne tiendraient plus sur une ligne
+     à côté du logo ; avec 10px ils tiennent dès 1170px (mesuré). */
+  background:none; border:none; padding:9px 10px;
   font-size:14px; font-weight:600; color:var(--ink-soft);
   border-bottom:3px solid transparent; text-decoration:none;
 }
