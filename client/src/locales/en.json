@@ -23,8 +23,7 @@
     "h1": "The single access point to the region's regulatory information",
     "lead": "The NA-MRH Digital Collaboration Platform brings together the National Regulatory Authorities of North Africa: institutional communication, secure collaboration and regulatory knowledge management.",
     "cta1": "Explore the Member States",
-    "cta2": "Access the RIMS Portal",
-    "mapTitle": "The member authorities, one platform"
+    "cta2": "Access the RIMS Portal"
   },
   "statsLabels": [
     "Member States",
@@ -40,7 +39,8 @@
     "twgH": "Five Technical Working Groups",
     "twgP": "Each TWG is co-led by two member countries and prioritised into waves according to its maturity.",
     "newsKicker": "Regional life",
-    "newsH": "Recent news"
+    "newsH": "Recent news",
+    "countriesH": "Member States of the initiative"
   },
   "governance": {
     "kicker": "Coordination structure",
@@ -152,5 +152,8 @@
     "contactT": "Secretariat",
     "contactP": "Hosted by ANMPS, Tunisia",
     "partners": "Technical & financial partners: AUDA-NEPAD · AMA · WHO · Swissmedic · World Bank · AfDB  ·  © 2026 NA-MRH Secretariat"
+  },
+  "homePage": {
+    "sectionError": "This section is temporarily unavailable."
   }
 }

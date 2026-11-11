@@ -23,8 +23,7 @@
     "h1": "Le point d'accès unique à l'information réglementaire de la région",
     "lead": "La NA-MRH Digital Collaboration Platform réunit les Autorités Nationales de Réglementation d'Afrique du Nord : communication institutionnelle, collaboration sécurisée et gestion des connaissances réglementaires.",
     "cta1": "Découvrir les États membres",
-    "cta2": "Accéder au portail RIMS",
-    "mapTitle": "Les autorités membres, une même plateforme"
+    "cta2": "Accéder au portail RIMS"
   },
   "statsLabels": [
     "États membres",
@@ -40,7 +39,8 @@
     "twgH": "Cinq groupes de travail techniques",
     "twgP": "Chaque GTT est co-dirigé par deux pays membres et priorisé en vagues selon sa maturité.",
     "newsKicker": "Vie de la région",
-    "newsH": "Actualités récentes"
+    "newsH": "Actualités récentes",
+    "countriesH": "Les États membres de l'initiative"
   },
   "governance": {
     "kicker": "Structure de coordination",
@@ -152,5 +152,8 @@
     "contactT": "Secrétariat",
     "contactP": "Hébergé par l'ANMPS, Tunisie",
     "partners": "Partenaires techniques et financiers : AUDA-NEPAD · AMA · OMS · Swissmedic · Banque mondiale · BAD  ·  © 2026 NA-MRH Secretariat"
+  },
+  "homePage": {
+    "sectionError": "Cette section est momentanément indisponible."
   }
 }

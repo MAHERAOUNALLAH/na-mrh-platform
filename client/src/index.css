@@ -792,3 +792,22 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
    le .container ; sans effet en grand écran, où le texte tient sur une
    ligne centrée. */
 .partners-row{padding-inline:clamp(16px, 4vw, 28px);}
+
+/* ---------- Accueil : contenu modifiable par le Secrétariat ---------- */
+/* Hero sur une seule colonne (plus de carte des pays) : largeur de
+   lecture bornée, sans trou à droite ni en dessous. */
+.hero-text{max-width:820px;}
+/* Textes modifiables sur plusieurs lignes : les retours à la ligne
+   saisis par l'administrateur sont conservés (texte brut, pas de HTML). */
+.multiline{white-space:pre-line;}
+/* Noms des États membres, sans drapeau, cliquables vers « États membres ». */
+.home-countries h3{font-size:17px; margin-bottom:12px;}
+.home-countries ul{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:10px;}
+.home-countries a{
+  display:inline-flex; align-items:center; min-height:44px; padding:8px 16px;
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
+  font-size:14.5px; font-weight:600; color:var(--ink); text-decoration:none;
+}
+.home-countries a:hover{border-color:var(--ink);}
+/* Section de l'accueil en attente ou indisponible : message discret. */
+.section-note{font-size:13.5px; color:var(--ink-soft); margin-block:6px 14px;}
