@@ -613,9 +613,11 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
   input:not([type=checkbox]):not([type=radio]), select{min-height:44px;}
 
   /* Zones tactiles de 44 px minimum */
-  .btn:not(.btn-sm){min-height:44px;}   /* .btn-sm : boutons des tableaux admin (bloc 4) */
+  /* Tous les boutons, y compris .btn-sm des pages publiques (accueil,
+     404, page d'attente) ; l'Espace Secrétariat est traité au bloc 4. */
+  .btn:not(.admin-layout .btn){min-height:44px;}
   .back-link{min-height:44px;}
-  footer li a{display:inline-flex; align-items:center; min-height:44px;}
+  footer li a{display:inline-flex; align-items:center; min-height:44px; min-width:44px;}
 }
 
 
