@@ -6,6 +6,34 @@
    Au-dessus de 1024 px : rendu de la maquette, sans requête média.
    Seuil à part, propre au menu : 1180 px (voir « menu replié » en bas).
    ============================================================ */
+/* ============================================================
+   POLICES — fichiers .woff2 hébergés dans public/fonts (pas de service
+   tiers), licences OFL dans le même dossier. Sous-ensembles latin et
+   arabe seulement, graisses réellement utilisées :
+     Zilla Slab 600/700 (titres), Public Sans 400-800 (variable, texte),
+     Cairo 400-800 (variable, texte arabe), Amiri 700 (titres arabes : les
+     titres sont en 600, le navigateur prend la graisse 700, la plus proche).
+   La police arabe ne s'applique que si <body data-lang="ar"> (voir i18n.js).
+   ============================================================ */
+@font-face{font-family:'Zilla Slab'; font-style:normal; font-weight:600; font-display:swap;
+  src:url('/fonts/zilla-slab-600-latin.woff2') format('woff2');}
+@font-face{font-family:'Zilla Slab'; font-style:normal; font-weight:700; font-display:swap;
+  src:url('/fonts/zilla-slab-700-latin.woff2') format('woff2');}
+@font-face{font-family:'Public Sans'; font-style:normal; font-weight:400 800; font-display:swap;
+  src:url('/fonts/public-sans-var-latin.woff2') format('woff2');}
+@font-face{font-family:'Cairo'; font-style:normal; font-weight:400 800; font-display:swap;
+  src:url('/fonts/cairo-var-arabic.woff2') format('woff2');
+  unicode-range:U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;}
+@font-face{font-family:'Cairo'; font-style:normal; font-weight:400 800; font-display:swap;
+  src:url('/fonts/cairo-var-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Amiri'; font-style:normal; font-weight:700; font-display:swap;
+  src:url('/fonts/amiri-700-arabic.woff2') format('woff2');
+  unicode-range:U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;}
+@font-face{font-family:'Amiri'; font-style:normal; font-weight:700; font-display:swap;
+  src:url('/fonts/amiri-700-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+
 :root{
     --bg:#F7F3EA;
     --surface:#FFFFFF;

@@ -98,10 +98,7 @@ function Layout() {
     navigate('/');
   }
 
-  useEffect(() => {
-    document.documentElement.dir = t('dir');
-    document.documentElement.lang = i18n.language;
-  }, [i18n.language, t]);
+  // lang / dir / data-lang du document : posés dans i18n.js.
 
   return (
     <div>

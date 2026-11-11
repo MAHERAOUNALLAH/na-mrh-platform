@@ -26,4 +26,16 @@ i18n
     },
   });
 
+// Langue et sens d'écriture posés sur le document à chaque changement :
+//   <html lang dir>  -> lecteurs d'écran, césure, sens de lecture (RTL) ;
+//   <body data-lang> -> polices arabes (index.css : body[data-lang="ar"]).
+function applyDocumentLanguage(lng) {
+  const dir = i18n.getResource(lng, 'translation', 'dir') || 'ltr';
+  document.documentElement.lang = lng;
+  document.documentElement.dir = dir;
+  document.body.dataset.lang = lng;
+}
+i18n.on('languageChanged', applyDocumentLanguage);
+applyDocumentLanguage(i18n.language);
+
 export default i18n;
