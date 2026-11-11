@@ -122,9 +122,11 @@ function ContentManagement() {
                     {item.publishedAt ? 'Publiée' : 'Brouillon'}
                   </span>
                 </td>
-                <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(item)}>Modifier</button>
-                  <button className="btn btn-outline btn-sm" onClick={() => handleDelete(item)}>Supprimer</button>
+                <td className="cell-actions">
+                  <div className="row-actions">
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(item)}>Modifier</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => handleDelete(item)}>Supprimer</button>
+                  </div>
                 </td>
               </tr>
             ))}

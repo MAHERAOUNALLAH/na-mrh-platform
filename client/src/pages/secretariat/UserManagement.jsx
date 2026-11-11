@@ -207,11 +207,13 @@ function UserManagement() {
                     : '—'}
                 </td>
                 <td>{u.isActive ? 'Actif' : 'Désactivé'}</td>
-                <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)}>Modifier</button>
-                  <button className="btn btn-outline btn-sm" onClick={() => toggleActive(u)}>
-                    {u.isActive ? 'Désactiver' : 'Réactiver'}
-                  </button>
+                <td className="cell-actions">
+                  <div className="row-actions">
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)}>Modifier</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => toggleActive(u)}>
+                      {u.isActive ? 'Désactiver' : 'Réactiver'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

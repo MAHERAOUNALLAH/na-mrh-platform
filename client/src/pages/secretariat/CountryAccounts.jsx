@@ -148,9 +148,11 @@ function CountryAccounts() {
           <tbody>
             {countries.map((c) => (
               <tr key={c.id}>
-                <td style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Flag code={c.id} width={26} height={18} />
-                  <b>{pickLang(c, 'name', lang)}</b>
+                <td>
+                  <div className="cell-country">
+                    <Flag code={c.id} width={26} height={18} />
+                    <b>{pickLang(c, 'name', lang)}</b>
+                  </div>
                 </td>
                 <td>
                   {c.orgRole
@@ -169,9 +171,11 @@ function CountryAccounts() {
                   {c.twgsAsLead.length === 0 && c.twgsAsColead.length === 0 && '—'}
                 </td>
                 <td>{c._count.users}</td>
-                <td style={{ textAlign: 'end', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(c)}>Modifier</button>
-                  <button className="btn btn-outline btn-sm" onClick={() => handleDelete(c)}>Supprimer</button>
+                <td className="cell-actions">
+                  <div className="row-actions">
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(c)}>Modifier</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => handleDelete(c)}>Supprimer</button>
+                  </div>
                 </td>
               </tr>
             ))}

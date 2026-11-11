@@ -667,3 +667,11 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
    la largeur de leur contenu : sans cela, la colonne prenait la largeur
    du tableau et élargissait toute la page (987 px à 360 px, mesuré). */
 .admin-layout > *{min-width:0;}
+
+/* Contenus en ligne dans une cellule (boutons d'action, drapeau + nom) :
+   le flex est porté par un <div> INTERNE. Un <td> en display:flex cesse
+   d'être une cellule de tableau, et les bordures des lignes se décalaient
+   à toutes les largeurs. */
+.admin-table .cell-actions{text-align:end;}
+.row-actions{display:flex; align-items:center; justify-content:flex-end; gap:6px;}
+.cell-country{display:flex; align-items:center; gap:10px;}

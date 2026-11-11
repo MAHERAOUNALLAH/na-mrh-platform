@@ -94,8 +94,10 @@ function TwgAdmin() {
                 <td><b>{twg.nameFr}</b></td>
                 <td>{twg.leadCountry ? twg.leadCountry.nameFr : '—'}</td>
                 <td>{twg.coleadCountry ? twg.coleadCountry.nameFr : '—'}</td>
-                <td style={{ textAlign: 'end' }}>
-                  <button className="btn btn-outline btn-sm" onClick={() => openEdit(twg)}>Modifier</button>
+                <td className="cell-actions">
+                  <div className="row-actions">
+                    <button className="btn btn-outline btn-sm" onClick={() => openEdit(twg)}>Modifier</button>
+                  </div>
                 </td>
               </tr>
             ))}
