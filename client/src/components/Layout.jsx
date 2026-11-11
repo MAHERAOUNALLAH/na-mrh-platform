@@ -5,8 +5,8 @@
 // le bloc JSX manquait, seuls les imports avaient été ajoutés).
 // ============================================================
 
-import { useEffect } from 'react';
-import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
@@ -55,6 +55,43 @@ function Layout() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ---- Menu replié (écrans <= 1024 px) ----
+  // On mémorise la page sur laquelle le menu a été ouvert : dès que
+  // l'adresse change, il est donc fermé, sans setState dans un effet
+  // (règle ESLint react-hooks/set-state-in-effect).
+  const [menuOpenOn, setMenuOpenOn] = useState(null);
+  const menuOpen = menuOpenOn === location.pathname;
+  const toggleRef = useRef(null);
+  const headerRef = useRef(null);
+
+  // Échap ferme le menu et rend le focus au bouton.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        setMenuOpenOn(null);
+        if (toggleRef.current) toggleRef.current.focus();
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen]);
+
+  // Hauteur réelle de l'en-tête collant -> --sticky-h, utilisée par
+  // scroll-padding-top : une ancre ou un champ qui reçoit le focus au
+  // clavier ne se retrouve pas caché sous l'en-tête (y compris quand le
+  // menu FR occupe deux lignes, entre 1025 et 1169 px).
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => {
+      document.documentElement.style.setProperty('--sticky-h', `${header.offsetHeight}px`);
+    });
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   function handleLogout() {
     logout();
@@ -68,47 +105,49 @@ function Layout() {
 
   return (
     <div>
-      <header>
-        {/* --- Barre du haut : connexion + sélecteur de langue --- */}
-        <div className="topbar">
-          <div className="container topbar-inner">
-            {/* Connexion / déconnexion — remplace l'ancien <div/> vide */}
-            {user ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Link to="/mon-espace" className="admin-badge-btn">
-                  🔒 <span>{user.name}</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    background: 'none', border: 'none', color: 'var(--ink-soft)',
-                    fontSize: '12.5px', fontWeight: 700, cursor: 'pointer',
-                  }}
-                >
-                  Déconnexion
-                </button>
-              </div>
-            ) : (
-              <Link to="/connexion" className="admin-badge-btn">
-                🔒 <span>Se connecter</span>
+      {/* --- Barre du haut : connexion + sélecteur de langue ---
+          Hors de <header> : elle défile avec la page ; seul l'en-tête
+          (logo + menu) reste collé en haut de l'écran. */}
+      <div className="topbar">
+        <div className="container topbar-inner">
+          {/* Connexion / déconnexion — remplace l'ancien <div/> vide */}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Link to="/mon-espace" className="admin-badge-btn">
+                🔒 <span>{user.name}</span>
               </Link>
-            )}
-
-            <div className="lang-switch">
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  className={i18n.language === lang.code ? 'active' : ''}
-                  onClick={() => i18n.changeLanguage(lang.code)}
-                >
-                  {lang.label}
-                </button>
-              ))}
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: 'none', border: 'none', color: 'var(--ink-soft)',
+                  fontSize: '12.5px', fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                Déconnexion
+              </button>
             </div>
+          ) : (
+            <Link to="/connexion" className="admin-badge-btn">
+              🔒 <span>Se connecter</span>
+            </Link>
+          )}
+
+          <div className="lang-switch">
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                className={i18n.language === lang.code ? 'active' : ''}
+                onClick={() => i18n.changeLanguage(lang.code)}
+              >
+                {lang.label}
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* --- Barre principale : logo + navigation --- */}
+      {/* --- En-tête collant : logo + navigation --- */}
+      <header className="site-header" ref={headerRef}>
         <nav className="mainnav">
           <div className="container mainnav-inner">
             <NavLink to="/" className="logo" end>
@@ -119,9 +158,27 @@ function Layout() {
               </span>
             </NavLink>
 
-            <div className="navlinks">
+            {/* Bouton du menu : visible seulement sous 1024 px (CSS). */}
+            <button
+              ref={toggleRef}
+              type="button"
+              className="nav-toggle"
+              aria-expanded={menuOpen}
+              aria-controls="main-menu"
+              onClick={() => setMenuOpenOn(menuOpen ? null : location.pathname)}
+            >
+              <span className="nav-toggle-icon" aria-hidden="true"><span /><span /><span /></span>
+              <span>{t('nav.menu')}</span>
+            </button>
+
+            <div id="main-menu" className={menuOpen ? 'navlinks open' : 'navlinks'}>
               {NAV_ITEMS.map((item) => (
-                <NavLink key={item.to} to={item.to} end={item.to === '/'}>
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === '/'}
+                  onClick={() => setMenuOpenOn(null)}   /* ferme aussi si on reclique la page en cours */
+                >
                   {t(item.key)}
                 </NavLink>
               ))}

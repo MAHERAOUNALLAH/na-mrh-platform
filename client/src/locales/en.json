@@ -2,6 +2,7 @@
   "dir": "ltr",
   "logoSub": "Regional Secretariat",
   "nav": {
+    "menu": "Menu",
     "home": "Home",
     "governance": "Governance",
     "members": "Member States",

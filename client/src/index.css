@@ -96,7 +96,8 @@
   .mainnav{
     background:var(--surface);
     border-bottom:2px solid var(--ink);
-    position:sticky; top:0; z-index:50;
+    /* position:sticky déplacée sur .site-header (voir RESPONSIVE en bas) :
+       collant à l'intérieur de <header>, .mainnav défilait avec la page. */
   }
   .mainnav-inner{
     display:flex; align-items:center; justify-content:space-between;
@@ -525,4 +526,48 @@ a.back-link{text-decoration:none;}
 .admin-tabs a.active{
   color: var(--red-deep); border-inline-start-color: var(--red);
   background: rgba(163,22,33,.05);
+}
+
+
+/* ============================================================
+   RESPONSIVE — en-tête collant et menu replié
+   ============================================================ */
+
+/* Seul l'en-tête (logo + menu) est collant ; la barre du haut
+   (connexion, langues) défile normalement. */
+.site-header{position:sticky; top:0; z-index:50;}
+
+/* Ancres et focus clavier : ne jamais s'arrêter sous l'en-tête collant.
+   --sticky-h est mise à jour par Layout.jsx (hauteur réelle mesurée). */
+html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
+
+.nav-toggle{
+  display:none;                       /* visible seulement <= 1024 px */
+  align-items:center; gap:8px;
+  min-height:44px; min-width:44px; padding-inline:12px;
+  background:none; border:1.5px solid var(--ink); border-radius:3px;
+  color:var(--ink); font-size:14px; font-weight:700;
+}
+.nav-toggle-icon{display:flex; flex-direction:column; gap:4px; width:18px;}
+.nav-toggle-icon span{display:block; height:2px; background:currentColor; border-radius:1px;}
+.nav-toggle[aria-expanded="true"]{background:var(--ink); color:#fff;}
+
+@media(max-width:1024px){
+  .mainnav-inner{padding-block:8px; row-gap:0;}   /* barre de 62 px : logo 44 + 2×8 + bordure */
+  .nav-toggle{display:inline-flex;}
+  .navlinks{
+    display:none; flex-basis:100%;
+    flex-direction:column; flex-wrap:nowrap; gap:0;
+    margin-top:8px; border-top:1px solid var(--line);
+    /* Menu long sur écran bas (téléphone à l'horizontale) : il défile
+       dans son propre cadre plutôt que de sortir de l'écran. */
+    max-height:calc(100vh - 70px); max-height:calc(100dvh - 70px); overflow-y:auto;
+  }
+  .navlinks.open{display:flex;}
+  .navlinks a{
+    display:flex; align-items:center; min-height:44px;
+    padding-inline:12px; border-bottom:1px solid var(--line);
+    border-inline-start:3px solid transparent;
+  }
+  .navlinks a.active{border-bottom-color:var(--line); border-inline-start-color:var(--red);}
 }
