@@ -185,7 +185,7 @@ function UserManagement() {
           {users.map((u) => (
             <tr key={u.id} style={{ opacity: u.isActive ? 1 : 0.5 }}>
               <td><b>{u.name}</b></td>
-              <td>{u.email}</td>
+              <td><bdi dir="ltr">{u.email}</bdi></td>
               <td>{u.country ? pickLang(u.country, 'name', lang) : '—'}</td>
               <td>{LEVELS.find((l) => l.value === u.level)?.label || u.level}</td>
               <td>

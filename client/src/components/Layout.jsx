@@ -205,7 +205,12 @@ function Layout() {
           </div>
           <div>
             <h4>{t('footer.contactT')}</h4>
-            <p style={{ whiteSpace: 'pre-line' }}>{t('footer.contactP')}</p>
+            <p>
+              {t('footer.contactP')}<br />
+              {/* Coordonnées identiques dans les trois langues, isolées en LTR :
+                  en arabe, le numéro garde son ordre (+216 71 78 31 95). */}
+              <bdi dir="ltr">dpm@rns.tn</bdi> · <bdi dir="ltr">+216 71 78 31 95</bdi>
+            </p>
           </div>
         </div>
         <div className="partners-row">{t('footer.partners')}</div>

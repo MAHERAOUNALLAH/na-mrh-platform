@@ -113,7 +113,9 @@ function Contact() {
             <div className="kv" style={{ marginTop: '18px' }}>
               <span className="label">{t('contactPage.secT')}</span>
               <span className="value" style={{ fontWeight: 400, fontSize: '14.5px' }}>
-                {t('contactPage.secP')}<br />dpm@rns.tn · +216 71 78 31 95
+                {t('contactPage.secP')}<br />
+                {/* <bdi dir="ltr"> : en arabe, un numéro ou une adresse garde son ordre de lecture */}
+                <bdi dir="ltr">dpm@rns.tn</bdi> · <bdi dir="ltr">+216 71 78 31 95</bdi>
               </span>
             </div>
           </div>
@@ -127,8 +129,8 @@ function Contact() {
                   <div>
                     <div className="name">{pickLang(c, 'name', lang)}</div>
                     <div className="line">{pickLang(c, 'nraName', lang)}</div>
-                    {c.email && <div className="line">{c.email}</div>}
-                    {c.phone && <div className="line">{c.phone}</div>}
+                    {c.email && <div className="line"><bdi dir="ltr">{c.email}</bdi></div>}
+                    {c.phone && <div className="line"><bdi dir="ltr">{c.phone}</bdi></div>}
                   </div>
                 </div>
               ))}

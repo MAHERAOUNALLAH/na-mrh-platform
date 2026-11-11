@@ -617,3 +617,16 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
   .back-link{min-height:44px;}
   footer li a{display:inline-flex; align-items:center; min-height:44px;}
 }
+
+
+/* ============================================================
+   RESPONSIVE — coordonnées en arabe (RTL)
+   Le texte affiché est isolé par <bdi dir="ltr"> dans les pages.
+   Pour les champs de saisie : direction LTR (sinon « +216 71 78 31 95 »
+   se lit « 95 31 78 71 216+ »), alignés en fin de ligne pour rester
+   alignés sur le reste du formulaire RTL.
+   ============================================================ */
+[dir="rtl"] input[type="email"], [dir="rtl"] input[type="tel"], [dir="rtl"] input[type="url"],
+[dir="rtl"] input[name="email"], [dir="rtl"] input[name="phone"], [dir="rtl"] input[name="website"]{
+  direction:ltr; text-align:end;
+}
