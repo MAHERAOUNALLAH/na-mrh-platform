@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useSiteContent } from '../context/SiteContentContext';
 
 const LANGUAGES = [
   { code: 'fr', label: 'FR' },
@@ -54,6 +55,7 @@ const LOGO_SVG = (
 function Layout() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
+  const { text, value } = useSiteContent();   // coordonnées du Secrétariat (pied de page)
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -203,10 +205,10 @@ function Layout() {
           <div>
             <h4>{t('footer.contactT')}</h4>
             <p>
-              {t('footer.contactP')}<br />
-              {/* Coordonnées identiques dans les trois langues, isolées en LTR :
-                  en arabe, le numéro garde son ordre (+216 71 78 31 95). */}
-              <bdi dir="ltr">dpm@rns.tn</bdi> · <bdi dir="ltr">+216 71 78 31 95</bdi>
+              {text('footer.contactP')}<br />
+              {/* Coordonnées modifiables (Espace Secrétariat), identiques dans les
+                  trois langues, isolées en LTR : en arabe, le numéro garde son ordre. */}
+              <bdi dir="ltr">{value('contact.email')}</bdi> · <bdi dir="ltr">{value('contact.phone')}</bdi>
             </p>
           </div>
         </div>

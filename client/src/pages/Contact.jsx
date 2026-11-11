@@ -11,10 +11,13 @@ import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
 import Flag from '../components/Flag';
 import { apiGet, apiPost } from '../utils/api';
+import { useSiteContent } from '../context/SiteContentContext';
 
 function Contact() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  // Coordonnées du Secrétariat : modifiables par l'administrateur.
+  const { text, value } = useSiteContent();
 
   // --- Les pays, pour afficher les contacts de chaque ANR ---
   const [countries, setCountries] = useState([]);
@@ -113,9 +116,9 @@ function Contact() {
             <div className="kv" style={{ marginTop: '18px' }}>
               <span className="label">{t('contactPage.secT')}</span>
               <span className="value" style={{ fontWeight: 400, fontSize: '14.5px' }}>
-                {t('contactPage.secP')}<br />
+                <span className="multiline">{text('contactPage.secP')}</span><br />
                 {/* <bdi dir="ltr"> : en arabe, un numéro ou une adresse garde son ordre de lecture */}
-                <bdi dir="ltr">dpm@rns.tn</bdi> · <bdi dir="ltr">+216 71 78 31 95</bdi>
+                <bdi dir="ltr">{value('contact.email')}</bdi> · <bdi dir="ltr">{value('contact.phone')}</bdi>
               </span>
             </div>
           </div>

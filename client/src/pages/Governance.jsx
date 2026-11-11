@@ -1,13 +1,17 @@
 // ============================================================
 // client/src/pages/Governance.jsx
 // Page statique — aucun appel réseau, tout le contenu vient
-// des traductions (locales/*.json, bloc "governance").
+// des traductions (locales/*.json, bloc "governance"), sauf la
+// description du Secrétariat, modifiable par l'administrateur
+// (useSiteContent ; texte par défaut : governance.secretariatD).
 // ============================================================
 
 import { useTranslation } from 'react-i18next';
+import { useSiteContent } from '../context/SiteContentContext';
 
 function Governance() {
   const { t } = useTranslation();
+  const { text } = useSiteContent();
 
   return (
     <section className="page-section">
@@ -27,8 +31,8 @@ function Governance() {
           </div>
           <div className="kv">
             <span className="label">{t('governance.secretariatT')}</span>
-            <span className="value" style={{ fontWeight: 400, fontSize: '14.5px' }}>
-              {t('governance.secretariatD')}
+            <span className="value multiline" style={{ fontWeight: 400, fontSize: '14.5px' }}>
+              {text('governance.secretariatD')}
             </span>
           </div>
           <div className="kv" style={{ gridColumn: '1/-1' }}>
