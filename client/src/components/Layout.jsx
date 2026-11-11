@@ -112,17 +112,12 @@ function Layout() {
         <div className="container topbar-inner">
           {/* Connexion / déconnexion — remplace l'ancien <div/> vide */}
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Link to="/mon-espace" className="admin-badge-btn">
-                🔒 <span>{user.name}</span>
+            <div className="topbar-user">
+              {/* Nom tronqué sur petit écran : on le garde complet en infobulle. */}
+              <Link to="/mon-espace" className="admin-badge-btn" title={user.name}>
+                🔒 <span className="topbar-user-name">{user.name}</span>
               </Link>
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: 'none', border: 'none', color: 'var(--ink-soft)',
-                  fontSize: '12.5px', fontWeight: 700, cursor: 'pointer',
-                }}
-              >
+              <button type="button" className="topbar-logout" onClick={handleLogout}>
                 Déconnexion
               </button>
             </div>

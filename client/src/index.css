@@ -533,6 +533,28 @@ a.back-link{text-decoration:none;}
 
 
 /* ============================================================
+   RESPONSIVE — barre du haut (connexion, langues) : toujours une ligne
+   ============================================================ */
+.topbar-inner{flex-wrap:nowrap;}
+.topbar-user{display:flex; align-items:center; gap:10px; min-width:0;}
+.topbar-user .admin-badge-btn{min-width:0;}
+.topbar-user-name{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.topbar-logout{
+  background:none; border:none; padding:0; color:var(--ink-soft);
+  font-size:12.5px; font-weight:700; white-space:nowrap; flex-shrink:0;
+}
+.lang-switch{flex-shrink:0;}
+
+@media(max-width:768px){
+  .topbar-inner{padding-block:6px; gap:10px;}
+  .admin-badge-btn{min-height:44px; padding-inline:14px;}
+  .topbar-logout{min-height:44px; padding-inline:4px;}
+  .lang-switch{padding:2px;}
+  .lang-switch button{min-height:44px; min-width:44px; padding-inline:10px;}
+}
+
+
+/* ============================================================
    RESPONSIVE — en-tête collant et menu replié
    ============================================================ */
 
