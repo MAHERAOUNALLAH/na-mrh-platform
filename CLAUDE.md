@@ -85,6 +85,11 @@ La langue se lit via `const { i18n } = useTranslation()` puis `i18n.language` : 
 - **Toujours** utiliser les classes réelles de la maquette (`className="twg-card"`, pas de `style={{...}}` improvisé)
 - ⚠️ **Piège connu** : la maquette utilise des `<button>` pour beaucoup d'éléments cliquables (cartes, liens de nav). React Router (`<Link>`, `<NavLink>`) génère des `<a>`. Si le CSS de la maquette cible `.xxx button`, et qu'on utilise un `<Link>`, il faut ajouter la même règle pour `.xxx a` (voir `client/src/index.css`, section "CORRECTIF" en bas de fichier, pour des exemples déjà traités).
 
+### Groupes de travail et documents : aucun classement affiché
+- Les groupes de travail ne sont **ni classés ni étiquetés** (retours des partenaires institutionnels) : toutes les cartes ont la même apparence (`.twg-card`, bordure `--red`), l'accueil affiche les cinq. **Ordre unique partout** (accueil, liste, administration, trois langues) : alphabétique du nom français, trié par `GET /api/twgs` avec `Intl.Collator('fr')` — pas par `ORDER BY`, dont le résultat dépend du collationnement de la base. Les pages ne retrient pas.
+- Colonnes héritées **conservées en base, jamais affichées ni renvoyées** : `twgs.wave` (omise des réponses par `TWG_PUBLIC_OMIT`, ignorée par `PUT /api/admin/twgs/:id`) et `documents.phase` (absente des `select`). Les seeds leur donnent une valeur unique (`LEGACY_TWG_WAVE`, `LEGACY_DOC_PHASE`) parce qu'elles sont obligatoires. Ne pas les réintroduire à l'écran.
+- Les mentions restantes de « phases » concernent uniquement le **déploiement de la plateforme** (barre de statistiques, page « rubrique en construction »).
+
 ### Contenu du site modifiable (accueil, coordonnées du Secrétariat)
 - **Règle d'or : le contenu éditable ne vide JAMAIS le site.** Les textes des locales restent les valeurs par défaut ; la table `site_content` (modèle `SiteContent`) ne stocke que des **surcharges** : `key`, `valueFr` / `valueEn` / `valueAr` (texte ; `NULL` = texte par défaut de cette langue), `value` (valeur sans langue : e-mail, téléphone, entier, lien, affichage `'true'` / `'false'`), `updatedById`, `updatedAt`.
 - **Une clé de texte = la clé i18n qu'elle remplace** (`hero.h1`, `statsLabels.2`, `contactPage.secP`…) : `text(clé)` renvoie la surcharge de la langue affichée, sinon `t(clé)`. Valeurs sans langue par défaut : `client/src/utils/siteContentDefaults.js`.
@@ -102,6 +107,7 @@ La langue se lit via `const { i18n } = useTranslation()` puis `i18n.language` : 
 - **Mobile (≤ 768 px)** : champs à 16 px (en dessous, Safari iOS zoome la page) et cibles tactiles de 44 px (boutons, liens isolés, `<label>` des cases à cocher). Ne jamais fixer la taille d'un champ par un style en ligne : passer par `.field input` / `.field select` / `textarea` / `.status-select`, définis AVANT les règles mobiles.
 - **Tableaux** : un `<td>` ne prend jamais `display:flex` (il cesse d'être une cellule, les bordures se décalent) : mettre le flex dans un `<div>` interne (`.row-actions`, `.cell-country`).
 - **Arabe** : numéros, e-mails et adresses web dans `<bdi dir="ltr">` ; champs e-mail / téléphone / site en `direction:ltr` (règle `[dir="rtl"] input[...]`).
+- **Sigle latin dans une phrase arabe d'un fichier de traduction** (pas de HTML possible) : s'il est suivi d'un nombre (ex. « CEPI · © 2026 »), l'isoler par `\u2066…\u2069` (LRI … PDI), écrits **en échappement** dans `ar.json` (voir `footer.partners`). Sans cela, l'algorithme bidirectionnel colle le sigle au nombre et change l'ordre affiché. Un outil qui réécrit le JSON (`JSON.stringify`) remplace ces échappements par les caractères invisibles : les remettre en échappement.
 
 ### Sécurité — le filtrage est toujours côté serveur
 Tout filtre qui décide **ce que l'utilisateur a le droit de voir** appartient au `where` de la requête Prisma, jamais à un `.filter()` React sur les données reçues. Sinon les données sensibles partent quand même dans le navigateur, où elles se lisent dans l'onglet Réseau : le masquage à l'affichage n'est qu'un rideau.
@@ -170,7 +176,7 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - Fins de ligne : `.gitattributes` impose LF dans le dépôt (Windows inclus). Ne pas committer de fichiers de travail (patchs, scripts jetables) : vérifier `git status` et ajouter les fichiers un par un plutôt que `git add -A`.
 
 ## État d'avancement (Phases 0 à 3 construites, audit A-D corrigé, préparation au déploiement faite)
-> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 12/11/2026, branche `vrais-drapeaux` (non poussée ; partie de `main` à jour, `contenu-accueil` fusionné).
+> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 12/11/2026, branches `retours-partenaires` et `vrais-drapeaux` fusionnées dans `main`.
 
 **Phase 0 — fondations** ✅ CSS extrait, i18n (FR/EN/AR + RTL), routeur, Layout (header/footer), `Flag.jsx`, `lang.js`.
 
@@ -211,6 +217,10 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 
 **Branche `vrais-drapeaux`** (12/11/2026)
 - ✅ Drapeaux dessinés à la main remplacés par les SVG de flag-icons 7.6.0 (MIT) ; `eg.png` supprimé ; proportions 4:3 ; liseré de l'Algérie. Testé : États membres, Contact, Comptes pays, FR/AR, 360/768/1440 (118 contrôles), aucune requête extérieure.
+
+**Branche `retours-partenaires`** (12/11/2026, partie de `main`)
+- ✅ Groupes de travail : plus de classement affiché, cinq groupes sur l'accueil, ordre alphabétique unique ; `wave` ni renvoyée ni exigée. Documents : plus de pastille ni de champ `phase`. CEPI ajouté aux partenaires (fr/en/ar).
+- ⏳ Section Mission de l'accueil : textes définitifs non fournis, valeurs par défaut inchangées.
 
 **Phase 4 — au-delà du MVP** ❌ pas commencée. À ne démarrer qu'une fois les Phases 0-3 stables (voir méthodologie) : versionnage des documents, missions, réunions/discussions de GTT, budget, veille réglementaire, répertoire d'experts, espace national par persona, chatbots.
 

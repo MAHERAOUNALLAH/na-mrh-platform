@@ -97,7 +97,6 @@ function Library() {
                     <div className="title">{pickLang(doc, 'title', lang)}</div>
                     <div className="sub">v{doc.version}</div>
                   </div>
-                  <span className={`phase-pill p${doc.phase}`}>{t(`libraryPage.p${doc.phase}`)}</span>
                 </div>
               ))
             )}

@@ -46,9 +46,6 @@
     --gold:#C08A28;
     --line:#DDD3C0;
     --line-strong:#C7BBA0;
-    --wave1:#A31621;
-    --wave2:#C08A28;
-    --wave3:#8A8071;
     --radius:2px;
     --serif:'Zilla Slab', Georgia, serif;
     --sans:'Public Sans', -apple-system, sans-serif;
@@ -259,13 +256,10 @@
 }
   /* ---------- TWG CARDS ---------- */
   .twg-card{
-    background:var(--surface); border-inline-start:5px solid var(--wave1);
+    background:var(--surface); border-inline-start:5px solid var(--red);
     box-shadow:0 0 0 1px var(--line); padding:20px 22px; text-align:start;
     display:flex; flex-direction:column; gap:8px;
   }
-  .twg-card[data-wave="2"]{border-inline-start-color:var(--wave2);}
-  .twg-card[data-wave="3"]{border-inline-start-color:var(--wave3);}
-  .twg-card .wave-tag{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);}
   .twg-card h3{font-size:18px;}
   .twg-card p{font-size:14px; color:var(--ink-soft);}
   .twg-card .leads{font-size:12.5px; font-weight:700; color:var(--ink); margin-top:4px;}
@@ -304,13 +298,6 @@
   .doc-row .meta{flex:1;}
   .doc-row .meta .title{font-weight:700; font-size:14.5px;}
   .doc-row .meta .sub{font-size:12.5px; color:var(--ink-soft);}
-  .phase-pill{
-    font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.03em;
-    white-space:nowrap;
-  }
-  .phase-pill.p1{background:rgba(16,85,44,.12); color:var(--green-deep);}
-  .phase-pill.p2{background:rgba(192,138,40,.15); color:#8a6414;}
-  .phase-pill.p3{background:rgba(163,22,33,.1); color:var(--red-deep);}
   .notice-box{
     background:#FBF4E4; border:1px solid var(--gold); padding:16px 18px; font-size:13.5px; color:#5c4413; margin-bottom:26px;
     display:flex; gap:10px;
@@ -831,7 +818,7 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .content-field h4, .content-field legend{font-size:14.5px; font-weight:700; margin:0 0 10px; padding:0;}
 .content-field-meta{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; margin-top:5px; font-size:12px; color:var(--ink-soft);}
 .content-badge{font-weight:700;}
-.content-badge.custom{color:#8a6414;}   /* même brun doré que .phase-pill.p2 */
+.content-badge.custom{color:#8a6414;}   /* brun doré lisible sur fond clair */
 .content-field-help{font-size:13px; color:var(--ink-soft); margin-bottom:6px;}
 .content-field-warning{font-size:13px; color:#8a6414; margin-block:4px 10px;}
 @media(max-width:768px){

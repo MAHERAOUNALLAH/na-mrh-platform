@@ -76,8 +76,6 @@ function TwgDetailView({ id }) {
     );
   }
 
-  const waveLabel = t(`twgsPage.wave${twg.wave}`);
-
   // Dans la maquette : "Algérie — Agence Nationale des Produits
   // Pharmaceutiques (ANPP)". Les deux pays sont optionnels en base.
   const countryLine = (country) => {
@@ -93,9 +91,7 @@ function TwgDetailView({ id }) {
         {backLink}
 
         <div className="section-head">
-          <span className="kicker">
-            {t('twgsPage.waveT')} : {waveLabel}
-          </span>
+          <span className="kicker">{t('twgsPage.detailKicker')}</span>
           <h2>{pickLang(twg, 'name', lang)}</h2>
           <p>{pickLang(twg, 'desc', lang)}</p>
         </div>

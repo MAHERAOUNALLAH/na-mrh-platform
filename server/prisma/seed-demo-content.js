@@ -61,13 +61,16 @@ const NEWS = [
   },
 ];
 
+// La colonne `phase` est obligatoire en base mais n'est plus utilisée
+// ni affichée : même valeur pour tous les documents.
+const LEGACY_DOC_PHASE = 1;
 const DOCUMENTS = [
   { ...title('Exemple de ligne directrice', 'Example guideline', 'مثال على مبدأ توجيهي'),
-    category: 'guideline', phase: 1, twgId: 'ma-twg' },
+    category: 'guideline', phase: LEGACY_DOC_PHASE, twgId: 'ma-twg' },
   { ...title('Exemple de procédure opératoire normalisée', 'Example standard operating procedure', 'مثال على إجراء تشغيل موحّد'),
-    category: 'sop', phase: 1, twgId: 'gmp-twg' },
+    category: 'sop', phase: LEGACY_DOC_PHASE, twgId: 'gmp-twg' },
   { ...title('Exemple de modèle de rapport', 'Example report template', 'مثال على نموذج تقرير'),
-    category: 'template', phase: 2, twgId: 'qms-twg' },
+    category: 'template', phase: LEGACY_DOC_PHASE, twgId: 'qms-twg' },
 ];
 
 function parseArgs(argv) {

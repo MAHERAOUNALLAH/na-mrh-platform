@@ -38,9 +38,6 @@ function Twgs() {
     // contient déjà les trois langues, on choisit juste à l'affichage.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // La maquette affichait le libellé de vague via wave1 / wave2 / wave3.
-  const waveLabel = (wave) => t(`twgsPage.wave${wave}`);
-
   // Un pays peut ne pas être renseigné (leadCountryId est optionnel en base).
   const countryName = (country) => (country ? pickLang(country, 'name', lang) : '—');
 
@@ -58,15 +55,14 @@ function Twgs() {
 
         <div className="grid-cards">
           {twgs.map((twg) => (
-            // data-wave colore la bordure de gauche (vague 1 rouge, 2 or, 3 gris)
+            // Toutes les cartes ont la même apparence ; l'ordre est celui
+            // de l'API (alphabétique du nom français, identique partout).
             // La carte est un <Link> : voir la règle a.twg-card dans index.css.
             <Link
               className="twg-card"
-              data-wave={twg.wave}
               to={`/groupes-de-travail/${twg.id}`}
               key={twg.id}
             >
-              <span className="wave-tag">{waveLabel(twg.wave)}</span>
               <h3>{pickLang(twg, 'name', lang)}</h3>
               <p>{pickLang(twg, 'desc', lang)}</p>
               <span className="leads">

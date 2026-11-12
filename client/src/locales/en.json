@@ -39,7 +39,7 @@
     "missionP": "Designed as a progressive, modular build, the platform delivers a complete, usable tool at the end of every three-month phase — without waiting for the full project to be completed.",
     "twgKicker": "Implementation mechanism",
     "twgH": "Five Technical Working Groups",
-    "twgP": "Each TWG is co-led by two member countries and prioritised into waves according to its maturity.",
+    "twgP": "Five technical domains, each co-led by two member countries.",
     "newsKicker": "Regional life",
     "newsH": "Recent news",
     "countriesH": "Member States of the initiative"
@@ -55,7 +55,7 @@
     "twgLevelT": "5 Technical Working Groups",
     "twgLevelD": "Two co-leads per group · guidelines, SOPs, joint activities.",
     "partnersT": "Technical & financial partners",
-    "partnersP": "AUDA-NEPAD · African Medicines Agency (AMA) · WHO · Swissmedic · World Bank · AfDB"
+    "partnersP": "AUDA-NEPAD · African Medicines Agency (AMA) · WHO · Swissmedic · World Bank · AfDB · CEPI"
   },
   "newsPage": {
     "kicker": "Announcements",
@@ -129,24 +129,18 @@
       "sop": "Procedures (SOPs)",
       "report": "Meeting reports",
       "template": "Templates"
-    },
-    "p1": "Phase 1",
-    "p2": "Phase 2",
-    "p3": "Phase 3"
+    }
   },
   "twgsPage": {
     "kicker": "Five technical domains",
     "h": "Technical Working Groups (TWGs)",
-    "p": "Prioritised into three waves on 18 August 2026 — Secretariat support follows the ranking.",
+    "p": "Each group covers one regulatory function and is co-led by two member countries.",
     "leadT": "Lead",
     "coleadT": "Co-lead",
-    "wave1": "Wave 1 — Start now",
-    "wave2": "Wave 2 — Build the conditions",
-    "wave3": "Wave 3 — Defer and monitor",
     "backTo": "Back to Working Groups",
-    "waveT": "Wave",
     "functionT": "Regulatory function covered",
-    "notFound": "This working group could not be found."
+    "notFound": "This working group could not be found.",
+    "detailKicker": "Technical working group"
   },
   "footer": {
     "aboutT": "NA-MRH",
@@ -154,7 +148,7 @@
     "linksT": "Navigation",
     "contactT": "Secretariat",
     "contactP": "Hosted by ANMPS, Tunisia",
-    "partners": "Technical & financial partners: AUDA-NEPAD · AMA · WHO · Swissmedic · World Bank · AfDB  ·  © 2026 NA-MRH Secretariat"
+    "partners": "Technical & financial partners: AUDA-NEPAD · AMA · WHO · Swissmedic · World Bank · AfDB · CEPI  ·  © 2026 NA-MRH Secretariat"
   },
   "homePage": {
     "sectionError": "This section is temporarily unavailable."
@@ -366,7 +360,7 @@
     "colAuthor": "Author",
     "colStatus": "Status",
     "statusSelect": "Status of “{{title}}”",
-    "note": "Versioning, comments and a detailed history for each document will come in a later stage (Phase 4)."
+    "note": "Versioning, comments and a detailed history for each document will come in a later stage."
   },
   "adminNews": {
     "intro": "News shown on the public site. An unpublished draft never appears publicly, only here.",
@@ -389,15 +383,12 @@
   "adminTwgs": {
     "intro": "Working group content shown on the public site. Changes appear immediately on the “Working groups” page.",
     "tableLabel": "Working group list",
-    "colWave": "Wave",
     "colTwg": "Working group",
     "colLead": "Lead",
     "colColead": "Co-lead",
     "editTitle": "Edit the working group",
     "nameL": "Name",
     "descL": "Description",
-    "waveL": "Wave",
-    "waveN": "Wave {{n}}",
     "leadL": "Lead country",
     "coleadL": "Co-lead country"
   },
