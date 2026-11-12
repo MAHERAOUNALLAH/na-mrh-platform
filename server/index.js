@@ -293,20 +293,26 @@ app.get('/api/countries', async (req, res) => {
 // "include" demande à Prisma de rapporter les lignes liées (pays lead,
 // co-lead, fonction) dans la même réponse — sans quoi on n'aurait que
 // des identifiants et il faudrait un second appel pour les noms.
+// La colonne héritée `wave` reste en base mais n'est plus ni utilisée
+// ni renvoyée (TWG_PUBLIC_OMIT). Ordre unique, partout (accueil, liste,
+// administration) et dans les trois langues : alphabétique du nom français.
+// Trié ici avec le collateur français de Node, et non par la base : l'ordre
+// d'un ORDER BY dépend du collationnement de PostgreSQL, qui peut différer
+// d'un environnement à l'autre.
+const TWG_PUBLIC_OMIT = { wave: true };
+const frenchCollator = new Intl.Collator('fr', { sensitivity: 'base' });
+const sortTwgs = (twgs) => twgs.sort((a, b) => frenchCollator.compare(a.nameFr, b.nameFr));
 app.get('/api/twgs', async (req, res) => {
   try {
     const twgs = await prisma.twg.findMany({
+      omit: TWG_PUBLIC_OMIT,
       include: {
         leadCountry: true,
         coleadCountry: true,
         function: true,
       },
-      orderBy: [
-        { wave: 'asc' },    // vague 1 d'abord, puis 2, puis 3
-        { nameFr: 'asc' },  // à vague égale, ordre alphabétique
-      ],
     });
-    res.json(twgs);
+    res.json(sortTwgs(twgs));
   } catch (error) {
     console.error('Erreur /api/twgs :', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -318,6 +324,7 @@ app.get('/api/twgs/:id', async (req, res) => {
   try {
     const twg = await prisma.twg.findUnique({
       where: { id: req.params.id },
+      omit: TWG_PUBLIC_OMIT,
       include: { leadCountry: true, coleadCountry: true, function: true },
     });
 
@@ -1245,8 +1252,10 @@ app.delete('/api/admin/news/:id', requireAuth, requireRole('secretariat_admin'),
 // ces données sont publiques, inutile de les dupliquer côté admin.
 app.put('/api/admin/twgs/:id', requireAuth, requireRole('secretariat_admin'), async (req, res) => {
   try {
+    // La colonne héritée `wave` n'est plus modifiable : si elle est
+    // envoyée, elle est ignorée et la valeur en base ne change pas.
     const { nameFr, nameEn, nameAr, descFr, descEn, descAr,
-            wave, leadCountryId, coleadCountryId } = req.body;
+            leadCountryId, coleadCountryId } = req.body;
 
     const existing = await prisma.twg.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ error: 'Groupe de travail introuvable.' });
@@ -1254,11 +1263,6 @@ app.put('/api/admin/twgs/:id', requireAuth, requireRole('secretariat_admin'), as
     const clean = (v) => (typeof v === 'string' ? v.trim() : '');
     if (!clean(nameFr) || !clean(nameEn) || !clean(nameAr)) {
       return res.status(400).json({ error: 'Les trois noms (FR, EN, AR) sont obligatoires.' });
-    }
-
-    const waveNum = Number(wave);
-    if (!Number.isInteger(waveNum) || waveNum < 1 || waveNum > 3) {
-      return res.status(400).json({ error: 'La vague doit être 1, 2 ou 3.' });
     }
 
     // Chaîne vide ou absente = "aucun pays" (null en base).
@@ -1274,10 +1278,10 @@ app.put('/api/admin/twgs/:id', requireAuth, requireRole('secretariat_admin'), as
 
     const twg = await prisma.twg.update({
       where: { id: req.params.id },
+      omit: TWG_PUBLIC_OMIT,
       data: {
         nameFr: clean(nameFr), nameEn: clean(nameEn), nameAr: clean(nameAr),
         descFr: clean(descFr) || null, descEn: clean(descEn) || null, descAr: clean(descAr) || null,
-        wave: waveNum,
         leadCountryId: lead,
         coleadCountryId: colead,
       },

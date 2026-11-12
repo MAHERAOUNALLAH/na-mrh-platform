@@ -114,7 +114,7 @@ model Twg {
   descFr String?
   descEn String?
   descAr String?
-  wave   Int // 1, 2 ou 3
+  wave   Int // colonne héritée, conservée en base ; plus affichée ni modifiable
 
   // Fonction réglementaire couverte par ce GTT
   functionCode String?

@@ -46,9 +46,6 @@
     --gold:#C08A28;
     --line:#DDD3C0;
     --line-strong:#C7BBA0;
-    --wave1:#A31621;
-    --wave2:#C08A28;
-    --wave3:#8A8071;
     --radius:2px;
     --serif:'Zilla Slab', Georgia, serif;
     --sans:'Public Sans', -apple-system, sans-serif;
@@ -253,13 +250,10 @@
 }
   /* ---------- TWG CARDS ---------- */
   .twg-card{
-    background:var(--surface); border-inline-start:5px solid var(--wave1);
+    background:var(--surface); border-inline-start:5px solid var(--red);
     box-shadow:0 0 0 1px var(--line); padding:20px 22px; text-align:start;
     display:flex; flex-direction:column; gap:8px;
   }
-  .twg-card[data-wave="2"]{border-inline-start-color:var(--wave2);}
-  .twg-card[data-wave="3"]{border-inline-start-color:var(--wave3);}
-  .twg-card .wave-tag{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);}
   .twg-card h3{font-size:18px;}
   .twg-card p{font-size:14px; color:var(--ink-soft);}
   .twg-card .leads{font-size:12.5px; font-weight:700; color:var(--ink); margin-top:4px;}

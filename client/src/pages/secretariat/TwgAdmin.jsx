@@ -1,7 +1,7 @@
 // ============================================================
 // client/src/pages/secretariat/TwgAdmin.jsx
 // Onglet "Groupes de travail" — édition du contenu des GTT :
-// noms et descriptions (FR/EN/AR), vague, pays lead et co-lead.
+// noms et descriptions (FR/EN/AR), pays lead et co-lead.
 //
 // Pas de création ni de suppression : les 5 GTT sont structurels
 // (leur id est un slug utilisé dans les URL et les documents).
@@ -50,7 +50,6 @@ function TwgAdmin() {
     setForm({
       nameFr: twg.nameFr, nameEn: twg.nameEn, nameAr: twg.nameAr,
       descFr: twg.descFr || '', descEn: twg.descEn || '', descAr: twg.descAr || '',
-      wave: String(twg.wave),
       leadCountryId: twg.leadCountryId || '',
       coleadCountryId: twg.coleadCountryId || '',
     });
@@ -88,12 +87,11 @@ function TwgAdmin() {
       <div className="table-scroll" role="region" aria-label={t('adminTwgs.tableLabel')} tabIndex={0}>
         <table className="admin-table">
           <thead>
-            <tr><th>{t('adminTwgs.colWave')}</th><th>{t('adminTwgs.colTwg')}</th><th>{t('adminTwgs.colLead')}</th><th>{t('adminTwgs.colColead')}</th><th></th></tr>
+            <tr><th>{t('adminTwgs.colTwg')}</th><th>{t('adminTwgs.colLead')}</th><th>{t('adminTwgs.colColead')}</th><th></th></tr>
           </thead>
           <tbody>
             {twgs.map((twg) => (
               <tr key={twg.id}>
-                <td>{twg.wave}</td>
                 <td><b>{pickLang(twg, 'name', lang)}</b></td>
                 <td>{twg.leadCountry ? pickLang(twg.leadCountry, 'name', lang) : '—'}</td>
                 <td>{twg.coleadCountry ? pickLang(twg.coleadCountry, 'name', lang) : '—'}</td>
@@ -128,13 +126,6 @@ function TwgAdmin() {
               <textarea rows="3" name="descEn" value={form.descEn} onChange={handleChange} /></div>
             <div className="field"><label>{t('admin.inLang', { label: t('adminTwgs.descL'), lang: t('langNames.ar') })}</label>
               <textarea rows="3" name="descAr" value={form.descAr} onChange={handleChange} dir="rtl" /></div>
-
-            <div className="field"><label>{t('adminTwgs.waveL')}</label>
-              <select name="wave" value={form.wave} onChange={handleChange}>
-                <option value="1">{t('adminTwgs.waveN', { n: 1 })}</option>
-                <option value="2">{t('adminTwgs.waveN', { n: 2 })}</option>
-                <option value="3">{t('adminTwgs.waveN', { n: 3 })}</option>
-              </select></div>
 
             <div className="kv-grid" style={{ margin: '0 0 14px' }}>
               <div className="field" style={{ margin: 0 }}><label>{t('adminTwgs.leadL')}</label>

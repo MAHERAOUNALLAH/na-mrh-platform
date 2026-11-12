@@ -1,7 +1,7 @@
 // ============================================================
 // client/src/pages/Home.jsx
 // Accueil : hero, statistiques, mission + États membres, aperçu des
-// GTT (vague 1) et dernières actualités.
+// groupes de travail (les cinq) et dernières actualités.
 //
 // - Textes, liens des boutons, deux chiffres et affichage des sections :
 //   modifiables par le Secrétariat (onglet « Page d'accueil »), via
@@ -55,7 +55,6 @@ function Home() {
 
   const count = (list) => (list.loading ? '…' : list.error ? '—' : list.data.length);
   const statValues = [count(countries), count(twgs), value('home.stat3Value'), value('home.stat4Value')];
-  const twgWave1 = twgs.data.filter((w) => w.wave === 1);
   const showMission = show('mission');
   const showCountries = show('countries');
 
@@ -120,7 +119,7 @@ function Home() {
         </section>
       )}
 
-      {/* ---------- Aperçu des GTT (vague 1) ---------- */}
+      {/* ---------- Groupes de travail (les cinq, ordre de l'API) ---------- */}
       {show('twgs') && (
         <section className="page-section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
           <div className="container">
@@ -132,9 +131,8 @@ function Home() {
 
             <SectionStatus list={twgs} />
             <div className="grid-cards">
-              {twgWave1.map((w) => (
-                <Link key={w.id} to={`/groupes-de-travail/${w.id}`} className="twg-card" data-wave={w.wave}>
-                  <span className="wave-tag">{t('twgsPage.wave1')}</span>
+              {twgs.data.map((w) => (
+                <Link key={w.id} to={`/groupes-de-travail/${w.id}`} className="twg-card">
                   <h3>{pickLang(w, 'name', lang)}</h3>
                   <p>{pickLang(w, 'desc', lang)}</p>
                   <span className="leads">

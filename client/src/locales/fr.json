@@ -39,7 +39,7 @@
     "missionP": "Conçue selon une approche progressive et modulaire, la plateforme livre un outil opérationnel complet à la fin de chaque phase de trois mois — sans attendre l'achèvement du projet dans son intégralité.",
     "twgKicker": "Mécanisme de mise en œuvre",
     "twgH": "Cinq groupes de travail techniques",
-    "twgP": "Chaque GTT est co-dirigé par deux pays membres et priorisé en vagues selon sa maturité.",
+    "twgP": "Cinq domaines techniques, chacun co-dirigé par deux pays membres.",
     "newsKicker": "Vie de la région",
     "newsH": "Actualités récentes",
     "countriesH": "Les États membres de l'initiative"
@@ -137,16 +137,13 @@
   "twgsPage": {
     "kicker": "Cinq domaines techniques",
     "h": "Groupes de Travail Techniques (GTT)",
-    "p": "Priorisés en trois vagues le 18 août 2026 — l'appui du Secrétariat suit le classement.",
+    "p": "Chaque groupe couvre une fonction réglementaire et est co-dirigé par deux pays membres.",
     "leadT": "Lead",
     "coleadT": "Co-lead",
-    "wave1": "Vague 1 — Engager maintenant",
-    "wave2": "Vague 2 — Préparer les conditions",
-    "wave3": "Vague 3 — Différer et surveiller",
     "backTo": "Retour aux groupes de travail",
-    "waveT": "Vague",
     "functionT": "Fonction réglementaire couverte",
-    "notFound": "Ce groupe de travail est introuvable."
+    "notFound": "Ce groupe de travail est introuvable.",
+    "detailKicker": "Groupe de travail technique"
   },
   "footer": {
     "aboutT": "NA-MRH",
@@ -389,15 +386,12 @@
   "adminTwgs": {
     "intro": "Contenu des groupes de travail affiché sur le site public. Les modifications sont visibles immédiatement sur la page « Groupes de travail ».",
     "tableLabel": "Liste des groupes de travail",
-    "colWave": "Vague",
     "colTwg": "Groupe de travail",
     "colLead": "Lead",
     "colColead": "Co-lead",
     "editTitle": "Modifier le groupe de travail",
     "nameL": "Nom",
     "descL": "Description",
-    "waveL": "Vague",
-    "waveN": "Vague {{n}}",
     "leadL": "Pays lead",
     "coleadL": "Pays co-lead"
   },
