@@ -256,7 +256,7 @@ model Document {
   titleAr String
 
   category   DocumentCategory
-  phase      Int // 1, 2 ou 3
+  phase      Int // colonne héritée, conservée en base ; plus affichée ni renvoyée
   visibility DocumentVisibility @default(internal)
   status     DocumentStatus     @default(draft_twg)
 

@@ -129,10 +129,7 @@
       "sop": "Procedures (SOPs)",
       "report": "Meeting reports",
       "template": "Templates"
-    },
-    "p1": "Phase 1",
-    "p2": "Phase 2",
-    "p3": "Phase 3"
+    }
   },
   "twgsPage": {
     "kicker": "Five technical domains",

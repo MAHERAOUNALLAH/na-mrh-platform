@@ -129,10 +129,7 @@
       "sop": "Procédures (SOP)",
       "report": "Comptes rendus",
       "template": "Modèles"
-    },
-    "p1": "Phase 1",
-    "p2": "Phase 2",
-    "p3": "Phase 3"
+    }
   },
   "twgsPage": {
     "kicker": "Cinq domaines techniques",

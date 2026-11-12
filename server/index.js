@@ -362,9 +362,9 @@ app.get('/api/documents', async (req, res) => {
       select: {
         id: true,
         titleFr: true, titleEn: true, titleAr: true,
-        category: true, phase: true, version: true,
+        category: true, version: true,   // colonne héritée `phase` : plus renvoyée
       },
-      orderBy: [{ phase: 'asc' }, { titleFr: 'asc' }],
+      orderBy: [{ titleFr: 'asc' }],
     });
 
     // On ne renvoie qu'un NOMBRE pour les documents restreints :
@@ -1029,7 +1029,7 @@ const DOCUMENT_STATUSES = [
 
 const ADMIN_DOCUMENT_SELECT = {
   id: true, titleFr: true, titleEn: true, titleAr: true,
-  category: true, phase: true, status: true, visibility: true, version: true,
+  category: true, status: true, visibility: true, version: true,
   twg: { select: { id: true, nameFr: true, nameEn: true, nameAr: true } },
   createdBy: { select: { id: true, name: true } },
   createdAt: true,

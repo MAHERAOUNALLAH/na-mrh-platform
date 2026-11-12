@@ -137,19 +137,22 @@ async function main() {
   const secretariatAdmin = usersByEmail['r.jaziri@example.org'];
   const validatorEg = usersByEmail['t.mansy@example.org'];
 
+  // La colonne `phase` est obligatoire en base mais n'est plus utilisée
+  // ni affichée : même valeur pour tous les documents.
+  const LEGACY_DOC_PHASE = 1;
   const documents = [
     { twgId: 'ma-twg',  titleFr: "Grille d'évaluation harmonisée — dossiers génériques", titleEn: 'Harmonised assessment grid — generic dossiers', titleAr: 'شبكة تقييم موحدة — ملفات الأدوية الجنيسة',
-      category: 'guideline', phase: 1, visibility: 'internal', status: 'draft_twg', version: '1.0', createdById: adminDz },
+      category: 'guideline', phase: LEGACY_DOC_PHASE, visibility: 'internal', status: 'draft_twg', version: '1.0', createdById: adminDz },
     { twgId: 'gmp-twg', titleFr: "Procédure d'inspection conjointe — sites stériles", titleEn: 'Joint inspection procedure — sterile sites', titleAr: 'إجراء التفتيش المشترك — مواقع التصنيع المعقم',
-      category: 'sop', phase: 1, visibility: 'internal', status: 'received_secretariat', version: '1.0', createdById: adminEg },
+      category: 'sop', phase: LEGACY_DOC_PHASE, visibility: 'internal', status: 'received_secretariat', version: '1.0', createdById: adminEg },
     { twgId: 'qms-twg', titleFr: 'Politique régionale de gestion documentaire', titleEn: 'Regional document management policy', titleAr: 'السياسة الإقليمية لإدارة الوثائق',
-      category: 'guideline', phase: 2, visibility: 'internal', status: 'pending_steering', version: '1.1',
+      category: 'guideline', phase: LEGACY_DOC_PHASE, visibility: 'internal', status: 'pending_steering', version: '1.1',
       validatedByBody: 'secretariat', validatedById: secretariatAdmin, validatedAt: new Date('2026-08-19'), createdById: adminMa },
     { twgId: 'ims-twg', titleFr: 'Cartographie des systèmes nationaux RIMS', titleEn: 'National RIMS systems mapping', titleAr: 'مسح أنظمة RIMS الوطنية',
-      category: 'report', phase: 1, visibility: 'internal', status: 'distributed_internal', version: '1.0',
+      category: 'report', phase: LEGACY_DOC_PHASE, visibility: 'internal', status: 'distributed_internal', version: '1.0',
       validatedByBody: 'secretariat', validatedById: secretariatAdmin, validatedAt: new Date('2026-08-05'), createdById: secretariatAdmin },
     { twgId: 'pv-twg',  titleFr: 'Guide de reliance régionale', titleEn: 'Regional Reliance Guideline', titleAr: 'دليل الاعتماد التبادلي الإقليمي',
-      category: 'guideline', phase: 3, visibility: 'public', status: 'published_public', version: '2.0',
+      category: 'guideline', phase: LEGACY_DOC_PHASE, visibility: 'public', status: 'published_public', version: '2.0',
       validatedByBody: 'steering_committee', validatedById: validatorEg, validatedAt: new Date('2026-07-20'), createdById: validatorEg },
   ];
   for (const d of documents) {
