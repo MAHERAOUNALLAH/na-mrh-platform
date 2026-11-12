@@ -5,7 +5,7 @@
 //   - 12 fonctions réglementaires (les GTT y sont liés par clé
 //     étrangère : sans elles, les GTT ne peuvent pas être créés) ;
 //   - 6 pays membres (noms, ANR, coordonnées publiques) ;
-//   - 5 groupes de travail techniques (noms, descriptions, vague,
+//   - 5 groupes de travail techniques (noms, descriptions, fonction,
 //     pays lead / co-lead).
 //
 // AUCUN utilisateur, AUCUN mot de passe, aucune donnée de démonstration.
@@ -91,32 +91,35 @@ async function main() {
   // ----------------------------------------------------------
   // 3. GROUPES DE TRAVAIL (5)  — id = slug, functionCode + lead/colead
   // ----------------------------------------------------------
+  // LEGACY_TWG_WAVE : la colonne `wave` est obligatoire en base mais n'est
+  // plus utilisée ; même valeur pour tous les groupes.
+  const LEGACY_TWG_WAVE = 1;
   const twgs = [
     { id: 'ma-twg',  nameFr: 'Homologation / Autorisation de Mise sur le Marché', nameEn: 'Marketing Authorisation', nameAr: 'التسجيل والترخيص',
       descFr: 'Définit le périmètre régional des évaluations conjointes, la ligne directrice générale et le guide de reliance.',
       descEn: 'Defines the regional scope of joint assessments, the general guideline and the reliance guide.',
       descAr: 'يحدد النطاق الإقليمي للتقييمات المشتركة والدليل العام ودليل الاعتماد التبادلي.',
-      wave: 1, functionCode: 'MA', leadCountryId: 'dz', coleadCountryId: 'mr' },
+      wave: LEGACY_TWG_WAVE, functionCode: 'MA', leadCountryId: 'dz', coleadCountryId: 'mr' },
     { id: 'gmp-twg', nameFr: 'Inspection BPF (Bonnes Pratiques de Fabrication)', nameEn: 'GMP Inspection', nameAr: 'تفتيش الممارسات الجيدة للتصنيع',
       descFr: 'Construit la procédure et le vivier d\'inspecteurs pour les inspections conjointes de sites de fabrication.',
       descEn: 'Builds the procedure and the pool of inspectors for joint manufacturing-site inspections.',
       descAr: 'يضع الإجراء ومجموعة المفتشين للتفتيش المشترك لمواقع التصنيع.',
-      wave: 1, functionCode: 'GMP', leadCountryId: 'eg', coleadCountryId: 'ly' },
+      wave: LEGACY_TWG_WAVE, functionCode: 'GMP', leadCountryId: 'eg', coleadCountryId: 'ly' },
     { id: 'ims-twg', nameFr: "Système d'Information (IMS)", nameEn: 'Information Management System (IMS)', nameAr: 'نظام المعلومات',
       descFr: 'Pilote le REC-RIMS régional, la cartographie des systèmes nationaux et le futur site NA-MRH.',
       descEn: 'Leads the regional REC-RIMS, the mapping of national systems and the future NA-MRH site.',
       descAr: 'يقود نظام REC-RIMS الإقليمي، ومسح الأنظمة الوطنية، والموقع المستقبلي لـ NA-MRH.',
-      wave: 1, functionCode: 'IMS', leadCountryId: 'tn', coleadCountryId: 'eg' },
+      wave: LEGACY_TWG_WAVE, functionCode: 'IMS', leadCountryId: 'tn', coleadCountryId: 'eg' },
     { id: 'qms-twg', nameFr: 'Système de Management de la Qualité (SMQ)', nameEn: 'Quality Management System (QMS)', nameAr: 'نظام إدارة الجودة',
       descFr: 'A livré le mandat (ToR) et la procédure de gestion documentaire, désormais en revue par les ANR.',
       descEn: 'Delivered the mandate (ToR) and the document management procedure, now under NRA review.',
       descAr: 'سلّم الاختصاصات وإجراء إدارة الوثائق، وهي الآن قيد المراجعة من الهيئات الوطنية.',
-      wave: 2, functionCode: 'QMS', leadCountryId: 'ma', coleadCountryId: 'eg' },
+      wave: LEGACY_TWG_WAVE, functionCode: 'QMS', leadCountryId: 'ma', coleadCountryId: 'eg' },
     { id: 'pv-twg',  nameFr: 'Pharmacovigilance', nameEn: 'Pharmacovigilance', nameAr: 'اليقظة الدوائية',
       descFr: 'Prépare l\'échange de données de pharmacovigilance entre systèmes nationaux.',
       descEn: 'Prepares the exchange of pharmacovigilance data between national systems.',
       descAr: 'يُعِدّ لتبادل بيانات اليقظة الدوائية بين الأنظمة الوطنية.',
-      wave: 2, functionCode: 'PV', leadCountryId: 'eg', coleadCountryId: 'tn' },
+      wave: LEGACY_TWG_WAVE, functionCode: 'PV', leadCountryId: 'eg', coleadCountryId: 'tn' },
   ];
   await seedAll('Groupes de travail', 'twg', twgs, (w) => ({ id: w.id }));
 
