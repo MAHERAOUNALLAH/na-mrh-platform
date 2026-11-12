@@ -360,7 +360,7 @@
     "colAuthor": "Author",
     "colStatus": "Status",
     "statusSelect": "Status of “{{title}}”",
-    "note": "Versioning, comments and a detailed history for each document will come in a later stage (Phase 4)."
+    "note": "Versioning, comments and a detailed history for each document will come in a later stage."
   },
   "adminNews": {
     "intro": "News shown on the public site. An unpublished draft never appears publicly, only here.",

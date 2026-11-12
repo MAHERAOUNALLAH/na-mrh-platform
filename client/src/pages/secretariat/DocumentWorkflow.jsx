@@ -2,7 +2,7 @@
 // client/src/pages/secretariat/DocumentWorkflow.jsx
 // Onglet "Circuit documentaire" — périmètre MVP : liste de tous
 // les documents + changement de statut. Le versionning et les
-// commentaires viendront en Phase 4.
+// commentaires viendront dans une prochaine étape.
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react';

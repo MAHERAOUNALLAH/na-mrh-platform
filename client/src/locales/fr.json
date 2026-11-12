@@ -360,7 +360,7 @@
     "colAuthor": "Auteur",
     "colStatus": "Statut",
     "statusSelect": "Statut de « {{title}} »",
-    "note": "Le versionnage, les commentaires et l'historique détaillé par document arriveront dans une prochaine étape (Phase 4)."
+    "note": "Le versionnage, les commentaires et l'historique détaillé par document arriveront dans une prochaine étape."
   },
   "adminNews": {
     "intro": "Actualités affichées sur le site public. Un brouillon non publié n'apparaît jamais côté public, seulement ici.",
