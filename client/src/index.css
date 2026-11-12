@@ -852,3 +852,11 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 /* Drapeau à dominante claire (Algérie) : fin liseré gris intérieur,
    visible même dans une bande qui rogne ce qui dépasse. */
 .flag-light{outline:1px solid var(--line-strong); outline-offset:-1px;}
+
+/* ---------- Pied de page : liens légaux (confidentialité, conditions) ---------- */
+/* Ligne centrée entre les colonnes et la ligne des partenaires.
+   « footer .footer-legal ul » l'emporte sur la grille mobile de « footer ul ». */
+.footer-legal{border-top:1px solid rgba(255,255,255,.15); padding:10px clamp(16px, 4vw, 28px);}
+footer .footer-legal ul{display:flex; flex-wrap:wrap; justify-content:center; gap:4px 28px;}
+.footer-legal a{color:#C9C0AE; font-size:13px; text-decoration:none;}
+.footer-legal a:hover, .footer-legal a.active{color:#fff; text-decoration:underline;}

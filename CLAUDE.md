@@ -180,6 +180,7 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - ✅ `NotFound.jsx` (`path="*"`).
 - ⏳ **Portail RIMS** (`/portail-rims`) : toujours `ComingSoon` — seule page publique non construite.
 - ⏳ Fiche pays `/etats-membres/:id` : n'existe pas (la maquette la prévoit, `pageMemberDetail`) ; les cartes pays ne sont pas cliquables.
+- ⏳ **Pages légales** (`/confidentialite`, `/conditions-utilisation`, `LegalPage.jsx`) : liées depuis le pied de page (ligne `.footer-legal`), titre traduit, mais **texte définitif à fournir** — la page affiche « texte en cours de rédaction » (`legal.pending`). Le texte, une fois reçu, remplace cet avis dans les trois langues.
 
 **Phase 2 — authentification** ✅ `Login.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx`, `MonEspace.jsx` ; `POST /api/auth/login`, `GET /api/auth/me` ; middlewares `requireAuth` et `requireRole` ; niveaux `reader | contributor | validator | country_admin | secretariat_admin`.
 

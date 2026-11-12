@@ -19,6 +19,7 @@ import Actualites from './pages/Actualites';
 import Contact from './pages/Contact';
 import Reclamations from './pages/Reclamations';
 import ComingSoon from './pages/ComingSoon';
+import LegalPage from './pages/LegalPage';
 import NotFound from './pages/NotFound';
 
 // --- Authentification ---
@@ -56,6 +57,9 @@ function App() {
 
           {/* Rubrique annoncée dans le menu mais pas encore construite. */}
           <Route path="portail-rims" element={<ComingSoon titleKey="nav.portal" />} />
+          {/* Pages légales, liées depuis le pied de page (textes à venir) */}
+          <Route path="confidentialite" element={<LegalPage kind="privacy" />} />
+          <Route path="conditions-utilisation" element={<LegalPage kind="terms" />} />
 
           {/* ---------- Authentification ---------- */}
           <Route path="connexion" element={<Login />} />

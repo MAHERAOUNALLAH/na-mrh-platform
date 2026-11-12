@@ -411,5 +411,12 @@
     "passwordNeeded": "New email address: enter your current password to confirm.",
     "save": "Save my profile",
     "saved": "Profile updated."
+  },
+  "legal": {
+    "navLabel": "Legal information",
+    "kicker": "Legal information",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "pending": "This text is being drafted and will be published soon."
   }
 }

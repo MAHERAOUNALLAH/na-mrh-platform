@@ -212,6 +212,14 @@ function Layout() {
             </p>
           </div>
         </div>
+        {/* Liens légaux : hors de la liste « Navigation » (ce ne sont pas
+            des rubriques du menu), sur une ligne à part. */}
+        <nav className="footer-legal" aria-label={t('legal.navLabel')}>
+          <ul>
+            <li><NavLink to="/confidentialite">{t('legal.privacy')}</NavLink></li>
+            <li><NavLink to="/conditions-utilisation">{t('legal.terms')}</NavLink></li>
+          </ul>
+        </nav>
         <div className="partners-row">{t('footer.partners')}</div>
       </footer>
     </div>
