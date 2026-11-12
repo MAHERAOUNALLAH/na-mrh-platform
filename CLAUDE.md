@@ -78,7 +78,8 @@ La langue se lit via `const { i18n } = useTranslation()` puis `i18n.language` : 
 - `server/utils/email.js` — `normalizeEmail` / `isValidEmail` (voir Backend, règle des e-mails)
 - `client/src/context/SiteContentContext.jsx` — `useSiteContent()` : `text(clé)`, `value(clé)`, `show(section)`, `reload()` (voir « Contenu du site modifiable »)
 - `server/utils/siteContent.js` — registre des clés du contenu modifiable et `validateSiteContentBody`
-- `client/src/components/Flag.jsx` — `<Flag code="tn" title="Tunisie" />`, portage du `flagIcon()` de la maquette. Cinq drapeaux sont dessinés en SVG ; celui de l'Égypte est l'image officielle, extraite du base64 de la maquette vers `client/public/flags/eg.png`.
+- `client/src/components/Flag.jsx` — `<Flag code="tn" width={32} height={24} />` rend `<img src="/flags/tn.svg">`. Sans `title`, le drapeau est décoratif (alt vide, `aria-hidden`) : c'est le cas normal, le nom du pays étant affiché à côté ; `title` seulement si le drapeau est le seul porteur du nom. Code inconnu : rien. Sans `width`/`height`, la taille vient du CSS du conteneur (`.flag-band`).
+- **Drapeaux : SVG importés tels quels de flag-icons (licence MIT, `client/public/flags/LICENSE-flag-icons.txt`, version 7.6.0, dossier `flags/4x3`). Ne JAMAIS les redessiner, les générer ni les retoucher à la main.** Mise à jour : `npm pack flag-icons` dans un dossier temporaire (hors du dépôt, aucune dépendance ajoutée), recopier le fichier. Format **4:3** : toute taille passée à `<Flag>` respecte 4:3 (Contact 32×24, Comptes pays 24×18) ; les cartes « États membres » ont une bande 4:3 plafonnée à 160 px, drapeau entier centré (`object-fit: contain`, jamais `cover`). Drapeau à dominante claire : ajouter son code à `LIGHT_FLAGS` (liseré `.flag-light`, aujourd'hui l'Algérie seule). Pas de drapeaux sur l'accueil.
 
 ### CSS
 - **Toujours** utiliser les classes réelles de la maquette (`className="twg-card"`, pas de `style={{...}}` improvisé)
@@ -175,7 +176,7 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - Fins de ligne : `.gitattributes` impose LF dans le dépôt (Windows inclus). Ne pas committer de fichiers de travail (patchs, scripts jetables) : vérifier `git status` et ajouter les fichiers un par un plutôt que `git add -A`.
 
 ## État d'avancement (Phases 0 à 3 construites, audit A-D corrigé, préparation au déploiement faite)
-> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 12/11/2026, branche `retours-partenaires` (partie de `main` ; `vrais-drapeaux` et `mentions-legales` pas encore fusionnées dans `main`).
+> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 12/11/2026, branches `retours-partenaires` et `vrais-drapeaux` fusionnées dans `main`.
 
 **Phase 0 — fondations** ✅ CSS extrait, i18n (FR/EN/AR + RTL), routeur, Layout (header/footer), `Flag.jsx`, `lang.js`.
 
@@ -213,6 +214,9 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - ✅ Espace Secrétariat, connexion, Mon espace, messages de session et d'erreur du client traduits FR/EN/AR (contrôle automatique : 0 texte identique au français non justifié sur 32 états).
 - ✅ « Mon profil » : nom et e-mail modifiables (`PUT /api/auth/me`).
 - ⏳ Messages du serveur toujours en français. Relecture de l'arabe par un arabophone non faite.
+
+**Branche `vrais-drapeaux`** (12/11/2026)
+- ✅ Drapeaux dessinés à la main remplacés par les SVG de flag-icons 7.6.0 (MIT) ; `eg.png` supprimé ; proportions 4:3 ; liseré de l'Algérie. Testé : États membres, Contact, Comptes pays, FR/AR, 360/768/1440 (118 contrôles), aucune requête extérieure.
 
 **Branche `retours-partenaires`** (12/11/2026, partie de `main`)
 - ✅ Groupes de travail : plus de classement affiché, cinq groupes sur l'accueil, ordre alphabétique unique ; `wave` ni renvoyée ni exigée. Documents : plus de pastille ni de champ `phase`. CEPI ajouté aux partenaires (fr/en/ar).

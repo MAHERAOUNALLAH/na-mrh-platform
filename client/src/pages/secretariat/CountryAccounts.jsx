@@ -136,7 +136,7 @@ function CountryAccounts() {
               <tr key={c.id}>
                 <td>
                   <div className="cell-country">
-                    <Flag code={c.id} width={26} height={18} />
+                    <Flag code={c.id} width={24} height={18} />
                     <b>{pickLang(c, 'name', lang)}</b>
                   </div>
                 </td>

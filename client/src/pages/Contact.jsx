@@ -128,7 +128,7 @@ function Contact() {
             <div className="nra-contact-list">
               {countries.map((c) => (
                 <div key={c.id} className="nra-contact">
-                  <Flag code={c.id} width={32} height={22} />
+                  <Flag code={c.id} width={32} height={24} />
                   <div>
                     <div className="name">{pickLang(c, 'name', lang)}</div>
                     <div className="line">{pickLang(c, 'nraName', lang)}</div>

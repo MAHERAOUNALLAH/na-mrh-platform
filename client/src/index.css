@@ -218,7 +218,6 @@
   text-decoration: none; color: inherit; display: flex; flex-direction: column;
 }
   .country-card .flag-band{height:64px; position:relative; overflow:hidden;}
-  .country-card .flag-band img{width:100%; height:100%; object-fit:cover;}
   .country-card .body{padding:16px 18px 18px;}
   .country-card .body h3{font-size:18px; margin-bottom:3px;}
   .country-card .body .nra{font-size:12.5px; color:var(--ink-soft); font-weight:600; margin-bottom:12px; display:block;}
@@ -227,26 +226,33 @@
   .country-card:hover{box-shadow:0 0 0 1px var(--red);}
   .country-card:hover .cta{color:var(--red);}
 /* ============================================================
-   CORRECTIF — .flag-band : rapport 3:2 garanti, quelle que soit
-   la largeur réelle de la carte (responsive-safe).
+   CORRECTIF — .flag-band : drapeau jamais déformé ni rogné.
 
-   Avant : height fixe en pixels → dès que la largeur de carte
-   change (grille à 2 colonnes sur petit écran, carte plus large
-   sur grand écran...), le rapport 3:2 est cassé et un drapeau
-   se retrouve rogné en haut/bas OU à gauche/droite selon les cas
-   (c'est exactement ce qui vient d'arriver à la Tunisie : sa
-   forme circulaire rend n'importe quel rognage très visible).
-
-   Après : aspect-ratio calcule la hauteur tout seul à partir de
-   la largeur réelle. Le rapport reste 3:2 pile, sur tous les
-   écrans, pour toujours. Plus aucun rognage, pour les 6 pays.
+   Les drapeaux sont les SVG 4:3 de flag-icons (voir Flag.jsx).
+   La bande suit le rapport 4:3 de la carte, plafonné à 160 px de
+   haut : sur une carte large (une colonne sur téléphone, cartes de
+   bureau), la bande garde 160 px et le drapeau, entier, est centré
+   (fond --bg de part et d'autre). Toutes les cartes d'une même
+   rangée ont la même largeur, donc la même hauteur de bande.
+   (Ancienne version : 3:2 sur toute la largeur, soit ~220 px de
+   haut à 360 px et ~250 px sur bureau.)
    ============================================================ */
 
 .country-card .flag-band{
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 4 / 3;
+  max-height: 160px;
   height: auto;              /* remplace le height:64px fixe */
   position: relative;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  background: var(--bg);
+}
+.country-card .flag-band img{
+  height: 100%;
+  width: auto;               /* largeur = 4/3 de la hauteur : proportion du fichier */
+  max-width: 100%;
+  object-fit: contain;       /* garde-fou : jamais d'étirement */
 }
   /* ---------- TWG CARDS ---------- */
   .twg-card{
@@ -408,7 +414,7 @@
   textarea{width:100%; padding:10px 12px; border:1px solid var(--line-strong); font-family:inherit; font-size:14px; border-radius:2px; background:var(--bg); resize:vertical;}
   .nra-contact-list{display:flex; flex-direction:column; gap:14px;}
   .nra-contact{display:flex; gap:14px; align-items:flex-start; background:var(--surface); border:1px solid var(--line); padding:14px 16px;}
-  .nra-contact img{width:32px; height:22px; object-fit:cover; box-shadow:0 0 0 1px var(--line-strong); margin-top:2px;}
+  .nra-contact img{margin-top:2px;}   /* 32×24 (4:3) fixé par <Flag> */
   .nra-contact .name{font-weight:700; font-size:14.5px;}
   .nra-contact .line{font-size:12.5px; color:var(--ink-soft);}
   .nra-contact a{color:var(--red-deep); text-decoration:underline;}
@@ -827,3 +833,9 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 @media(max-width:480px){
   .profile-card{padding:18px;}
 }
+
+/* ---------- Drapeaux (<Flag>, SVG 4:3 de flag-icons) ---------- */
+.flag{display:block; flex-shrink:0; object-fit:contain;}
+/* Drapeau à dominante claire (Algérie) : fin liseré gris intérieur,
+   visible même dans une bande qui rogne ce qui dépasse. */
+.flag-light{outline:1px solid var(--line-strong); outline-offset:-1px;}

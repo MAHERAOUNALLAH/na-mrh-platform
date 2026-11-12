@@ -67,8 +67,10 @@ function Members() {
             return (
               <div className="country-card" key={country.id}>
                 <div className="flag-band">
-                  {/* country.id vaut 'dz', 'tn'… : c'est aussi le code du drapeau */}
-                  <Flag code={country.id} title={name} />
+                  {/* country.id vaut 'dz', 'tn'… : c'est aussi le code du drapeau.
+                      Pas de title : le nom est affiché juste dessous (<h3>),
+                      le drapeau est décoratif (alt vide). */}
+                  <Flag code={country.id} />
                 </div>
                 <div className="body">
                   <h3>{name}</h3>
