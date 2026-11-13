@@ -7,9 +7,13 @@
 // fichiers de traduction du client. Pour une clé de texte, la clé est
 // exactement la clé i18n qu'elle remplace (« hero.h1 » → t('hero.h1')).
 //
-// Deux sortes de clés :
+// Trois sortes de clés :
 //   - kind 'text' : traduit, valeurs valueFr / valueEn / valueAr ;
 //     null (ou vide) pour une langue = texte par défaut de cette langue ;
+//   - kind 'list' : traduit aussi (valueFr / valueEn / valueAr), mais
+//     chaque valeur est une liste, un élément par ligne : lignes vides
+//     ignorées, au plus maxItems éléments de maxItemLength caractères.
+//     Stockée « élément\nélément » ; défaut = tableau des locales ;
 //   - les autres : une seule valeur sans langue, colonne `value`
 //       'email' : adresse e-mail (minuscules) ;
 //       'phone' : numéro de téléphone ;
@@ -29,6 +33,10 @@ const INTERNAL_LINKS = [
 ];
 
 const text = (maxLength, multiline = false) => ({ kind: 'text', maxLength, multiline });
+const list = (maxItems, maxItemLength) => ({ kind: 'list', maxItems, maxItemLength });
+
+// Clés traduites (une valeur par langue) : textes et listes.
+const isTranslated = (field) => field.kind === 'text' || field.kind === 'list';
 
 const SITE_CONTENT_FIELDS = {
   // --- Accueil : bandeau principal (hero) ---
@@ -62,12 +70,31 @@ const SITE_CONTENT_FIELDS = {
   'home.show.countries': { kind: 'show' },
   'home.show.twgs': { kind: 'show' },
   'home.show.news': { kind: 'show' },
-  // --- Coordonnées du Secrétariat (Contact, pied de page, Gouvernance) ---
+  // --- Gouvernance (page /gouvernance : mêmes blocs, textes modifiables) ---
+  'governance.kicker': text(80),
+  'governance.h': text(160),
+  'governance.p': text(600, true),
+  'governance.steeringT': text(120),
+  'governance.steeringD': text(600, true),
+  'governance.secretariatT': text(120),
+  'governance.secretariatD': text(400, true),
+  'governance.twgLevelT': text(120),
+  'governance.twgLevelD': text(600, true),
+  'governance.partnersT': text(120),
+  'governance.partnersList': list(20, 80),
+  // --- Pied de page (les liens de navigation, eux, ne sont pas modifiables) ---
+  'footer.aboutT': text(80),
+  'footer.aboutP': text(600, true),
+  'footer.linksT': text(60),
+  'footer.contactT': text(60),
+  'footer.contactP': text(160),
+  'footer.partnersT': text(120),
+  'footer.partnersList': list(20, 80),
+  'footer.copyright': text(120),   // sans l'année : elle est calculée par le client
+  // --- Coordonnées du Secrétariat (Contact, pied de page) ---
   'contact.email': { kind: 'email' },
   'contact.phone': { kind: 'phone' },
   'contactPage.secP': text(300, true),
-  'footer.contactP': text(160),
-  'governance.secretariatD': text(400, true),
 };
 
 const SHOW_KEYS = Object.keys(SITE_CONTENT_FIELDS).filter((k) => SITE_CONTENT_FIELDS[k].kind === 'show');
@@ -91,6 +118,25 @@ function cleanText(raw, field, langLabel) {
   if (HTML_TAG.test(value)) return { error: `La valeur ${langLabel} contient du HTML : seul le texte brut est accepté.` };
   if (value.length > field.maxLength) return { error: `La valeur ${langLabel} dépasse ${field.maxLength} caractères.` };
   return { value };
+}
+
+// Liste : un élément par ligne. Chaque élément est un texte brut d'une
+// ligne (mêmes interdits que cleanText) ; les lignes vides sont ignorées.
+function cleanList(raw, field, langLabel) {
+  if (raw === undefined || raw === null) return { value: null };
+  if (typeof raw !== 'string') return { error: `La liste ${langLabel} doit être du texte (un élément par ligne).` };
+  const items = raw.replace(/\r\n?/g, '\n').split('\n').map((line) => line.trim()).filter(Boolean);
+  if (!items.length) return { value: null };   // liste vide = liste par défaut
+  if (items.length > field.maxItems) {
+    return { error: `La liste ${langLabel} compte ${items.length} éléments : ${field.maxItems} au plus.` };
+  }
+  for (const [i, item] of items.entries()) {
+    const where = `La liste ${langLabel}, élément ${i + 1},`;
+    if (CONTROL_CHARS.test(item)) return { error: `${where} contient des caractères non autorisés.` };
+    if (HTML_TAG.test(item)) return { error: `${where} contient du HTML : seul le texte brut est accepté.` };
+    if (item.length > field.maxItemLength) return { error: `${where} dépasse ${field.maxItemLength} caractères.` };
+  }
+  return { value: items.join('\n') };
 }
 
 function cleanNeutral(raw, field) {
@@ -126,6 +172,7 @@ function cleanNeutral(raw, field) {
 
 // Valide le corps d'un PUT /api/admin/site-content/:key.
 //   texte : { valueFr?, valueEn?, valueAr? } — null ou '' = valeur par défaut
+//   liste : idem, chaque valeur = éléments séparés par des retours à la ligne
 //   autre : { value }                        — null = valeur par défaut
 // Toute autre propriété est refusée. Renvoie { error } ou { data }.
 function validateSiteContentBody(key, body) {
@@ -133,15 +180,16 @@ function validateSiteContentBody(key, body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return { error: 'Corps de requête JSON attendu.' };
   }
-  const allowed = field.kind === 'text' ? Object.keys(LANG_COLUMNS) : ['value'];
+  const allowed = isTranslated(field) ? Object.keys(LANG_COLUMNS) : ['value'];
   const unknown = Object.keys(body).filter((p) => !allowed.includes(p));
   if (unknown.length) {
     return { error: `Propriété non autorisée pour ce champ : ${unknown.join(', ')} (attendu : ${allowed.join(', ')}).` };
   }
   const data = {};
-  if (field.kind === 'text') {
+  if (isTranslated(field)) {
+    const clean = field.kind === 'list' ? cleanList : cleanText;
     for (const [column, label] of Object.entries(LANG_COLUMNS)) {
-      const r = cleanText(body[column], field, label);
+      const r = clean(body[column], field, label);
       if (r.error) return { error: r.error };
       data[column] = r.value;
     }

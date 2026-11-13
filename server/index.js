@@ -1293,7 +1293,7 @@ app.put('/api/admin/twgs/:id', requireAuth, requireRole('secretariat_admin'), as
   }
 });
 
-// ---------- 6.7 Contenu du site (accueil, coordonnées du Secrétariat) ----------
+// ---------- 6.7 Contenu du site (accueil, Gouvernance, pied de page, coordonnées) ----------
 // Les clés autorisées, leurs types et longueurs sont dans
 // utils/siteContent.js. Une clé inconnue → 404.
 const SITE_CONTENT_TABLE_MISSING =
