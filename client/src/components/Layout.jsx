@@ -10,6 +10,7 @@ import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-do
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useSiteContent } from '../context/SiteContentContext';
+import InlineList from './InlineList';
 
 const LANGUAGES = [
   { code: 'fr', label: 'FR' },
@@ -55,7 +56,7 @@ const LOGO_SVG = (
 function Layout() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
-  const { text, value } = useSiteContent();   // coordonnées du Secrétariat (pied de page)
+  const { text, list, value } = useSiteContent();   // pied de page modifiable
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -186,14 +187,16 @@ function Layout() {
         <Outlet />
       </main>
 
+      {/* Pied de page : textes modifiables (Espace Secrétariat › Contenu du
+          site), sauf les liens, qui sont les pages du site (menu). */}
       <footer>
         <div className="container footer-inner">
           <div>
-            <h4>{t('footer.aboutT')}</h4>
-            <p>{t('footer.aboutP')}</p>
+            <h4>{text('footer.aboutT')}</h4>
+            <p className="multiline">{text('footer.aboutP')}</p>
           </div>
           <div>
-            <h4>{t('footer.linksT')}</h4>
+            <h4>{text('footer.linksT')}</h4>
             <ul>
               {NAV_ITEMS.map((item) => (
                 <li key={item.to}>
@@ -203,7 +206,7 @@ function Layout() {
             </ul>
           </div>
           <div>
-            <h4>{t('footer.contactT')}</h4>
+            <h4>{text('footer.contactT')}</h4>
             <p>
               {text('footer.contactP')}<br />
               {/* Coordonnées modifiables (Espace Secrétariat), identiques dans les
@@ -212,7 +215,14 @@ function Layout() {
             </p>
           </div>
         </div>
-        <div className="partners-row">{t('footer.partners')}</div>
+        {/* Libellé + liste des partenaires (un <bdi> par élément) + mention
+            de droits. L'année est calculée, jamais saisie. */}
+        <div className="partners-row">
+          {t('footer.partnersLabel', { label: text('footer.partnersT') })}{' '}
+          <InlineList items={list('footer.partnersList')} />
+          {' · '}
+          <bdi>© {new Date().getFullYear()} {text('footer.copyright')}</bdi>
+        </div>
       </footer>
     </div>
   );
