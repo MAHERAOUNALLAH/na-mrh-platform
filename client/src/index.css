@@ -811,11 +811,24 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .form-msg-ok{color:var(--green-deep);}
 .form-msg-error{color:var(--red-deep);}
 
-/* ---------- Onglet « Page d'accueil » ---------- */
+/* ---------- Onglet « Contenu du site » ----------
+   Sommaire d'ancres (.content-nav) → sections (.content-section, h3)
+   → groupes (.content-group, h4) → champs (.content-field, h5). */
+.content-nav ul{display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:0 0 6px; padding:0;}
+.content-nav a{
+  display:inline-flex; align-items:center; min-height:40px; padding-inline:16px;
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
+  font-size:14px; font-weight:600; color:var(--ink); text-decoration:none;
+}
+.content-nav a:hover, .content-nav a:focus-visible{border-color:var(--ink);}
+.content-section{margin-top:34px;}
+.content-section:focus{outline:none;}   /* cible d'ancre : le focus n'y est que pour la suite de la tabulation */
+.content-section > h3{font-size:22px; padding-bottom:10px; border-bottom:2px solid var(--ink); margin-bottom:6px;}
 .content-group{margin-top:26px;}
-.content-group > h3{font-size:18px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:12px;}
+.content-group > h4{font-size:17px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:12px;}
+.content-back{display:inline-flex; align-items:center; margin-top:4px; font-size:13.5px; font-weight:600; color:var(--ink-soft);}
 .content-field{background:var(--surface); border:1px solid var(--line); padding:18px; margin:0 0 12px; min-width:0;}
-.content-field h4, .content-field legend{font-size:14.5px; font-weight:700; margin:0 0 10px; padding:0;}
+.content-field h5, .content-field legend{font-size:14.5px; font-weight:700; margin:0 0 10px; padding:0;}
 .content-field-meta{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; margin-top:5px; font-size:12px; color:var(--ink-soft);}
 .content-badge{font-weight:700;}
 .content-badge.custom{color:#8a6414;}   /* brun doré lisible sur fond clair */
@@ -823,6 +836,10 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .content-field-warning{font-size:13px; color:#8a6414; margin-block:4px 10px;}
 @media(max-width:768px){
   .content-field{padding:14px;}
+  /* Sommaire au doigt : deux colonnes de cibles de 44 px. */
+  .content-nav ul{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr));}
+  .content-nav a{display:flex; min-height:44px; justify-content:center; text-align:center;}
+  .content-back{min-height:44px;}
 }
 
 /* ---------- Mon espace : formulaire « Mon profil » ---------- */
