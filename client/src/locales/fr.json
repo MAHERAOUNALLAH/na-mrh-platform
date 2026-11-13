@@ -55,7 +55,15 @@
     "twgLevelT": "5 Groupes de travail techniques",
     "twgLevelD": "Deux co-leads par groupe · lignes directrices, SOP, activités conjointes.",
     "partnersT": "Partenaires techniques et financiers",
-    "partnersP": "AUDA-NEPAD · Agence Africaine du Médicament (AMA) · OMS · Swissmedic · Banque mondiale · BAD · CEPI"
+    "partnersList": [
+      "AUDA-NEPAD",
+      "Agence Africaine du Médicament (AMA)",
+      "OMS",
+      "Swissmedic",
+      "Banque mondiale",
+      "BAD",
+      "CEPI"
+    ]
   },
   "newsPage": {
     "kicker": "Fil d'annonces",
@@ -148,13 +156,24 @@
     "linksT": "Navigation",
     "contactT": "Secrétariat",
     "contactP": "Hébergé par l'ANMPS, Tunisie",
-    "partners": "Partenaires techniques et financiers : AUDA-NEPAD · AMA · OMS · Swissmedic · Banque mondiale · BAD · CEPI  ·  © 2026 NA-MRH Secretariat"
+    "partnersT": "Partenaires techniques et financiers",
+    "partnersLabel": "{{label}} :",
+    "partnersList": [
+      "AUDA-NEPAD",
+      "AMA",
+      "OMS",
+      "Swissmedic",
+      "Banque mondiale",
+      "BAD",
+      "CEPI"
+    ],
+    "copyright": "NA-MRH Secretariat"
   },
   "homePage": {
     "sectionError": "Cette section est momentanément indisponible."
   },
   "adminHome": {
-    "intro": "Textes de la page d'accueil et coordonnées du Secrétariat. Chaque champ est pré-rempli avec le texte actuel. Une langue laissée identique au texte par défaut n'est pas enregistrée. Les modifications sont visibles immédiatement sur le site public.",
+    "intro": "Textes de l'accueil, de la page Gouvernance et du pied de page, et coordonnées du Secrétariat. Chaque champ est pré-rempli avec le texte actuel. Une langue laissée identique au texte par défaut n'est pas enregistrée. Les modifications sont visibles immédiatement sur le site public.",
     "save": "Enregistrer",
     "saved": "Modification enregistrée.",
     "restore": "Restaurer la valeur par défaut",
@@ -174,13 +193,38 @@
       "twgs": "Groupes de travail",
       "news": "Actualités récentes"
     },
+    "navLabel": "Sections de la page",
+    "backToNav": "↑ Retour au sommaire",
+    "parts": {
+      "home": "Accueil",
+      "governance": "Gouvernance",
+      "footer": "Pied de page",
+      "contact": "Coordonnées"
+    },
+    "listHelp": "Un élément par ligne ; les lignes vides sont ignorées. {{max}} éléments au plus, de {{len}} caractères chacun.",
+    "listCounter": "{{count}} / {{max}} éléments",
+    "listTooMany": "Trop d'éléments : {{max}} au plus.",
+    "listItemTooLong": "L'élément n° {{n}} dépasse {{max}} caractères.",
+    "fieldHelp": {
+      "listsIndependent": "La liste du pied de page et celle de la page Gouvernance sont indépendantes : pour un changement partout, modifiez les deux.",
+      "copyright": "Affichée après « © {{year}} » : l'année est ajoutée automatiquement, ne la saisissez pas."
+    },
+    "groupHelp": {
+      "footerCols": "Les liens de la colonne « Navigation » sont les pages du site : ils ne se modifient pas ici."
+    },
     "groups": {
       "hero": "Bandeau principal",
       "stats": "Chiffres clés",
       "mission": "Mission et États membres",
       "twgs": "Groupes de travail",
       "news": "Actualités récentes",
-      "contact": "Coordonnées du Secrétariat"
+      "govHead": "En-tête de la page",
+      "govLevels": "Les trois niveaux de gouvernance",
+      "govPartners": "Partenaires",
+      "footerCols": "Colonnes du pied de page",
+      "footerBottom": "Ligne du bas : partenaires et droits",
+      "contactCoords": "E-mail et téléphone du Secrétariat",
+      "contactPage": "Page Contact"
     },
     "fields": {
       "hero_kicker": "Accroche",
@@ -205,11 +249,28 @@
       "homeSections_twgP": "Groupes de travail : texte",
       "homeSections_newsKicker": "Actualités : sur-titre",
       "homeSections_newsH": "Actualités : titre",
-      "contact_email": "E-mail du Secrétariat",
-      "contact_phone": "Téléphone du Secrétariat",
+      "contact_email": "E-mail du Secrétariat (page Contact et pied de page)",
+      "contact_phone": "Téléphone du Secrétariat (page Contact et pied de page)",
       "contactPage_secP": "Page Contact : texte du Secrétariat",
-      "footer_contactP": "Pied de page : ligne du Secrétariat",
-      "governance_secretariatD": "Page Gouvernance : description du Secrétariat"
+      "governance_kicker": "Gouvernance : sur-titre (au-dessus du titre)",
+      "governance_h": "Gouvernance : titre de la page",
+      "governance_p": "Gouvernance : texte d'introduction",
+      "governance_steeringT": "Niveau 1, Comité de pilotage : titre",
+      "governance_steeringD": "Niveau 1, Comité de pilotage : description",
+      "governance_secretariatT": "Niveau 2, Secrétariat : titre",
+      "governance_secretariatD": "Niveau 2, Secrétariat : description",
+      "governance_twgLevelT": "Niveau 3, Groupes de travail : titre",
+      "governance_twgLevelD": "Niveau 3, Groupes de travail : description",
+      "governance_partnersT": "Gouvernance : titre au-dessus des partenaires",
+      "governance_partnersList": "Gouvernance : liste des partenaires",
+      "footer_aboutT": "Pied de page, colonne 1 : titre",
+      "footer_aboutP": "Pied de page, colonne 1 : texte de présentation",
+      "footer_linksT": "Pied de page, colonne 2 : titre au-dessus des liens",
+      "footer_contactT": "Pied de page, colonne 3 : titre du bloc Secrétariat",
+      "footer_contactP": "Pied de page, colonne 3 : ligne au-dessus de l'e-mail et du téléphone",
+      "footer_partnersT": "Pied de page, ligne du bas : libellé avant les partenaires",
+      "footer_partnersList": "Pied de page, ligne du bas : liste des partenaires",
+      "footer_copyright": "Pied de page, ligne du bas : mention de droits"
     }
   },
   "langNames": {
@@ -289,7 +350,7 @@
       "documents": "Circuit documentaire",
       "news": "Gestion du contenu",
       "twgs": "Groupes de travail",
-      "home": "Page d'accueil"
+      "home": "Contenu du site"
     }
   },
   "adminDashboard": {

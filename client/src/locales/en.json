@@ -55,7 +55,15 @@
     "twgLevelT": "5 Technical Working Groups",
     "twgLevelD": "Two co-leads per group · guidelines, SOPs, joint activities.",
     "partnersT": "Technical & financial partners",
-    "partnersP": "AUDA-NEPAD · African Medicines Agency (AMA) · WHO · Swissmedic · World Bank · AfDB · CEPI"
+    "partnersList": [
+      "AUDA-NEPAD",
+      "African Medicines Agency (AMA)",
+      "WHO",
+      "Swissmedic",
+      "World Bank",
+      "AfDB",
+      "CEPI"
+    ]
   },
   "newsPage": {
     "kicker": "Announcements",
@@ -148,13 +156,24 @@
     "linksT": "Navigation",
     "contactT": "Secretariat",
     "contactP": "Hosted by ANMPS, Tunisia",
-    "partners": "Technical & financial partners: AUDA-NEPAD · AMA · WHO · Swissmedic · World Bank · AfDB · CEPI  ·  © 2026 NA-MRH Secretariat"
+    "partnersT": "Technical & financial partners",
+    "partnersLabel": "{{label}}:",
+    "partnersList": [
+      "AUDA-NEPAD",
+      "AMA",
+      "WHO",
+      "Swissmedic",
+      "World Bank",
+      "AfDB",
+      "CEPI"
+    ],
+    "copyright": "NA-MRH Secretariat"
   },
   "homePage": {
     "sectionError": "This section is temporarily unavailable."
   },
   "adminHome": {
-    "intro": "Home page texts and Secretariat contact details. Each field is pre-filled with the current text. A language left identical to the default text is not saved. Changes appear on the public site immediately.",
+    "intro": "Texts of the home page, the Governance page and the footer, and the Secretariat's contact details. Each field is pre-filled with the current text. A language left identical to the default text is not saved. Changes appear on the public site immediately.",
     "save": "Save",
     "saved": "Change saved.",
     "restore": "Restore default value",
@@ -174,13 +193,38 @@
       "twgs": "Working groups",
       "news": "Recent news"
     },
+    "navLabel": "Page sections",
+    "backToNav": "↑ Back to sections",
+    "parts": {
+      "home": "Home page",
+      "governance": "Governance",
+      "footer": "Footer",
+      "contact": "Contact details"
+    },
+    "listHelp": "One item per line; empty lines are ignored. At most {{max}} items of {{len}} characters each.",
+    "listCounter": "{{count}} / {{max}} items",
+    "listTooMany": "Too many items: {{max}} at most.",
+    "listItemTooLong": "Item {{n}} is longer than {{max}} characters.",
+    "fieldHelp": {
+      "listsIndependent": "The footer list and the Governance page list are independent: to change both places, edit both lists.",
+      "copyright": "Shown after “© {{year}}”: the year is added automatically, do not type it."
+    },
+    "groupHelp": {
+      "footerCols": "The links in the “Navigation” column are the site pages: they cannot be edited here."
+    },
     "groups": {
       "hero": "Main banner",
       "stats": "Key figures",
       "mission": "Mission and Member States",
       "twgs": "Working groups",
       "news": "Recent news",
-      "contact": "Secretariat contact details"
+      "govHead": "Page header",
+      "govLevels": "The three governance levels",
+      "govPartners": "Partners",
+      "footerCols": "Footer columns",
+      "footerBottom": "Bottom line: partners and rights",
+      "contactCoords": "Secretariat email and phone",
+      "contactPage": "Contact page"
     },
     "fields": {
       "hero_kicker": "Tagline",
@@ -205,11 +249,28 @@
       "homeSections_twgP": "Working groups: text",
       "homeSections_newsKicker": "News: overline",
       "homeSections_newsH": "News: title",
-      "contact_email": "Secretariat email",
-      "contact_phone": "Secretariat phone",
+      "contact_email": "Secretariat email (Contact page and footer)",
+      "contact_phone": "Secretariat phone (Contact page and footer)",
       "contactPage_secP": "Contact page: Secretariat text",
-      "footer_contactP": "Footer: Secretariat line",
-      "governance_secretariatD": "Governance page: Secretariat description"
+      "governance_kicker": "Governance: tagline (above the title)",
+      "governance_h": "Governance: page title",
+      "governance_p": "Governance: introduction",
+      "governance_steeringT": "Level 1, Steering Committee: title",
+      "governance_steeringD": "Level 1, Steering Committee: description",
+      "governance_secretariatT": "Level 2, Secretariat: title",
+      "governance_secretariatD": "Level 2, Secretariat: description",
+      "governance_twgLevelT": "Level 3, Working groups: title",
+      "governance_twgLevelD": "Level 3, Working groups: description",
+      "governance_partnersT": "Governance: heading above the partners",
+      "governance_partnersList": "Governance: list of partners",
+      "footer_aboutT": "Footer, column 1: title",
+      "footer_aboutP": "Footer, column 1: presentation text",
+      "footer_linksT": "Footer, column 2: heading above the links",
+      "footer_contactT": "Footer, column 3: Secretariat block title",
+      "footer_contactP": "Footer, column 3: line above the email and phone",
+      "footer_partnersT": "Footer, bottom line: label before the partners",
+      "footer_partnersList": "Footer, bottom line: list of partners",
+      "footer_copyright": "Footer, bottom line: rights notice"
     }
   },
   "langNames": {
@@ -289,7 +350,7 @@
       "documents": "Document workflow",
       "news": "Content management",
       "twgs": "Working groups",
-      "home": "Home page"
+      "home": "Site content"
     }
   },
   "adminDashboard": {
