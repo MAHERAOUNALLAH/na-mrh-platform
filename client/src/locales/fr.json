@@ -65,6 +65,13 @@
       "CEPI"
     ]
   },
+  "privacy": {
+    "title": "Confidentialité et conditions d'utilisation"
+  },
+  "privacyPage": {
+    "kicker": "Informations légales",
+    "soon": "Ce contenu sera publié prochainement."
+  },
   "newsPage": {
     "kicker": "Fil d'annonces",
     "h": "Actualités régionales",
@@ -167,7 +174,8 @@
       "BAD",
       "CEPI"
     ],
-    "copyright": "NA-MRH Secretariat"
+    "copyright": "NA-MRH Secretariat",
+    "privacyLink": "Confidentialité et conditions d'utilisation"
   },
   "homePage": {
     "sectionError": "Cette section est momentanément indisponible."

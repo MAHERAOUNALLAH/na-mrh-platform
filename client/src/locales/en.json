@@ -65,6 +65,13 @@
       "CEPI"
     ]
   },
+  "privacy": {
+    "title": "Privacy and terms of use"
+  },
+  "privacyPage": {
+    "kicker": "Legal information",
+    "soon": "This content will be published soon."
+  },
   "newsPage": {
     "kicker": "Announcements",
     "h": "Regional news",
@@ -167,7 +174,8 @@
       "AfDB",
       "CEPI"
     ],
-    "copyright": "NA-MRH Secretariat"
+    "copyright": "NA-MRH Secretariat",
+    "privacyLink": "Privacy and terms of use"
   },
   "homePage": {
     "sectionError": "This section is temporarily unavailable."

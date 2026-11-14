@@ -222,6 +222,10 @@ function Layout() {
           <InlineList items={list('footer.partnersList')} />
           {' · '}
           <bdi>© {new Date().getFullYear()} {text('footer.copyright')}</bdi>
+          {' · '}
+          {/* Page légale : lien du pied de page seulement (pas dans le menu
+              principal, dont le seuil de repli à 1180 px ne bouge pas). */}
+          <Link to="/confidentialite" className="footer-legal-link">{t('footer.privacyLink')}</Link>
         </div>
       </footer>
     </div>

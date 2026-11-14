@@ -785,6 +785,19 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
    le .container ; sans effet en grand écran, où le texte tient sur une
    ligne centrée. */
 .partners-row{padding-inline:clamp(16px, 4vw, 28px);}
+/* Lien « Confidentialité et conditions d'utilisation » de la ligne du bas. */
+.footer-legal-link{color:#C9C0AE; text-decoration:underline; text-underline-offset:2px;}
+.footer-legal-link:hover, .footer-legal-link:focus-visible{color:#fff;}
+@media(max-width:768px){
+  /* Cible tactile de 44 px, sans changer la taille du texte. */
+  .footer-legal-link{display:inline-flex; align-items:center; min-height:44px; vertical-align:middle;}
+}
+
+/* ---------- Page « Confidentialité et conditions d'utilisation » ---------- */
+/* Texte long saisi par le Secrétariat : largeur de lecture bornée, un mot
+   ou une adresse sans espace passe à la ligne au lieu de déborder. */
+.legal-text{max-width:72ch; overflow-wrap:anywhere;}
+.legal-text p{font-size:15px; line-height:1.75; margin-bottom:14px;}
 
 /* ---------- Accueil : contenu modifiable par le Secrétariat ---------- */
 /* Hero sur une seule colonne (plus de carte des pays) : largeur de

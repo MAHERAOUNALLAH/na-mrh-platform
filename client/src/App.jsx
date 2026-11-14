@@ -18,6 +18,7 @@ import Governance from './pages/Governance';
 import Actualites from './pages/Actualites';
 import Contact from './pages/Contact';
 import Reclamations from './pages/Reclamations';
+import Privacy from './pages/Privacy';
 import ComingSoon from './pages/ComingSoon';
 import NotFound from './pages/NotFound';
 
@@ -53,6 +54,7 @@ function App() {
           <Route path="actualites" element={<Actualites />} />
           <Route path="contact" element={<Contact />} />
           <Route path="reclamations" element={<Reclamations />} />
+          <Route path="confidentialite" element={<Privacy />} />
 
           {/* Rubrique annoncée dans le menu mais pas encore construite. */}
           <Route path="portail-rims" element={<ComingSoon titleKey="nav.portal" />} />
