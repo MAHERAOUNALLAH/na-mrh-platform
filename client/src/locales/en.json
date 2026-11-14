@@ -181,13 +181,13 @@
     "sectionError": "This section is temporarily unavailable."
   },
   "adminHome": {
-    "intro": "Texts of the home page, the Governance page and the footer, and the Secretariat's contact details. Each field is pre-filled with the current text. A language left identical to the default text is not saved. Changes appear on the public site immediately.",
     "save": "Save",
     "saved": "Change saved.",
     "restore": "Restore default value",
     "restored": "Default value restored.",
     "badgeDefault": "Default text",
     "badgeCustom": "Modified",
+    "badgeNotPublished": "Not published",
     "counter": "{{count}} / {{max}} characters",
     "intRange": "Whole number from {{min}} to {{max}}",
     "notModifiedIn": "Default text kept in: {{langs}}. Remember to translate the change.",
@@ -201,21 +201,31 @@
       "twgs": "Working groups",
       "news": "Recent news"
     },
-    "navLabel": "Page sections",
-    "backToNav": "↑ Back to sections",
     "parts": {
       "home": "Home page",
       "governance": "Governance",
       "footer": "Footer",
-      "contact": "Contact details"
+      "contact": "Contact details",
+      "privacy": "Privacy"
     },
+    "intros": {
+      "home": "Home page texts and displayed sections. A language left identical to the default text is not saved.",
+      "governance": "Governance page texts. Its structure (three levels, partners) does not change.",
+      "footer": "Footer texts, shown at the bottom of every page. Navigation links cannot be edited.",
+      "contact": "Secretariat email and phone (Contact page and footer) and Contact page text.",
+      "privacy": "“Privacy and terms of use” page, linked from the footer. With no text in a language, it announces upcoming publication."
+    },
+    "viewPage": "View the page on the site",
+    "viewPageLabel": "View the page on the site (new tab)",
+    "unsavedConfirm": "Some changes on this page have not been saved. Leave anyway and discard them?",
     "listHelp": "One item per line; empty lines are ignored. At most {{max}} items of {{len}} characters each.",
     "listCounter": "{{count}} / {{max}} items",
     "listTooMany": "Too many items: {{max}} at most.",
     "listItemTooLong": "Item {{n}} is longer than {{max}} characters.",
     "fieldHelp": {
       "listsIndependent": "The footer list and the Governance page list are independent: to change both places, edit both lists.",
-      "copyright": "Shown after “© {{year}}”: the year is added automatically, do not type it."
+      "copyright": "Shown after “© {{year}}”: the year is added automatically, do not type it.",
+      "privacyBody": "Plain text: a blank line separates two paragraphs. A language left empty shows “This content will be published soon.”"
     },
     "groupHelp": {
       "footerCols": "The links in the “Navigation” column are the site pages: they cannot be edited here."
@@ -232,7 +242,8 @@
       "footerCols": "Footer columns",
       "footerBottom": "Bottom line: partners and rights",
       "contactCoords": "Secretariat email and phone",
-      "contactPage": "Contact page"
+      "contactPage": "Contact page",
+      "privacyPage": "Privacy and terms of use page"
     },
     "fields": {
       "hero_kicker": "Tagline",
@@ -278,7 +289,9 @@
       "footer_contactP": "Footer, column 3: line above the email and phone",
       "footer_partnersT": "Footer, bottom line: label before the partners",
       "footer_partnersList": "Footer, bottom line: list of partners",
-      "footer_copyright": "Footer, bottom line: rights notice"
+      "footer_copyright": "Footer, bottom line: rights notice",
+      "privacy_title": "Privacy page: title",
+      "privacy_body": "Privacy page: text"
     }
   },
   "langNames": {

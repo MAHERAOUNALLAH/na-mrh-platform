@@ -1,10 +1,22 @@
 // ============================================================
-// client/src/pages/secretariat/HomeContentAdmin.jsx
-// Onglet « Contenu du site » (route /secretariat/accueil, conservée) —
-// textes de l'accueil, de la page Gouvernance, du pied de page et
-// coordonnées du Secrétariat, modifiables langue par langue.
-// Quatre sections (SECTIONS), avec un sommaire d'ancres en tête de page
-// (page longue sur mobile) et un lien « retour au sommaire » par section.
+// client/src/pages/secretariat/SiteContentAdmin.jsx
+// Onglet « Contenu du site » de l'Espace Secrétariat — textes de
+// l'accueil, de la page Gouvernance, du pied de page, de la page
+// Confidentialité et coordonnées du Secrétariat, langue par langue.
+//
+// UNE SOUS-PAGE PAR SUJET : /secretariat/contenu-du-site/<slug>
+// (sous-points dans le menu de gauche, voir siteContentParts.js).
+//   - SiteContentAdmin (parent, route contenu-du-site) charge les données
+//     UNE fois et les passe aux sous-pages par <Outlet context> : changer
+//     de sous-point ne relance aucun appel ;
+//   - SiteContentPart (une par sous-point) n'affiche que ses champs, en
+//     groupes repliables (<details>) : au départ, les groupes qui
+//     contiennent déjà une modification enregistrée, sinon le premier ;
+//   - modifications non enregistrées : confirmation (window.confirm) avant
+//     de suivre un lien qui quitte la sous-page, et avertissement du
+//     navigateur avant de fermer ou recharger l'onglet ;
+//   - LegacySiteContentRedirect : l'ancienne adresse /secretariat/accueil
+//     (et ses ancres #cs-…) renvoie vers la sous-page correspondante.
 //
 // Principe : la base ne stocke que des SURCHARGES. Chaque champ est
 // pré-rempli avec la valeur actuelle (surcharge ou texte par défaut des
@@ -17,12 +29,14 @@
 // Tout s'affiche comme du texte (jamais de HTML).
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useSiteContent } from '../../context/SiteContentContext';
 import { SITE_CONTENT_DEFAULTS } from '../../utils/siteContentDefaults';
 import { apiGet, apiPut, apiDelete } from '../../utils/api';
+import { SITE_CONTENT_PARTS, partPath } from './siteContentParts';
 
 const LANGS = [
   { code: 'fr', column: 'valueFr', dir: 'ltr' },
@@ -30,44 +44,7 @@ const LANGS = [
   { code: 'ar', column: 'valueAr', dir: 'rtl' },
 ];
 
-// Ordre d'affichage : section (titre adminHome.parts.*, ancre cs-<id>)
-// → groupes (titre adminHome.groups.*, aide facultative adminHome.groupHelp.*)
-// → champs. Une clé du registre absente d'ici n'est pas affichée.
-const SECTIONS = [
-  {
-    id: 'home',
-    visibility: true,   // cases « sections affichées » en tête de section
-    groups: [
-      { id: 'hero', keys: ['hero.kicker', 'hero.h1', 'hero.lead', 'hero.cta1', 'hero.cta1Link', 'hero.cta2', 'hero.cta2Link'] },
-      { id: 'stats', keys: ['statsLabels.0', 'statsLabels.1', 'statsLabels.2', 'home.stat3Value', 'statsLabels.3', 'home.stat4Value'] },
-      { id: 'mission', keys: ['homeSections.missionKicker', 'homeSections.missionH', 'homeSections.missionP', 'homeSections.countriesH'] },
-      { id: 'twgs', keys: ['homeSections.twgKicker', 'homeSections.twgH', 'homeSections.twgP'] },
-      { id: 'news', keys: ['homeSections.newsKicker', 'homeSections.newsH'] },
-    ],
-  },
-  {
-    id: 'governance',
-    groups: [
-      { id: 'govHead', keys: ['governance.kicker', 'governance.h', 'governance.p'] },
-      { id: 'govLevels', keys: ['governance.steeringT', 'governance.steeringD', 'governance.secretariatT', 'governance.secretariatD', 'governance.twgLevelT', 'governance.twgLevelD'] },
-      { id: 'govPartners', keys: ['governance.partnersT', 'governance.partnersList'] },
-    ],
-  },
-  {
-    id: 'footer',
-    groups: [
-      { id: 'footerCols', help: true, keys: ['footer.aboutT', 'footer.aboutP', 'footer.linksT', 'footer.contactT', 'footer.contactP'] },
-      { id: 'footerBottom', keys: ['footer.partnersT', 'footer.partnersList', 'footer.copyright'] },
-    ],
-  },
-  {
-    id: 'contact',
-    groups: [
-      { id: 'contactCoords', keys: ['contact.email', 'contact.phone'] },
-      { id: 'contactPage', keys: ['contactPage.secP'] },
-    ],
-  },
-];
+// Sous-points, groupes et champs : siteContentParts.js.
 
 // Aide affichée sous le titre de certains champs (clés adminHome.fieldHelp.*).
 // Les deux listes de partenaires sont indépendantes : on le rappelle sur chacune.
@@ -75,8 +52,17 @@ const FIELD_HELP = {
   'governance.partnersList': 'listsIndependent',
   'footer.partnersList': 'listsIndependent',
   'footer.copyright': 'copyright',
+  'privacy.body': 'privacyBody',
 };
-const SHOW_KEYS = ['stats', 'mission', 'countries', 'twgs', 'news'];
+
+// Signale au parent qu'un champ a (ou n'a plus) des modifications non
+// enregistrées. Rien d'affiché : le parent ne s'en sert qu'au moment de
+// quitter la sous-page (ref, pas d'état → aucun nouveau rendu).
+function useDirtyReport(key, dirty) {
+  const { markDirty } = useOutletContext();
+  useEffect(() => { markDirty(key, dirty); }, [markDirty, key, dirty]);
+  useEffect(() => () => markDirty(key, false), [markDirty, key]);
+}
 
 // Libellé d'un lien interne = libellé du menu correspondant.
 const LINK_LABELS = {
@@ -117,19 +103,33 @@ function FieldHelp({ field }) {
 }
 
 // ---------- Champ traduit (FR / EN / AR) : texte ou liste ----------
-function TextFieldEditor({ field, override, onSaved }) {
+function TextFieldEditor({ field, override: loaded, onSaved }) {
   const { t, i18n } = useTranslation();
   const { token } = useAuth();
+  // Surcharge renvoyée par le dernier enregistrement (null = plus de
+  // surcharge) : elle sert de référence tout de suite, sans attendre la
+  // relecture des données — sinon, juste après « Enregistrer », le champ
+  // passerait encore pour non enregistré.
+  const [justSaved, setJustSaved] = useState(undefined);
+  const override = justSaved !== undefined ? justSaved : loaded;
   const isList = field.kind === 'list';
+  // Long texte (privacy.body) : grand champ, confortable sur mobile.
+  const isLong = field.maxLength > 2000;
   // Liste : défaut = tableau des locales, présenté un élément par ligne.
+  // emptyDefault : aucun texte par défaut (la page publique affiche alors
+  // son message d'attente).
   const defaultIn = (code) => {
+    if (field.emptyDefault) return '';
     const fixedT = i18n.getFixedT(code);
     if (!isList) return fixedT(field.key);
     const items = fixedT(field.key, { returnObjects: true });
     return Array.isArray(items) ? items.join('\n') : '';
   };
   const defaults = Object.fromEntries(LANGS.map((l) => [l.code, defaultIn(l.code)]));
-  const [values, setValues] = useState(() => Object.fromEntries(LANGS.map((l) => [l.code, (override && override[l.column]) || defaults[l.code]])));
+  // Valeur enregistrée (surcharge, sinon défaut) : point de comparaison des
+  // modifications non enregistrées.
+  const saved = Object.fromEntries(LANGS.map((l) => [l.code, (override && override[l.column]) || defaults[l.code]]));
+  const [values, setValues] = useState(saved);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null);
 
@@ -137,6 +137,13 @@ function TextFieldEditor({ field, override, onSaved }) {
   const isCustom = (code) => norm(values[code]) !== '' && norm(values[code]) !== norm(defaults[code]);
   const savedCustom = LANGS.filter((l) => override && override[l.column]).map((l) => l.code);
   const notModified = LANGS.filter((l) => !savedCustom.includes(l.code)).map((l) => l.code.toUpperCase());
+  // Champ vidé = valeur par défaut (c'est ce que l'enregistrement donnerait).
+  useDirtyReport(field.key, LANGS.some((l) => (norm(values[l.code]) || norm(defaults[l.code])) !== norm(saved[l.code])));
+  // Badge d'une langue sans texte ni défaut (privacy.body) : « Non publié ».
+  const badge = (code) => {
+    if (isCustom(code)) return t('adminHome.badgeCustom');
+    return field.emptyDefault ? t('adminHome.badgeNotPublished') : t('adminHome.badgeDefault');
+  };
 
   function save(e) {
     e.preventDefault();
@@ -145,7 +152,7 @@ function TextFieldEditor({ field, override, onSaved }) {
     // Langue identique au texte par défaut (ou vide) → null : pas de surcharge.
     const body = Object.fromEntries(LANGS.map((l) => [l.column, isCustom(l.code) ? norm(values[l.code]) : null]));
     apiPut(`/api/admin/site-content/${encodeURIComponent(field.key)}`, token, body)
-      .then(() => { setStatus({ ok: true, text: t('adminHome.saved') }); onSaved(); })
+      .then((row) => { setJustSaved(row && !row.restored ? row : null); setStatus({ ok: true, text: t('adminHome.saved') }); onSaved(); })
       .catch((err) => setStatus({ ok: false, text: err.message }))
       .finally(() => setSaving(false));
   }
@@ -155,6 +162,7 @@ function TextFieldEditor({ field, override, onSaved }) {
     setStatus(null);
     apiDelete(`/api/admin/site-content/${encodeURIComponent(field.key)}`, token)
       .then(() => {
+        setJustSaved(null);
         setValues(defaults);
         setStatus({ ok: true, text: t('adminHome.restored') });
         onSaved();
@@ -177,14 +185,14 @@ function TextFieldEditor({ field, override, onSaved }) {
             <label htmlFor={id}>{t(`langNames.${l.code}`)}</label>
             <Input
               id={id} lang={l.code} dir={l.dir}
-              {...(isList ? { rows: 8 } : field.multiline ? { rows: 3 } : { type: 'text' })}
+              {...(isList ? { rows: 8 } : isLong ? { rows: 14, className: 'content-long' } : field.multiline ? { rows: 3 } : { type: 'text' })}
               {...(isList ? {} : { maxLength: field.maxLength })}
               value={values[l.code]}
               onChange={(e) => setValues((prev) => ({ ...prev, [l.code]: e.target.value }))}
             />
             <div className="content-field-meta">
               <span className={isCustom(l.code) ? 'content-badge custom' : 'content-badge'}>
-                {isCustom(l.code) ? t('adminHome.badgeCustom') : t('adminHome.badgeDefault')}
+                {badge(l.code)}
               </span>
               <span aria-live="polite">
                 {isList
@@ -217,15 +225,18 @@ function TextFieldEditor({ field, override, onSaved }) {
 }
 
 // ---------- Valeur sans langue (e-mail, téléphone, nombre, lien) ----------
-function ValueFieldEditor({ field, override, onSaved }) {
+function ValueFieldEditor({ field, override: loaded, onSaved }) {
   const { t } = useTranslation();
   const { token } = useAuth();
+  const [justSaved, setJustSaved] = useState(undefined);   // voir TextFieldEditor
+  const override = justSaved !== undefined ? justSaved : loaded;
   const def = SITE_CONTENT_DEFAULTS[field.key];
   const [value, setValue] = useState((override && override.value) || def);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null);
   const id = `cf-${field.key}`;
   const isCustom = value.trim() !== '' && value.trim() !== def;
+  useDirtyReport(field.key, (value.trim() || def) !== ((override && override.value) || def));
 
   function save(e) {
     e.preventDefault();
@@ -237,6 +248,7 @@ function ValueFieldEditor({ field, override, onSaved }) {
     else body = { value };
     apiPut(`/api/admin/site-content/${encodeURIComponent(field.key)}`, token, body)
       .then((row) => {
+        setJustSaved(row && !row.restored ? row : null);
         if (row && row.value) setValue(row.value);   // ex. e-mail remis en minuscules par le serveur
         setStatus({ ok: true, text: t('adminHome.saved') });
         onSaved();
@@ -249,7 +261,7 @@ function ValueFieldEditor({ field, override, onSaved }) {
     setSaving(true);
     setStatus(null);
     apiDelete(`/api/admin/site-content/${encodeURIComponent(field.key)}`, token)
-      .then(() => { setValue(def); setStatus({ ok: true, text: t('adminHome.restored') }); onSaved(); })
+      .then(() => { setJustSaved(null); setValue(def); setStatus({ ok: true, text: t('adminHome.restored') }); onSaved(); })
       .catch((err) => setStatus({ ok: false, text: err.message }))
       .finally(() => setSaving(false));
   }
@@ -294,13 +306,13 @@ function ValueFieldEditor({ field, override, onSaved }) {
 }
 
 // ---------- Sections affichées ou masquées ----------
-function VisibilityEditor({ overrides, onSaved }) {
+function VisibilityEditor({ ids, overrides, onSaved }) {
   const { t } = useTranslation();
   const { token } = useAuth();
   const [saving, setSaving] = useState(null);   // clé en cours d'enregistrement
   const [status, setStatus] = useState(null);
   const shown = (k) => !(overrides[`home.show.${k}`] && overrides[`home.show.${k}`].value === 'false');
-  const shownCount = SHOW_KEYS.filter(shown).length;
+  const shownCount = ids.filter(shown).length;
 
   function toggle(k) {
     const next = !shown(k);
@@ -321,7 +333,7 @@ function VisibilityEditor({ overrides, onSaved }) {
       <legend>{t('adminHome.sectionsLegend')}</legend>
       <p className="content-field-help">{t('adminHome.sectionsHelp')}</p>
       <div className="check-options">
-        {SHOW_KEYS.map((k) => {
+        {ids.map((k) => {
           // La dernière section affichée ne peut pas être décochée.
           const locked = shown(k) && shownCount === 1;
           return (
@@ -338,12 +350,15 @@ function VisibilityEditor({ overrides, onSaved }) {
   );
 }
 
-function HomeContentAdmin() {
+// ---------- Parent : données chargées une fois pour tous les sous-points ----------
+function SiteContentAdmin() {
   const { t } = useTranslation();
   const { token } = useAuth();
   const { reload: reloadSite } = useSiteContent();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  // Champs modifiés et non enregistrés de la sous-page affichée (clés).
+  const dirty = useRef(new Set());
 
   // Pas de setState synchrone dans l'effet (règle react-hooks/set-state-in-effect).
   const load = useCallback(() => {
@@ -357,6 +372,44 @@ function HomeContentAdmin() {
   // Après chaque enregistrement : relire les surcharges ici ET sur le site public.
   const onSaved = useCallback(() => { load(); reloadSite(); }, [load, reloadSite]);
 
+  const markDirty = useCallback((key, isDirty) => {
+    if (isDirty) dirty.current.add(key);
+    else dirty.current.delete(key);
+  }, []);
+
+  // Modifications non enregistrées. Le routeur (BrowserRouter) ne sait pas
+  // bloquer une navigation : on intercepte, en phase de CAPTURE sur le
+  // document (donc avant React Router), le clic sur un lien interne qui
+  // change de page — sous-point, autre onglet du menu, lien du site. Si
+  // l'administrateur refuse, le clic est annulé. Fermer ou recharger
+  // l'onglet : avertissement standard du navigateur (beforeunload).
+  useEffect(() => {
+    function onClick(e) {
+      if (!dirty.current.size || e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;   // nouvel onglet / fenêtre
+      const a = e.target instanceof Element ? e.target.closest('a[href]') : null;
+      if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return;
+      const url = new URL(a.href, window.location.href);
+      if (url.origin !== window.location.origin) return;   // site extérieur : beforeunload s'en charge
+      if (url.pathname === window.location.pathname) return;   // même page (ancre)
+      if (!window.confirm(t('adminHome.unsavedConfirm'))) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+    function onBeforeUnload(e) {
+      if (!dirty.current.size) return;
+      e.preventDefault();
+      e.returnValue = '';
+    }
+    document.addEventListener('click', onClick, true);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      document.removeEventListener('click', onClick, true);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+    };
+  }, [t]);
+
   if (error && !data) return <p className="form-msg form-msg-error" role="alert">{error}</p>;
   if (!data) return <p>{t('common.loading')}</p>;
 
@@ -365,29 +418,50 @@ function HomeContentAdmin() {
 
   return (
     <div className="content-admin">
-      <p className="admin-intro">{t('adminHome.intro')}</p>
+      <Outlet context={{ fields, overrides, onSaved, markDirty }} />
+    </div>
+  );
+}
 
-      {/* Sommaire : ancres vers les quatre sections (simples liens <a href="#…"> :
-          le navigateur défile, scroll-padding-top évite l'en-tête collant). */}
-      <nav id="cs-nav" className="content-nav" aria-label={t('adminHome.navLabel')}>
-        <ul>
-          {SECTIONS.map((s) => (
-            <li key={s.id}><a href={`#cs-${s.id}`}>{t(`adminHome.parts.${s.id}`)}</a></li>
-          ))}
-        </ul>
-      </nav>
+// ---------- Sous-point : un sujet, ses groupes repliables ----------
+export function SiteContentPart({ partId }) {
+  const { t } = useTranslation();
+  const { fields, overrides, onSaved } = useOutletContext();
+  const part = SITE_CONTENT_PARTS.find((p) => p.id === partId);
 
-      {SECTIONS.map((section) => (
-        <section key={section.id} id={`cs-${section.id}`} className="content-section" aria-labelledby={`cs-${section.id}-t`} tabIndex={-1}>
-          <h3 id={`cs-${section.id}-t`}>{t(`adminHome.parts.${section.id}`)}</h3>
+  // Groupes ouverts au départ : ceux qui contiennent déjà une modification
+  // enregistrée ; à défaut, le premier. Calculé une fois (à l'arrivée sur la
+  // sous-page) : un enregistrement n'ouvre ni ne ferme rien ensuite, et un
+  // groupe replié garde sa saisie (son contenu reste monté).
+  const [initiallyOpen] = useState(() => {
+    const withChanges = part.groups.filter((g) => g.keys.some((k) => overrides[k])).map((g) => g.id);
+    return new Set(withChanges.length ? withChanges : [part.groups[0].id]);
+  });
 
-          {section.visibility && <VisibilityEditor overrides={overrides} onSaved={onSaved} />}
+  return (
+    <section aria-labelledby="cs-part-title">
+      <div className="content-part-head">
+        <h3 id="cs-part-title">{t(`adminHome.parts.${part.id}`)}</h3>
+        <a className="content-view-link" href={part.view} target="_blank" rel="noopener noreferrer" aria-label={t('adminHome.viewPageLabel')}>
+          {t('adminHome.viewPage')}
+        </a>
+      </div>
+      <p className="admin-intro">{t(`adminHome.intros.${part.id}`)}</p>
 
-          {section.groups.map((group) => (
-            <div key={group.id} className="content-group" role="group" aria-labelledby={`cg-${group.id}`}>
-              <h4 id={`cg-${group.id}`}>{t(`adminHome.groups.${group.id}`)}</h4>
+      {part.visibility && <VisibilityEditor ids={part.visibility} overrides={overrides} onSaved={onSaved} />}
+
+      {part.groups.map((group) => {
+        const keys = group.keys.filter((k) => fields[k]);
+        const changed = keys.some((k) => overrides[k]);
+        return (
+          <details key={group.id} className="content-group" open={initiallyOpen.has(group.id)}>
+            <summary>
+              <span className="content-group-title">{t(`adminHome.groups.${group.id}`)}</span>
+              {changed && <span className="content-badge custom">{t('adminHome.badgeCustom')}</span>}
+            </summary>
+            <div className="content-group-body">
               {group.help && <p className="content-field-help">{t(`adminHome.groupHelp.${group.id}`)}</p>}
-              {group.keys.filter((k) => fields[k]).map((k) => {
+              {keys.map((k) => {
                 const f = fields[k];
                 const o = overrides[k];
                 // Clé stable : l'éditeur garde sa saisie et son message après un
@@ -397,13 +471,19 @@ function HomeContentAdmin() {
                   : <ValueFieldEditor key={k} field={f} override={o} onSaved={onSaved} />;
               })}
             </div>
-          ))}
-
-          <a className="content-back" href="#cs-nav">{t('adminHome.backToNav')}</a>
-        </section>
-      ))}
-    </div>
+          </details>
+        );
+      })}
+    </section>
   );
 }
 
-export default HomeContentAdmin;
+// ---------- Ancienne adresse /secretariat/accueil ----------
+// Les anciennes ancres du sommaire (#cs-footer…) mènent au bon sous-point.
+export function LegacySiteContentRedirect() {
+  const { hash } = useLocation();
+  const part = SITE_CONTENT_PARTS.find((p) => hash === `#cs-${p.id}`) || SITE_CONTENT_PARTS[0];
+  return <Navigate to={partPath(part)} replace />;
+}
+
+export default SiteContentAdmin;
