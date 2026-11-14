@@ -1,6 +1,6 @@
 // ============================================================
 // client/src/pages/secretariat/ContentManagement.jsx
-// Onglet "Gestion du contenu" — périmètre MVP : les actualités.
+// Onglet « Actualités » (ex-« Gestion du contenu ») — les actualités du site.
 // (Les coordonnées des pays se gèrent déjà dans l'onglet Comptes
 // des pays ; l'édition des descriptions de GTT pourra suivre le
 // même pattern plus tard si besoin.)
