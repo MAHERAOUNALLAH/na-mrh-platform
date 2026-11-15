@@ -840,15 +840,6 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 /* Textes modifiables sur plusieurs lignes : les retours à la ligne
    saisis par l'administrateur sont conservés (texte brut, pas de HTML). */
 .multiline{white-space:pre-line;}
-/* Noms des États membres, sans drapeau, cliquables vers « États membres ». */
-.home-countries h3{font-size:17px; margin-bottom:12px;}
-.home-countries ul{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:10px;}
-.home-countries a{
-  display:inline-flex; align-items:center; min-height:44px; padding:8px 16px;
-  background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
-  font-size:14.5px; font-weight:600; color:var(--ink); text-decoration:none;
-}
-.home-countries a:hover{border-color:var(--ink);}
 /* Section de l'accueil en attente ou indisponible : message discret. */
 .section-note{font-size:13.5px; color:var(--ink-soft); margin-block:6px 14px;}
 
@@ -922,3 +913,69 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 /* Drapeau à dominante claire (Algérie) : fin liseré gris intérieur,
    visible même dans une bande qui rogne ce qui dépasse. */
 .flag-light{outline:1px solid var(--line-strong); outline-offset:-1px;}
+
+/* ============================================================
+   ACCUEIL — BANDEAU DÉFILANT DES ÉTATS MEMBRES (CountriesBand.jsx)
+   Seul élément animé du site. Règles d'accessibilité (WCAG 2.2.2) :
+   bouton Pause, arrêt au survol et au focus, et AUCUNE animation si
+   l'utilisateur a demandé de réduire les animations (liste statique).
+   Mouvement : transform seulement, piste de N copies décalée d'une
+   copie par cycle (N et la durée sont mesurés par le composant).
+   ============================================================ */
+.countries-band{
+  --marquee-dir:1;                       /* 1 : vers la gauche (LTR) */
+  --band-h:64px;                         /* hauteur réservée du bandeau */
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+  padding-block-start:14px;
+}
+[dir="rtl"] .countries-band{--marquee-dir:-1;}   /* arabe : vers la droite, sens de lecture */
+.countries-band-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  min-height:44px;                       /* même hauteur avec ou sans bouton */
+}
+.countries-band-head h2{font-size:17px; margin:0;}
+.marquee-toggle{
+  display:inline-flex; align-items:center; gap:8px; min-height:44px; min-width:44px;
+  padding:0 14px; border:1px solid var(--line-strong); border-radius:3px;
+  background:var(--bg); color:var(--ink); font-size:13.5px; font-weight:700;
+}
+.marquee-toggle:hover{border-color:var(--ink);}
+.marquee-toggle[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:#fff;}
+.marquee-toggle-icon{font-size:11px; letter-spacing:-1px;}
+.marquee-toggle:focus-visible, .marquee-item:focus-visible{outline:2px solid var(--red); outline-offset:-2px;}
+
+.marquee{overflow:hidden; height:var(--band-h); display:flex; align-items:center;}
+.marquee-placeholder{min-height:var(--band-h); display:flex; align-items:center;}
+.marquee-placeholder .section-note{margin:0;}
+.marquee-track{
+  display:flex; flex-shrink:0; width:max-content;
+  animation:countries-marquee var(--marquee-duration, 30s) linear infinite;
+}
+/* Pause : bouton, survol de la piste, focus d'un lien du bandeau. */
+.marquee[data-paused="true"] .marquee-track,
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track{animation-play-state:paused;}
+.marquee-list{
+  list-style:none; margin:0; padding:0; display:flex; flex-shrink:0;
+  gap:8px; padding-inline-end:8px;       /* même écart entre deux copies qu'entre deux pays */
+}
+.marquee-item{
+  display:inline-flex; align-items:center; gap:10px; min-height:44px;
+  padding-inline:12px; white-space:nowrap; text-decoration:none;
+  color:var(--ink); font-size:14.5px; font-weight:600;
+}
+.marquee-item:hover span{text-decoration:underline;}
+@keyframes countries-marquee{
+  from{transform:translateX(0);}
+  to{transform:translateX(calc(-100% / var(--marquee-copies, 2) * var(--marquee-dir, 1)));}
+}
+
+/* Réduire les animations : liste statique qui passe à la ligne, avec
+   ses drapeaux ; copies et bouton Pause masqués. */
+@media (prefers-reduced-motion: reduce){
+  .marquee{display:block; height:auto; padding-inline:clamp(16px, 4vw, 28px); padding-block:6px 10px;}
+  .marquee-track{display:block; animation:none; width:auto;}
+  .marquee-list{flex-wrap:wrap; flex-shrink:1; padding-inline-end:0;}
+  .marquee-copy, .marquee-toggle{display:none;}
+}

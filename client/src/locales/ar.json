@@ -178,7 +178,9 @@
     "privacyLink": "الخصوصية وشروط الاستخدام"
   },
   "homePage": {
-    "sectionError": "هذا القسم غير متاح مؤقتًا."
+    "sectionError": "هذا القسم غير متاح مؤقتًا.",
+    "marqueePause": "إيقاف مؤقت",
+    "marqueeLabel": "الدول الأعضاء (شريط متحرك)"
   },
   "adminHome": {
     "save": "حفظ",

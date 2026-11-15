@@ -178,7 +178,9 @@
     "privacyLink": "Privacy and terms of use"
   },
   "homePage": {
-    "sectionError": "This section is temporarily unavailable."
+    "sectionError": "This section is temporarily unavailable.",
+    "marqueePause": "Pause",
+    "marqueeLabel": "Member States (scrolling banner)"
   },
   "adminHome": {
     "save": "Save",
