@@ -15,6 +15,8 @@
 //   const { text, list, value, show } = useSiteContent();
 //   <h1>{text('hero.h1')}</h1>   <bdi dir="ltr">{value('contact.email')}</bdi>
 //   <InlineList items={list('footer.partnersList')} />   (tableau de chaînes)
+//   custom('privacy.body')  → surcharge de la langue affichée, sinon ''
+//                             (clés sans texte par défaut seulement)
 // Rendu toujours comme du TEXTE par React (jamais de HTML).
 // ============================================================
 
@@ -50,11 +52,15 @@ export function SiteContentProvider({ children }) {
   // Appelé par l'écran admin après un enregistrement (depuis un clic).
   const reload = useCallback(() => setVersion((v) => v + 1), []);
 
-  const text = useCallback((key) => {
+  // Surcharge de la langue affichée, ou '' s'il n'y en a pas. Sert aux
+  // clés SANS texte par défaut (emptyDefault, ex. privacy.body) : la page
+  // affiche alors son propre message d'attente.
+  const custom = useCallback((key) => {
     const row = overrides[key];
-    const custom = row && row[LANG_COLUMN[i18n.language]];
-    return custom || t(key);
-  }, [overrides, i18n.language, t]);
+    return (row && row[LANG_COLUMN[i18n.language]]) || '';
+  }, [overrides, i18n.language]);
+
+  const text = useCallback((key) => custom(key) || t(key), [custom, t]);
 
   // Liste traduite (type « list » du registre) : surcharge de la langue
   // affichée, un élément par ligne ; sinon le tableau des locales.
@@ -74,7 +80,7 @@ export function SiteContentProvider({ children }) {
   const show = useCallback((key) => value(`home.show.${key}`) !== 'false', [value]);
 
   return (
-    <SiteContentContext.Provider value={{ ready, text, list, value, show, reload, overrides }}>
+    <SiteContentContext.Provider value={{ ready, text, custom, list, value, show, reload, overrides }}>
       {children}
     </SiteContentContext.Provider>
   );

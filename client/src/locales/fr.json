@@ -65,6 +65,13 @@
       "CEPI"
     ]
   },
+  "privacy": {
+    "title": "Confidentialité et conditions d'utilisation"
+  },
+  "privacyPage": {
+    "kicker": "Informations légales",
+    "soon": "Ce contenu sera publié prochainement."
+  },
   "newsPage": {
     "kicker": "Fil d'annonces",
     "h": "Actualités régionales",
@@ -167,19 +174,20 @@
       "BAD",
       "CEPI"
     ],
-    "copyright": "NA-MRH Secretariat"
+    "copyright": "NA-MRH Secretariat",
+    "privacyLink": "Confidentialité et conditions d'utilisation"
   },
   "homePage": {
     "sectionError": "Cette section est momentanément indisponible."
   },
   "adminHome": {
-    "intro": "Textes de l'accueil, de la page Gouvernance et du pied de page, et coordonnées du Secrétariat. Chaque champ est pré-rempli avec le texte actuel. Une langue laissée identique au texte par défaut n'est pas enregistrée. Les modifications sont visibles immédiatement sur le site public.",
     "save": "Enregistrer",
     "saved": "Modification enregistrée.",
     "restore": "Restaurer la valeur par défaut",
     "restored": "Valeur par défaut restaurée.",
     "badgeDefault": "Texte par défaut",
     "badgeCustom": "Modifié",
+    "badgeNotPublished": "Non publié",
     "counter": "{{count}} / {{max}} caractères",
     "intRange": "Nombre entier de {{min}} à {{max}}",
     "notModifiedIn": "Texte par défaut conservé en : {{langs}}. Pensez à traduire la modification.",
@@ -193,21 +201,31 @@
       "twgs": "Groupes de travail",
       "news": "Actualités récentes"
     },
-    "navLabel": "Sections de la page",
-    "backToNav": "↑ Retour au sommaire",
     "parts": {
       "home": "Accueil",
       "governance": "Gouvernance",
       "footer": "Pied de page",
-      "contact": "Coordonnées"
+      "contact": "Coordonnées",
+      "privacy": "Confidentialité"
     },
+    "intros": {
+      "home": "Textes de la page d'accueil et sections affichées. Une langue laissée identique au texte par défaut n'est pas enregistrée.",
+      "governance": "Textes de la page Gouvernance. Sa structure (trois niveaux, partenaires) ne change pas.",
+      "footer": "Textes du pied de page, affiché en bas de toutes les pages. Les liens de navigation ne se modifient pas.",
+      "contact": "E-mail et téléphone du Secrétariat (page Contact et pied de page) et texte de la page Contact.",
+      "privacy": "Page « Confidentialité et conditions d'utilisation », liée depuis le pied de page. Sans texte dans une langue, elle annonce une publication prochaine."
+    },
+    "viewPage": "Voir la page sur le site",
+    "viewPageLabel": "Voir la page sur le site (nouvel onglet)",
+    "unsavedConfirm": "Des modifications de cette page n'ont pas été enregistrées. Quitter quand même et les abandonner ?",
     "listHelp": "Un élément par ligne ; les lignes vides sont ignorées. {{max}} éléments au plus, de {{len}} caractères chacun.",
     "listCounter": "{{count}} / {{max}} éléments",
     "listTooMany": "Trop d'éléments : {{max}} au plus.",
     "listItemTooLong": "L'élément n° {{n}} dépasse {{max}} caractères.",
     "fieldHelp": {
       "listsIndependent": "La liste du pied de page et celle de la page Gouvernance sont indépendantes : pour un changement partout, modifiez les deux.",
-      "copyright": "Affichée après « © {{year}} » : l'année est ajoutée automatiquement, ne la saisissez pas."
+      "copyright": "Affichée après « © {{year}} » : l'année est ajoutée automatiquement, ne la saisissez pas.",
+      "privacyBody": "Texte brut : une ligne vide sépare deux paragraphes. Une langue laissée vide affiche « Ce contenu sera publié prochainement. »."
     },
     "groupHelp": {
       "footerCols": "Les liens de la colonne « Navigation » sont les pages du site : ils ne se modifient pas ici."
@@ -224,7 +242,8 @@
       "footerCols": "Colonnes du pied de page",
       "footerBottom": "Ligne du bas : partenaires et droits",
       "contactCoords": "E-mail et téléphone du Secrétariat",
-      "contactPage": "Page Contact"
+      "contactPage": "Page Contact",
+      "privacyPage": "Page Confidentialité et conditions d'utilisation"
     },
     "fields": {
       "hero_kicker": "Accroche",
@@ -270,7 +289,9 @@
       "footer_contactP": "Pied de page, colonne 3 : ligne au-dessus de l'e-mail et du téléphone",
       "footer_partnersT": "Pied de page, ligne du bas : libellé avant les partenaires",
       "footer_partnersList": "Pied de page, ligne du bas : liste des partenaires",
-      "footer_copyright": "Pied de page, ligne du bas : mention de droits"
+      "footer_copyright": "Pied de page, ligne du bas : mention de droits",
+      "privacy_title": "Page Confidentialité : titre",
+      "privacy_body": "Page Confidentialité : texte"
     }
   },
   "langNames": {
@@ -348,7 +369,7 @@
       "countries": "Comptes des pays",
       "users": "Gestion des utilisateurs",
       "documents": "Circuit documentaire",
-      "news": "Gestion du contenu",
+      "news": "Actualités",
       "twgs": "Groupes de travail",
       "home": "Contenu du site"
     }

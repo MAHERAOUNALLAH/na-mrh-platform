@@ -695,7 +695,7 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
    de la droite (seule exception justifiée aux propriétés logiques). */
 .table-scroll{overflow-x:auto; overscroll-behavior-inline:contain;}
 /* Indice de défilement partagé : tableaux, et onglets du Secrétariat sur mobile. */
-.table-scroll, .admin-tabs{
+.table-scroll, .admin-tabs, .admin-subtabs-row{
   background:
     linear-gradient(to right, var(--bg) 30%, rgba(247,243,234,0)) left center / 40px 100% no-repeat local,
     linear-gradient(to left, var(--bg) 30%, rgba(247,243,234,0)) right center / 40px 100% no-repeat local,
@@ -732,6 +732,40 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
     border-inline-start:none; border-bottom:3px solid transparent;
   }
   .admin-tabs a.active{border-bottom-color:var(--red);}
+}
+
+/* ---------- Menu du Secrétariat : entrées à sous-points ----------
+   (« Contenu du site », SecretariatLayout.jsx). Bureau : sous-points en
+   retrait sous leur parent, même police, même repère d'élément actif
+   (bordure de début de ligne rouge). Mobile : deuxième rangée défilante
+   (.admin-subtabs-row) sous la rangée des onglets, même motif qu'elle. */
+.admin-nav{min-width:0;}
+.admin-tabs a.admin-tab-parent{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.admin-subtabs{list-style:none; margin:2px 0 6px; padding:0; padding-inline-start:14px;}
+.admin-tabs .admin-subtabs a{
+  padding:8px 12px; font-size:13.5px; font-weight:600; color:var(--ink-soft);
+  border-inline-start:2px solid var(--line); background:none;
+}
+.admin-tabs .admin-subtabs a:hover{color:var(--ink);}
+.admin-tabs .admin-subtabs a.active{
+  color:var(--red-deep); font-weight:700;
+  border-inline-start-color:var(--red); background:rgba(163,22,33,.05);
+}
+.admin-subtabs-row{display:none;}
+@media(max-width:768px){
+  .admin-subtabs{display:none;}
+  .admin-subtabs-row{
+    display:flex; flex-wrap:nowrap; list-style:none; margin:0; padding:0;
+    overflow-x:auto; overscroll-behavior-inline:contain;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-subtabs-row li{flex:0 0 auto;}
+  .admin-subtabs-row a{
+    display:flex; align-items:center; min-height:44px; padding-inline:14px; white-space:nowrap;
+    font-size:13.5px; font-weight:600; color:var(--ink-soft); text-decoration:none;
+    border-bottom:3px solid transparent;
+  }
+  .admin-subtabs-row a.active{color:var(--red-deep); font-weight:700; border-bottom-color:var(--red);}
 }
 
 /* ---------- Formulaires du Secrétariat ---------- */
@@ -785,6 +819,19 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
    le .container ; sans effet en grand écran, où le texte tient sur une
    ligne centrée. */
 .partners-row{padding-inline:clamp(16px, 4vw, 28px);}
+/* Lien « Confidentialité et conditions d'utilisation » de la ligne du bas. */
+.footer-legal-link{color:#C9C0AE; text-decoration:underline; text-underline-offset:2px;}
+.footer-legal-link:hover, .footer-legal-link:focus-visible{color:#fff;}
+@media(max-width:768px){
+  /* Cible tactile de 44 px, sans changer la taille du texte. */
+  .footer-legal-link{display:inline-flex; align-items:center; min-height:44px; vertical-align:middle;}
+}
+
+/* ---------- Page « Confidentialité et conditions d'utilisation » ---------- */
+/* Texte long saisi par le Secrétariat : largeur de lecture bornée, un mot
+   ou une adresse sans espace passe à la ligne au lieu de déborder. */
+.legal-text{max-width:72ch; overflow-wrap:anywhere;}
+.legal-text p{font-size:15px; line-height:1.75; margin-bottom:14px;}
 
 /* ---------- Accueil : contenu modifiable par le Secrétariat ---------- */
 /* Hero sur une seule colonne (plus de carte des pays) : largeur de
@@ -812,21 +859,40 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .form-msg-error{color:var(--red-deep);}
 
 /* ---------- Onglet « Contenu du site » ----------
-   Sommaire d'ancres (.content-nav) → sections (.content-section, h3)
-   → groupes (.content-group, h4) → champs (.content-field, h5). */
-.content-nav ul{display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:0 0 6px; padding:0;}
-.content-nav a{
-  display:inline-flex; align-items:center; min-height:40px; padding-inline:16px;
-  background:var(--surface); border:1px solid var(--line-strong); border-radius:3px;
-  font-size:14px; font-weight:600; color:var(--ink); text-decoration:none;
+   Une sous-page par sujet (sous-points du menu) : en-tête (.content-part-head,
+   h3 + « Voir la page sur le site ») → groupes repliables (<details
+   class="content-group">) → champs (.content-field, h5). */
+.content-part-head{
+  display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 16px;
+  padding-bottom:10px; border-bottom:2px solid var(--ink); margin-bottom:10px;
 }
-.content-nav a:hover, .content-nav a:focus-visible{border-color:var(--ink);}
-.content-section{margin-top:34px;}
-.content-section:focus{outline:none;}   /* cible d'ancre : le focus n'y est que pour la suite de la tabulation */
-.content-section > h3{font-size:22px; padding-bottom:10px; border-bottom:2px solid var(--ink); margin-bottom:6px;}
-.content-group{margin-top:26px;}
-.content-group > h4{font-size:17px; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:12px;}
-.content-back{display:inline-flex; align-items:center; margin-top:4px; font-size:13.5px; font-weight:600; color:var(--ink-soft);}
+.content-part-head h3{font-size:22px; margin:0;}
+.content-view-link{font-size:13.5px; font-weight:600; color:var(--red-deep);}
+.content-group{margin-top:14px; border:1px solid var(--line-strong); border-radius:3px;}
+.content-group > summary{
+  display:flex; align-items:center; gap:10px; min-height:44px; padding:10px 14px;
+  cursor:pointer; list-style:none; font-size:16px; font-weight:700; color:var(--ink);
+}
+.content-group > summary::-webkit-details-marker{display:none;}
+.content-group > summary:hover{background:rgba(32,26,21,.04);}
+.content-group[open] > summary{border-bottom:1px solid var(--line);}
+.content-group-title{flex:1 1 auto; min-width:0;}
+.content-group > summary .content-badge{font-size:12px;}
+.content-group-body{padding:14px 14px 2px;}
+/* Chevron (groupes repliables, entrée « Contenu du site » du menu) :
+   coin d'un carré tourné ; pointe vers la fin de ligne quand c'est replié
+   (à droite en LTR, à gauche en RTL), vers le bas quand c'est déplié.
+   Bordures physiques (right/bottom) : c'est la rotation qui donne le sens,
+   réglée séparément pour le RTL — exception justifiée aux propriétés logiques. */
+.content-group > summary::before, .admin-tab-parent::after{
+  content:''; flex:none; width:7px; height:7px;
+  border-right:2px solid currentColor; border-bottom:2px solid currentColor;
+  transform:rotate(-45deg); transition:transform .15s;
+}
+[dir="rtl"] .content-group > summary::before, [dir="rtl"] .admin-tab-parent::after{transform:rotate(135deg);}
+.content-group[open] > summary::before, .admin-tab-parent[aria-expanded="true"]::after{transform:rotate(45deg);}
+/* Texte long (page Confidentialité) : grand champ, redimensionnable. */
+.field textarea.content-long{min-height:340px; resize:vertical; line-height:1.6;}
 .content-field{background:var(--surface); border:1px solid var(--line); padding:18px; margin:0 0 12px; min-width:0;}
 .content-field h5, .content-field legend{font-size:14.5px; font-weight:700; margin:0 0 10px; padding:0;}
 .content-field-meta{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; margin-top:5px; font-size:12px; color:var(--ink-soft);}
@@ -836,10 +902,10 @@ html{scroll-padding-top:calc(var(--sticky-h, 76px) + 8px);}
 .content-field-warning{font-size:13px; color:#8a6414; margin-block:4px 10px;}
 @media(max-width:768px){
   .content-field{padding:14px;}
-  /* Sommaire au doigt : deux colonnes de cibles de 44 px. */
-  .content-nav ul{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr));}
-  .content-nav a{display:flex; min-height:44px; justify-content:center; text-align:center;}
-  .content-back{min-height:44px;}
+  .content-group-body{padding:10px 10px 0;}
+  .content-view-link{display:inline-flex; align-items:center; min-height:44px;}
+  /* Texte long sur téléphone : presque tout l'écran, sans dépasser. */
+  .field textarea.content-long{min-height:60vh;}
 }
 
 /* ---------- Mon espace : formulaire « Mon profil » ---------- */

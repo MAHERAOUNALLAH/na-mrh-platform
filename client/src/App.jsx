@@ -5,7 +5,7 @@
 // pour quelle URL, toutes enveloppées dans <Layout>.
 // ============================================================
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // --- Coquille et pages publiques ---
 import Layout from './components/Layout';
@@ -18,6 +18,7 @@ import Governance from './pages/Governance';
 import Actualites from './pages/Actualites';
 import Contact from './pages/Contact';
 import Reclamations from './pages/Reclamations';
+import Privacy from './pages/Privacy';
 import ComingSoon from './pages/ComingSoon';
 import NotFound from './pages/NotFound';
 
@@ -34,7 +35,8 @@ import UserManagement from './pages/secretariat/UserManagement';
 import DocumentWorkflow from './pages/secretariat/DocumentWorkflow';
 import ContentManagement from './pages/secretariat/ContentManagement';
 import TwgAdmin from './pages/secretariat/TwgAdmin';
-import HomeContentAdmin from './pages/secretariat/HomeContentAdmin';
+import SiteContentAdmin, { SiteContentPart, LegacySiteContentRedirect } from './pages/secretariat/SiteContentAdmin';
+import { SITE_CONTENT_PARTS, partPath } from './pages/secretariat/siteContentParts';
 
 function App() {
   return (
@@ -53,6 +55,7 @@ function App() {
           <Route path="actualites" element={<Actualites />} />
           <Route path="contact" element={<Contact />} />
           <Route path="reclamations" element={<Reclamations />} />
+          <Route path="confidentialite" element={<Privacy />} />
 
           {/* Rubrique annoncée dans le menu mais pas encore construite. */}
           <Route path="portail-rims" element={<ComingSoon titleKey="nav.portal" />} />
@@ -88,7 +91,17 @@ function App() {
             <Route path="documents" element={<DocumentWorkflow />} />
             <Route path="contenu" element={<ContentManagement />} />
             <Route path="groupes-de-travail" element={<TwgAdmin />} />
-            <Route path="accueil" element={<HomeContentAdmin />} />
+            {/* Contenu du site : une sous-page par sujet (siteContentParts.js),
+                données chargées une fois par SiteContentAdmin (parent). */}
+            <Route path="contenu-du-site" element={<SiteContentAdmin />}>
+              <Route index element={<Navigate to={partPath(SITE_CONTENT_PARTS[0])} replace />} />
+              {SITE_CONTENT_PARTS.map((part) => (
+                <Route key={part.id} path={part.slug} element={<SiteContentPart key={part.id} partId={part.id} />} />
+              ))}
+              <Route path="*" element={<Navigate to={partPath(SITE_CONTENT_PARTS[0])} replace />} />
+            </Route>
+            {/* Ancienne adresse de l'onglet (et ses ancres #cs-…). */}
+            <Route path="accueil" element={<LegacySiteContentRedirect />} />
           </Route>
 
           {/* Toute autre adresse : message d'erreur, pas d'écran blanc. */}

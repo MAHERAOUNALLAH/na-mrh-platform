@@ -10,6 +10,8 @@
 // Trois sortes de clés :
 //   - kind 'text' : traduit, valeurs valueFr / valueEn / valueAr ;
 //     null (ou vide) pour une langue = texte par défaut de cette langue ;
+//     emptyDefault : pas de texte par défaut (la page affiche un message
+//     d'attente tant que la langue n'a pas de surcharge) ;
 //   - kind 'list' : traduit aussi (valueFr / valueEn / valueAr), mais
 //     chaque valeur est une liste, un élément par ligne : lignes vides
 //     ignorées, au plus maxItems éléments de maxItemLength caractères.
@@ -91,6 +93,13 @@ const SITE_CONTENT_FIELDS = {
   'footer.partnersT': text(120),
   'footer.partnersList': list(20, 80),
   'footer.copyright': text(120),   // sans l'année : elle est calculée par le client
+  // --- Page « Confidentialité et conditions d'utilisation » (/confidentialite) ---
+  'privacy.title': text(80),
+  // Texte long, par langue. AUCUN texte par défaut (emptyDefault : pas de
+  // clé dans les locales, aucun texte juridique inventé) : tant qu'une
+  // langue n'a pas de surcharge, la page affiche « Ce contenu sera publié
+  // prochainement. » dans cette langue. Une ligne vide sépare deux paragraphes.
+  'privacy.body': { ...text(20000, true), emptyDefault: true },
   // --- Coordonnées du Secrétariat (Contact, pied de page) ---
   'contact.email': { kind: 'email' },
   'contact.phone': { kind: 'phone' },

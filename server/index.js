@@ -124,7 +124,20 @@ app.use(helmet({
 // en-tête Origin — curl, serveur à serveur — n'est pas concernée par CORS.)
 app.use(cors({ origin: ALLOWED_ORIGINS }));
 
-app.use(express.json());      // permet de lire req.body sur les POST/PUT/PATCH
+// Lecture de req.body (POST/PUT/PATCH). Limite par défaut d'Express :
+// 100 Ko. Exception : PUT /api/admin/site-content/:key, dont un champ
+// (privacy.body) accepte 20 000 caractères par langue, soit jusqu'à
+// ~180 Ko en UTF-8 pour les trois langues : 256 Ko sur ce seul chemin.
+const jsonBody = express.json();
+const jsonBodySiteContent = express.json({ limit: '256kb' });
+app.use((req, res, next) => (req.path.startsWith('/api/admin/site-content/') ? jsonBodySiteContent : jsonBody)(req, res, next));
+// Corps illisible ou trop gros : réponse JSON claire (au lieu de la page
+// d'erreur HTML d'Express), que le client affiche comme les autres erreurs.
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.too.large') return res.status(413).json({ error: 'Contenu trop volumineux.' });
+  if (err && err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Corps de requête JSON invalide.' });
+  return next(err);
+});
 
 const PORT = Number(process.env.PORT) || 4000;   // l'hébergeur impose souvent son port via PORT
 
