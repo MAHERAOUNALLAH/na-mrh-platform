@@ -123,6 +123,10 @@ La langue se lit via `const { i18n } = useTranslation()` puis `i18n.language` : 
 - **Technique** : animation CSS seulement (`@keyframes`, `transform`), jamais `left` / `margin` animés, pas de `will-change` permanent ; JavaScript seulement pour mesurer (nombre de copies, durée), jamais pour animer image par image. Sens inversé en arabe par une variable liée à `[dir="rtl"]` (`--marquee-dir`), pas de `left`/`right` figés.
 - **Classes du bandeau** (`index.css`, section « BANDEAU DÉFILANT ») : `.countries-band`, `.countries-band-head`, `.marquee` (cadre, `overflow:hidden`, hauteur `--band-h` = 64 px, réservée aussi par `.marquee-placeholder` pendant le chargement), `.marquee-track` (piste, `--marquee-copies`, `--marquee-duration`), `.marquee-list` / `.marquee-copy`, `.marquee-item`, `.marquee-toggle`. Vitesse : 40 px/s (`SPEED_PX_PER_S`).
 
+### Mesure d'audience
+- **Vercel Web Analytics**, paquet `@vercel/analytics` (version exacte dans `client/package.json`) : `inject({ mode: 'production' })` appelé **une seule fois dans `client/src/main.jsx`, seulement si `import.meta.env.PROD`** (jamais en développement local ; mode explicite car Vite n'expose pas `NODE_ENV` au navigateur). Script `/_vercel/insights/script.js`, même domaine que le site, chargé en `defer` ; bloqué ou introuvable, il ne produit qu'un `console.log`. **À mentionner dans la page de confidentialité** (texte du Secrétariat, `privacy.body`).
+- `client/vercel.json` réécrit toute adresse vers `/index.html` : vérifier après déploiement que `/_vercel/insights/script.js` renvoie bien du JavaScript (et non la page HTML).
+
 ### Sécurité — le filtrage est toujours côté serveur
 Tout filtre qui décide **ce que l'utilisateur a le droit de voir** appartient au `where` de la requête Prisma, jamais à un `.filter()` React sur les données reçues. Sinon les données sensibles partent quand même dans le navigateur, où elles se lisent dans l'onglet Réseau : le masquage à l'affichage n'est qu'un rideau.
 
@@ -191,7 +195,7 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - Fins de ligne : `.gitattributes` impose LF dans le dépôt (Windows inclus). Ne pas committer de fichiers de travail (patchs, scripts jetables) : vérifier `git status` et ajouter les fichiers un par un plutôt que `git add -A`.
 
 ## État d'avancement (Phases 0 à 3 construites, audit A-D corrigé, préparation au déploiement faite)
-> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 15/11/2026, branche `bandeau-pays` (non fusionnée), partie de `main` à jour (`page-confidentialite` fusionnée).
+> ⚠️ Cette section doit être mise à jour à chaque fin de tâche, en vérifiant l'état réel du code (`ls`, lecture des fichiers) — pas de supposition. Dernière vérification complète : 15/11/2026, branche `analytics-vercel` (non fusionnée), partie de `main` à jour (`bandeau-pays` fusionnée).
 
 **Phase 0 — fondations** ✅ CSS extrait, i18n (FR/EN/AR + RTL), routeur, Layout (header/footer), `Flag.jsx`, `lang.js`.
 
@@ -252,6 +256,10 @@ app.put('/api/admin/xxx/:id', requireAuth, requireRole('secretariat_admin'), asy
 - ✅ Accueil : bandeau défilant des États membres (drapeau + nom, lien vers `/etats-membres`) à la place de la liste en pastilles ; pause, arrêt au survol / au focus, `prefers-reduced-motion`, copies masquées aux lecteurs d'écran ; arabe de gauche à droite. Aucune migration, aucune modification du serveur.
 - ✅ Testé (base locale, Chrome sans interface) : 89 contrôles (contenu et ordre FR/EN/AR, pause bouton / clavier / doigt / survol / focus, Tab sur les 6 liens réels seulement, bouclage sans trou ni saut à 360/768/1440/2560 en FR et AR, sens inversé en arabe, 40 px/s mesurés, mouvement réduit, chargement sans saut, erreur, liste vide, case décochée) ; matrice responsive 250 mesures.
 - ⏳ Ressenti sur un vrai téléphone, écran 120 Hz, Safari, lecteur d'écran.
+
+**Branche `analytics-vercel`** (15/11/2026, partie de `main`)
+- ✅ Vercel Web Analytics (`@vercel/analytics` 2.0.1, seule dépendance ajoutée) en production seulement. Testé : développement sans aucun appel ; build de production avec script introuvable, bloqué ou présent (parcours accueil, bandeau, arabe, connexion, Secrétariat identique, aucune erreur de page) ; rendu identique au pixel près avec et sans l'appel.
+- ⏳ Collecte réelle (après déploiement) ; routes `/_vercel/insights/*` face à la réécriture de `vercel.json`.
 
 **Phase 4 — au-delà du MVP** ❌ pas commencée. À ne démarrer qu'une fois les Phases 0-3 stables (voir méthodologie) : versionnage des documents, missions, réunions/discussions de GTT, budget, veille réglementaire, répertoire d'experts, espace national par persona, chatbots.
 
