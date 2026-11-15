@@ -1,14 +1,15 @@
 // ============================================================
 // client/src/pages/Home.jsx
-// Accueil : hero, statistiques, mission + États membres, aperçu des
-// groupes de travail (les cinq) et dernières actualités.
+// Accueil : hero, statistiques, bandeau défilant des États membres,
+// mission, groupes de travail (les cinq) et dernières actualités.
 //
 // - Textes, liens des boutons, deux chiffres et affichage des sections :
 //   modifiables par le Secrétariat (onglet « Page d'accueil »), via
 //   useSiteContent() ; sans surcharge, ce sont les textes des locales.
 // - Chaque section charge SES données de son côté : si un appel échoue,
 //   seule cette section affiche un message discret, le reste s'affiche.
-// - Pas de drapeaux sur l'accueil (les noms des pays seulement).
+// - Drapeaux : uniquement dans le bandeau des États membres
+//   (CountriesBand) ; le hero et le reste de l'accueil n'en ont pas.
 // ============================================================
 
 import { useState, useEffect } from 'react';
@@ -17,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { pickLang } from '../utils/lang';
 import { apiGet } from '../utils/api';
 import { useSiteContent } from '../context/SiteContentContext';
+import CountriesBand from '../components/CountriesBand';
 
 // Une liste publique chargée indépendamment des autres sections.
 function usePublicList(path) {
@@ -88,33 +90,27 @@ function Home() {
         )}
       </section>
 
-      {/* ---------- Mission + États membres (noms seulement) ---------- */}
-      {(showMission || showCountries) && (
+      {/* ---------- États membres : bandeau défilant, pleine largeur ----------
+          Masquable par la case « États membres » du Secrétariat. En cas
+          d'échec, message discret à la place du bandeau ; liste vide :
+          rien. */}
+      {showCountries && (
+        <CountriesBand
+          title={text('homeSections.countriesH')}
+          list={countries}
+          status={<SectionStatus list={countries} />}
+        />
+      )}
+
+      {/* ---------- Mission ---------- */}
+      {showMission && (
         <section className="page-section">
           <div className="container">
-            {showMission && (
-              <div className="section-head">
-                <span className="kicker">{text('homeSections.missionKicker')}</span>
-                <h2>{text('homeSections.missionH')}</h2>
-                <p className="multiline">{text('homeSections.missionP')}</p>
-              </div>
-            )}
-
-            {showCountries && (
-              <div className="home-countries">
-                <h3>{text('homeSections.countriesH')}</h3>
-                <SectionStatus list={countries} />
-                {countries.data.length > 0 && (
-                  <ul>
-                    {countries.data.map((c) => (
-                      <li key={c.id}>
-                        <Link to="/etats-membres">{pickLang(c, 'name', lang)}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
+            <div className="section-head">
+              <span className="kicker">{text('homeSections.missionKicker')}</span>
+              <h2>{text('homeSections.missionH')}</h2>
+              <p className="multiline">{text('homeSections.missionP')}</p>
+            </div>
           </div>
         </section>
       )}

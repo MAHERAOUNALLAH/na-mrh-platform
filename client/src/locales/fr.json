@@ -178,7 +178,9 @@
     "privacyLink": "Confidentialité et conditions d'utilisation"
   },
   "homePage": {
-    "sectionError": "Cette section est momentanément indisponible."
+    "sectionError": "Cette section est momentanément indisponible.",
+    "marqueePause": "Pause",
+    "marqueeLabel": "États membres (bandeau défilant)"
   },
   "adminHome": {
     "save": "Enregistrer",
